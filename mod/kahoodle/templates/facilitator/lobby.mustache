@@ -1,0 +1,112 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/facilitator/lobby
+
+    Lobby stage template - shown while waiting for participants to join.
+
+    Context variables required for this template:
+    * quiztitle - The title of the quiz/kahoodle activity
+    * participantcount - Number of participants who have joined
+    * participants - Array of participant objects with displayname, avatar
+    * cancontrol - Boolean indicating if user can control the quiz (teacher)
+    * backgroundurl - URL for background image
+    * qrcodeurl - URL for the QR code image
+    * joincode - The access code to join the game
+    * countdowntime - Time remaining until game starts (e.g., "4:30")
+
+    Example context (json):
+    {
+        "quiztitle": "Geography & World Facts Quiz",
+        "lobbysize": "l",
+        "participantcount": 5,
+        "participants": [
+            {"participantid": 1, "displayname": "John Doe", "avatarurl": "/user/pix.php/1/f1.jpg"},
+            {"participantid": 2, "displayname": "Jane Smith", "avatarurl": "/user/pix.php/2/f1.jpg"},
+            {"participantid": 3, "displayname": "Alice Johnson", "avatarurl": "/user/pix.php/3/f1.jpg"},
+            {"participantid": 4, "displayname": "Bob Brown", "avatarurl": "/user/pix.php/4/f1.jpg"},
+            {"participantid": 5, "displayname": "Charlie Davis", "avatarurl": "/user/pix.php/5/f1.jpg"},
+            {"participantid": 6, "displayname": "Diana Evans", "avatarurl": "/user/pix.php/6/f1.jpg"},
+            {"participantid": 7, "displayname": "Frank Green", "avatarurl": "/user/pix.php/7/f1.jpg"},
+            {"participantid": 8, "displayname": "Grace Harris", "avatarurl": "/user/pix.php/8/f1.jpg"},
+            {"participantid": 9, "displayname": "Henry Lee", "avatarurl": "/user/pix.php/9/f1.jpg"},
+            {"participantid": 10, "displayname": "Ivy Martin", "avatarurl": "/user/pix.php/10/f1.jpg"},
+            {"participantid": 6, "displayname": "Diana Evans", "avatarurl": "/user/pix.php/6/f1.jpg"},
+            {"participantid": 7, "displayname": "Frank Green", "avatarurl": "/user/pix.php/7/f1.jpg"},
+            {"participantid": 8, "displayname": "Grace Harris", "avatarurl": "/user/pix.php/8/f1.jpg"},
+            {"participantid": 9, "displayname": "Henry Lee", "avatarurl": "/user/pix.php/9/f1.jpg"},
+            {"participantid": 10, "displayname": "Ivy Martin", "avatarurl": "/user/pix.php/10/f1.jpg"}
+        ],
+        "cancontrol": true,
+        "backgroundurl": "/mod/kahoodle/pix/classroom-bg.jpg",
+        "qrcodeurl": "/pluginfile.php/123/mod_kahoodle/qrcode/1/qrcode.svg",
+        "joincode": "ABC123",
+        "countdowntime": "4:30"
+    }
+}}
+<div class="mod_kahoodle-overlay" {{#backgroundurl}}style="background-image: url('{{backgroundurl}}');"{{/backgroundurl}}>
+
+    {{! Header: Game title }}
+    <header class="mod_kahoodle-header">
+        <div class="mod_kahoodle-game-title">{{{quiztitle}}}</div>
+    </header>
+
+    {{! Main content: Participants and QR code }}
+    <main class="mod_kahoodle-lobby-main mod_kahoodle-lobby-size-{{lobbysize}}" data-stage="lobby">
+
+        {{! Participants area (left side) }}
+        <div class="mod_kahoodle-participants-area">
+            <div class="mod_kahoodle-participants-list">
+                {{#participants}}
+                <div class="mod_kahoodle-participant" data-participantid="{{participantid}}">
+                    <img src="{{avatarurl}}" alt="" class="mod_kahoodle-participant-avatar">
+                    <span class="mod_kahoodle-participant-name">{{{displayname}}}</span>
+                </div>
+                {{/participants}}
+            </div>
+        </div>
+
+        {{! QR Code area (right side) }}
+        <div class="mod_kahoodle-qr-area">
+            <div class="mod_kahoodle-qr-code">
+                <img src="{{qrcodeurl}}" alt="{{#str}}joinqrcode, mod_kahoodle{{/str}}" class="mod_kahoodle-qr-image">
+            </div>
+            {{#joincode}}
+            <div class="mod_kahoodle-join-code">
+                <span class="mod_kahoodle-join-label">{{#str}}accesscode, mod_kahoodle{{/str}}</span>
+                <span class="mod_kahoodle-join-value">{{{joincode}}}</span>
+            </div>
+            {{/joincode}}
+        </div>
+
+    </main>
+
+    {{! Status bar: participant count and countdown }}
+    <div class="mod_kahoodle-lobby-status">
+        <div class="mod_kahoodle-participant-count">
+
+            <span class="mod_kahoodle-count-label">{{#str}}participantsjoined, mod_kahoodle, <span class="mod_kahoodle-count-number">{{{participantcount}}}</span>{{/str}}</span>
+        </div>
+        <div class="mod_kahoodle-countdown">
+            <span class="mod_kahoodle-countdown-label">{{#str}}startsin, mod_kahoodle{{/str}}</span>
+            <span class="mod_kahoodle-countdown-time">{{{countdowntime}}}</span>
+        </div>
+    </div>
+
+    {{> mod_kahoodle/facilitator/common/footer }}
+
+</div>

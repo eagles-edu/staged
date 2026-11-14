@@ -1,0 +1,1883 @@
+/* Kahoodle Activity Module - Styles */
+/* All custom classes prefixed with mod_kahoodle- */
+
+/* ========================================
+   COLOR PALETTE
+   ======================================== */
+:root {
+    /* Answer option colors (AAA contrast compatible with white text) */
+    --mod_kahoodle-option1: #9e2b4a;  /* Deep Rose */
+    --mod_kahoodle-option2: #3d4db8;  /* Dark Indigo */
+    --mod_kahoodle-option3: #b84a2e;  /* Burnt Coral */
+    --mod_kahoodle-option4: #007a5e;  /* Forest Teal */
+    --mod_kahoodle-option5: #7b3cb8;  /* Deep Violet */
+    --mod_kahoodle-option6: #8b6508;  /* Dark Amber */
+    --mod_kahoodle-option7: #5d4037;  /* Espresso Brown */
+    --mod_kahoodle-option8: #4a5568;  /* Slate Gray */
+
+    /* UI colors */
+    --mod_kahoodle-dark: #2d3436;
+    --mod_kahoodle-dark-overlay: rgba(45, 52, 54, 0.88);
+    --mod_kahoodle-light: #fff;
+    --mod_kahoodle-muted: rgba(255, 255, 255, 0.7);
+    --mod_kahoodle-progress-bg: rgba(255, 255, 255, 0.2);
+    --mod_kahoodle-progress-fill: #74b9ff;
+
+    /* Shadows */
+    --mod_kahoodle-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --mod_kahoodle-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ========================================
+   QUIZ OVERLAY BASE STYLES
+   ======================================== */
+.mod_kahoodle-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    background-color: var(--mod_kahoodle-dark);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+}
+
+.mod_kahoodle-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--mod_kahoodle-dark-overlay);
+    z-index: 1;
+}
+
+.mod_kahoodle-overlay > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* ========================================
+   HEADER STYLES
+   ======================================== */
+.mod_kahoodle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem 2rem;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-quiz-title {
+    display: none;
+}
+
+.mod_kahoodle-question-counter {
+    color: var(--mod_kahoodle-dark);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: auto;
+    background: var(--mod_kahoodle-light);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    box-shadow: var(--mod_kahoodle-shadow-sm);
+}
+
+/* ========================================
+   MAIN CONTENT AREA
+   ======================================== */
+.mod_kahoodle-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 2rem;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Preview stage: center question text vertically */
+.mod_kahoodle-main[data-stage="preview"] {
+    justify-content: center;
+}
+
+/* Connection lost stage: center content */
+.mod_kahoodle-main[data-stage="connectionlost"] {
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Question text */
+.mod_kahoodle-question {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
+    color: var(--mod_kahoodle-light);
+}
+
+.mod_kahoodle-main[data-stage="preview"] .mod_kahoodle-question {
+    margin-bottom: 0;
+}
+
+.mod_kahoodle-question > h3 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    margin: 0;
+}
+
+/* Question image */
+.mod_kahoodle-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.mod_kahoodle-image {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 12px;
+    box-shadow: var(--mod_kahoodle-shadow);
+    object-fit: contain;
+}
+
+.mod_kahoodle-image-landscape {
+    width: auto;
+    max-height: 100%;
+}
+
+/* Answer options container */
+.mod_kahoodle-options {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 0;
+    margin-top: auto;
+}
+
+.mod_kahoodle-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    max-width: 1400px;
+    margin: 0.2rem auto;
+    width: 100%;
+}
+
+/* Individual answer option */
+.mod_kahoodle-option {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-radius: 8px;
+    min-height: 80px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+.mod_kahoodle-option:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Option colors */
+.mod_kahoodle-option1 {
+    background-color: var(--mod_kahoodle-option1);
+}
+
+.mod_kahoodle-option2 {
+    background-color: var(--mod_kahoodle-option2);
+}
+
+.mod_kahoodle-option3 {
+    background-color: var(--mod_kahoodle-option3);
+}
+
+.mod_kahoodle-option4 {
+    background-color: var(--mod_kahoodle-option4);
+}
+
+.mod_kahoodle-option5 {
+    background-color: var(--mod_kahoodle-option5);
+}
+
+.mod_kahoodle-option6 {
+    background-color: var(--mod_kahoodle-option6);
+}
+
+.mod_kahoodle-option7 {
+    background-color: var(--mod_kahoodle-option7);
+}
+
+.mod_kahoodle-option8 {
+    background-color: var(--mod_kahoodle-option8);
+}
+
+/* Option icon */
+.mod_kahoodle-option-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-option-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: var(--mod_kahoodle-light);
+}
+
+/* Option text */
+.mod_kahoodle-option-text {
+    color: var(--mod_kahoodle-light);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ========================================
+   FOOTER / PROGRESS AREA
+   ======================================== */
+.mod_kahoodle-footer {
+    padding: 1rem 2rem 1.5rem;
+    flex-shrink: 0;
+}
+
+/* Progress bar */
+.mod_kahoodle-progress {
+    margin-bottom: 0.75rem;
+}
+
+.mod_kahoodle-progress-bar {
+    width: 100%;
+    height: 12px;
+    background: var(--mod_kahoodle-progress-bg);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.mod_kahoodle-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mod_kahoodle-progress-fill), #0f8);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+/* Progress bar paused state */
+.mod_kahoodle-progress-paused .mod_kahoodle-progress-fill {
+    background: linear-gradient(90deg, #6b7280, #9ca3af);
+}
+.mod_kahoodle-progress-paused .mod_kahoodle-control-btn[data-action="pause"] {
+    display: none;
+}
+.mod_kahoodle-control-btn[data-action="resume"] {
+    display: none;
+}
+.mod_kahoodle-progress-paused .mod_kahoodle-control-btn[data-action="resume"] {
+    display: inline-block;
+}
+.mod_kahoodle-progress-paused .mod_kahoodle-countdown {
+    display: none;
+}
+
+/* Teacher controls */
+.mod_kahoodle-controls {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mod_kahoodle-controls .mod_kahoodle-control-btn:last-child {
+    margin-left: auto;
+}
+
+.mod_kahoodle-control-btn {
+    color: var(--mod_kahoodle-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.mod_kahoodle-control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--mod_kahoodle-light);
+    text-decoration: none;
+}
+
+/* ========================================
+   LETTER ICONS
+   ======================================== */
+.mod_kahoodle-icon-letter {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+/* ========================================
+   COMPACT OPTIONS (5+ answers)
+   ======================================== */
+.mod_kahoodle-options-many {
+    flex: 0 0 auto;
+}
+
+.mod_kahoodle-options-grid-compact {
+    gap: 0.5rem;
+}
+
+.mod_kahoodle-options-grid-compact .mod_kahoodle-option {
+    padding: 0.6rem 1rem;
+    min-height: 48px;
+}
+
+.mod_kahoodle-options-grid-compact .mod_kahoodle-option-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 0.75rem;
+}
+
+.mod_kahoodle-options-grid-compact .mod_kahoodle-icon-letter {
+    font-size: 1.1rem;
+}
+
+.mod_kahoodle-options-grid-compact .mod_kahoodle-option-text {
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   RESULTS PAGE - BAR CHART
+   ======================================== */
+[data-stage="results"] .mod_kahoodle-question > h3 {
+    font-size: 2rem;
+}
+
+.mod_kahoodle-results-chart {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    flex: 1;
+    min-height: 0;
+    padding: 2rem;
+}
+
+.mod_kahoodle-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 1.5rem;
+    height: 100%;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.mod_kahoodle-chart-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-chart-bar-container {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    min-height: 0;
+}
+
+.mod_kahoodle-chart-bar {
+    width: 100%;
+    min-height: 4px;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 0.75rem;
+    position: relative;
+    box-shadow: var(--mod_kahoodle-shadow-sm);
+}
+
+.mod_kahoodle-bar-count {
+    color: var(--mod_kahoodle-light);
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Count displayed above bar for short bars */
+.mod_kahoodle-bar-count-above {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--mod_kahoodle-light);
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    margin-bottom: 0.25rem;
+}
+
+/* Short bar: show count above, hide count inside */
+.mod_kahoodle-bar-short .mod_kahoodle-bar-count-above {
+    display: block;
+}
+
+.mod_kahoodle-bar-short .mod_kahoodle-bar-count {
+    display: none;
+}
+
+.mod_kahoodle-bar-short .mod_kahoodle-chart-bar {
+    padding-top: 0;
+}
+
+.mod_kahoodle-bar-label {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--mod_kahoodle-light);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Bar colors */
+.mod_kahoodle-bar-option1 {
+    background-color: var(--mod_kahoodle-option1);
+}
+
+.mod_kahoodle-bar-option2 {
+    background-color: var(--mod_kahoodle-option2);
+}
+
+.mod_kahoodle-bar-option3 {
+    background-color: var(--mod_kahoodle-option3);
+}
+
+.mod_kahoodle-bar-option4 {
+    background-color: var(--mod_kahoodle-option4);
+}
+
+.mod_kahoodle-bar-option5 {
+    background-color: var(--mod_kahoodle-option5);
+}
+
+.mod_kahoodle-bar-option6 {
+    background-color: var(--mod_kahoodle-option6);
+}
+
+.mod_kahoodle-bar-option7 {
+    background-color: var(--mod_kahoodle-option7);
+}
+
+.mod_kahoodle-bar-option8 {
+    background-color: var(--mod_kahoodle-option8);
+}
+
+/* Bar label backgrounds - circular badges */
+.mod_kahoodle-bar-label-option1 {
+    background-color: var(--mod_kahoodle-option1);
+}
+
+.mod_kahoodle-bar-label-option2 {
+    background-color: var(--mod_kahoodle-option2);
+}
+
+.mod_kahoodle-bar-label-option3 {
+    background-color: var(--mod_kahoodle-option3);
+}
+
+.mod_kahoodle-bar-label-option4 {
+    background-color: var(--mod_kahoodle-option4);
+}
+
+.mod_kahoodle-bar-label-option5 {
+    background-color: var(--mod_kahoodle-option5);
+}
+
+.mod_kahoodle-bar-label-option6 {
+    background-color: var(--mod_kahoodle-option6);
+}
+
+.mod_kahoodle-bar-label-option7 {
+    background-color: var(--mod_kahoodle-option7);
+}
+
+.mod_kahoodle-bar-label-option8 {
+    background-color: var(--mod_kahoodle-option8);
+}
+
+/* Correct answer indication on bar */
+.mod_kahoodle-bar-correct .mod_kahoodle-chart-bar {
+    box-shadow: 0 0 0 3px var(--mod_kahoodle-light), var(--mod_kahoodle-shadow);
+}
+
+.mod_kahoodle-correct-badge {
+    position: absolute;
+    top: -12px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    background: #00c853;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 200, 83, 0.4);
+    border: 2px solid white;
+}
+
+/* Correct answer indication on option */
+.mod_kahoodle-option-correct {
+    box-shadow: 0 0 0 4px var(--mod_kahoodle-light), var(--mod_kahoodle-shadow);
+    position: relative;
+}
+
+.mod_kahoodle-correct-indicator {
+    position: absolute;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    background: #00c853;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 200, 83, 0.4);
+}
+
+/* ========================================
+   COMPACT OPTIONS (for results view)
+   ======================================== */
+.mod_kahoodle-options-compact {
+    flex: 0;
+    margin-top: auto;
+    padding-bottom: 0.5rem;
+}
+
+.mod_kahoodle-option-compact {
+    padding: 0.5rem 1rem;
+    min-height: 48px;
+}
+
+.mod_kahoodle-option-compact .mod_kahoodle-option-text {
+    font-size: 1.1rem;
+}
+
+.mod_kahoodle-option-icon-compact {
+    width: 32px;
+    height: 32px;
+    margin-right: 0.75rem;
+}
+
+.mod_kahoodle-option-icon-compact .mod_kahoodle-icon-letter {
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+@media (max-width: 992px) {
+    .mod_kahoodle-question > h3 {
+        font-size: 2rem;
+    }
+
+    .mod_kahoodle-option-text {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .mod_kahoodle-options-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mod_kahoodle-question > h3 {
+        font-size: 1.5rem;
+    }
+
+    .mod_kahoodle-header {
+        padding: 1rem;
+    }
+
+    .mod_kahoodle-main {
+        padding: 0 1rem;
+    }
+
+    .mod_kahoodle-footer {
+        padding: 0.75rem 1rem 1rem;
+    }
+}
+
+/* ========================================
+   GAME LOBBY STYLES
+   ======================================== */
+.mod_kahoodle-game-title {
+    color: var(--mod_kahoodle-light);
+    font-size: 2rem;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.mod_kahoodle-lobby-main {
+    flex: 1;
+    display: flex;
+    padding: 0 2rem;
+    gap: 2rem;
+    min-height: 0;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+/* Participants area */
+.mod_kahoodle-participants-area {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.mod_kahoodle-participants-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 0.75rem;
+    height: 100%;
+    overflow: hidden;
+}
+
+.mod_kahoodle-participant {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    padding: 0.4rem 1rem 0.4rem 0.4rem;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.mod_kahoodle-participant:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.02);
+}
+
+.mod_kahoodle-participant-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    background-color: #fff;
+}
+
+.mod_kahoodle-participant-name {
+    color: var(--mod_kahoodle-light);
+    font-size: 0.95rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+/* Lobby participant size variants (base styles above are size "s") */
+.mod_kahoodle-lobby-size-m .mod_kahoodle-participants-list {
+    gap: 0.85rem;
+}
+
+.mod_kahoodle-lobby-size-m .mod_kahoodle-participant {
+    gap: 0.55rem;
+    padding: 0.45rem 1.1rem 0.45rem 0.45rem;
+}
+
+.mod_kahoodle-lobby-size-m .mod_kahoodle-participant-avatar {
+    width: 50px;
+    height: 50px;
+}
+
+.mod_kahoodle-lobby-size-m .mod_kahoodle-participant-name {
+    font-size: 1.15rem;
+}
+
+.mod_kahoodle-lobby-size-l .mod_kahoodle-participants-list {
+    gap: 1rem;
+}
+
+.mod_kahoodle-lobby-size-l .mod_kahoodle-participant {
+    gap: 0.6rem;
+    padding: 0.5rem 1.25rem 0.5rem 0.5rem;
+}
+
+.mod_kahoodle-lobby-size-l .mod_kahoodle-participant-avatar {
+    width: 80px;
+    height: 80px;
+}
+
+.mod_kahoodle-lobby-size-l .mod_kahoodle-participant-name {
+    font-size: 1.5rem;
+}
+
+.mod_kahoodle-lobby-size-xl .mod_kahoodle-participants-list {
+    gap: 1.25rem;
+}
+
+.mod_kahoodle-lobby-size-xl .mod_kahoodle-participant {
+    gap: 0.75rem;
+    padding: 0.6rem 1.5rem 0.6rem 0.6rem;
+}
+
+.mod_kahoodle-lobby-size-xl .mod_kahoodle-participant-avatar {
+    width: 100px;
+    height: 100px;
+}
+
+.mod_kahoodle-lobby-size-xl .mod_kahoodle-participant-name {
+    font-size: 2rem;
+}
+
+/* QR Code area */
+.mod_kahoodle-qr-area {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mod_kahoodle-qr-code {
+    background: var(--mod_kahoodle-light);
+    padding: 1rem;
+    border-radius: 16px;
+    box-shadow: var(--mod_kahoodle-shadow);
+}
+
+.mod_kahoodle-qr-image {
+    width: 200px;
+    height: 200px;
+    display: block;
+}
+
+.mod_kahoodle-join-code {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.mod_kahoodle-join-label {
+    color: var(--mod_kahoodle-muted);
+    font-size: 0.875rem;
+}
+
+.mod_kahoodle-join-value {
+    color: var(--mod_kahoodle-light);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Lobby status bar */
+.mod_kahoodle-lobby-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: rgba(0, 0, 0, 0.2);
+    margin: 0 2rem;
+    border-radius: 12px;
+}
+
+.mod_kahoodle-participant-count {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.mod_kahoodle-count-number {
+    color: var(--mod_kahoodle-light);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-right: 0.15rem;
+}
+
+.mod_kahoodle-count-label {
+    color: var(--mod_kahoodle-muted);
+    font-size: 1rem;
+}
+
+.mod_kahoodle-countdown {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.mod_kahoodle-countdown-label {
+    color: var(--mod_kahoodle-muted);
+    font-size: 1rem;
+}
+
+.mod_kahoodle-countdown-time {
+    color: #0f8;
+    font-size: 2rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Lobby responsive adjustments */
+@media (max-width: 992px) {
+    .mod_kahoodle-lobby-main {
+        flex-direction: column;
+    }
+
+    /* QR code above participants on mobile */
+    .mod_kahoodle-qr-area {
+        order: -1;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .mod_kahoodle-qr-image {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mod_kahoodle-lobby-main {
+        padding: 0 1rem;
+    }
+
+    .mod_kahoodle-lobby-status {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin: 0 1rem 1rem;
+    }
+
+    .mod_kahoodle-game-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* ========================================
+   PARTICIPANT LOBBY SCREEN
+   ======================================== */
+
+.mod_kahoodle-participant-body {
+    margin: 0;
+    padding: 0;
+    min-height: 100dvh;
+    background-color: #2a2a2a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #fff;
+}
+
+.mod_kahoodle-participant-container {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.mod_kahoodle-participant-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    z-index: 10;
+}
+
+.mod_kahoodle-participant-close:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mod_kahoodle-participant-header {
+    padding-top: 2rem;
+    text-align: center;
+}
+
+.mod_kahoodle-participant-activity {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.mod_kahoodle-participant-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.mod_kahoodle-participant-joining-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+}
+
+.mod_kahoodle-participant-avatar-wrapper {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.mod_kahoodle-participant-avatar-wrapper .mod_kahoodle-participant-avatar-circle {
+    width: 156px;
+    height: 156px;
+    border-radius: 50%;
+    background-color: #fff;
+    overflow: hidden;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.mod_kahoodle-participant-avatar-wrapper .mod_kahoodle-participant-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mod_kahoodle-participant-avatar-wrapper .mod_kahoodle-participant-edit-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.mod_kahoodle-participant-avatar-wrapper .mod_kahoodle-participant-edit-btn:hover {
+    transform: scale(1.1);
+    background-color: #f0f0f0;
+}
+
+.mod_kahoodle-participant-avatar-wrapper .mod_kahoodle-participant-edit-btn svg {
+    color: #333;
+}
+
+.mod_kahoodle-participant-container .mod_kahoodle-participant-display-name {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+    text-align: center;
+}
+
+.mod_kahoodle-participant-footer {
+    padding-bottom: 2rem;
+}
+
+.mod_kahoodle-participant-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.2rem;
+}
+
+.mod_kahoodle-participant-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    animation: mod_kahoodle-spin 1s linear infinite;
+}
+
+@keyframes mod_kahoodle-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Participant lobby responsive - larger screens */
+@media (min-width: 768px) {
+    .mod_kahoodle-participant-activity {
+        font-size: 1.5rem;
+    }
+
+    .mod_kahoodle-participant-container .mod_kahoodle-participant-display-name {
+        font-size: 1.75rem;
+    }
+}
+
+/* ========================================
+   AVATAR PICKER OVERLAY
+   ======================================== */
+
+.mod_kahoodle-avatar-picker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #2a2a2a;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.mod_kahoodle-avatar-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-avatar-picker-title {
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.mod_kahoodle-avatar-picker-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.mod_kahoodle-avatar-picker-close:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mod_kahoodle-avatar-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 126px);
+    gap: 1.25rem 3.75rem;
+    justify-content: center;
+    overflow-y: auto;
+    min-height: 0;
+    flex: 1;
+    padding: 0.25rem;
+}
+
+.mod_kahoodle-avatar-picker-item {
+    width: 126px;
+    height: 126px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid transparent;
+    background: #fff;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.mod_kahoodle-avatar-picker-item:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.08);
+}
+
+.mod_kahoodle-avatar-picker-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.mod_kahoodle-avatar-picker-more {
+    flex-shrink: 0;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.mod_kahoodle-avatar-picker-more:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.mod_kahoodle-avatar-picker-more:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   LEADERBOARD STYLES
+   ======================================== */
+
+.mod_kahoodle-revision-title {
+    color: var(--mod_kahoodle-light);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    text-align: center;
+}
+
+.mod_kahoodle-overlay-solid {
+    background-color: var(--mod_kahoodle-dark);
+    background-image: none;
+}
+
+.mod_kahoodle-overlay-solid::before {
+    display: none;
+}
+
+.mod_kahoodle-leaderboard-main {
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mod_kahoodle-leaderboard-title {
+    color: var(--mod_kahoodle-light);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-leaderboard-container {
+    flex: 1;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.mod_kahoodle-leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.mod_kahoodle-leaderboard-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 0.5rem 1.5rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.mod_kahoodle-leaderboard-row:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: scale(1.01);
+}
+
+.mod_kahoodle-leaderboard-rank {
+    color: var(--mod_kahoodle-muted);
+    font-size: 1.25rem;
+    font-weight: 700;
+    width: 2rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-leaderboard-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-color: #fff;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.mod_kahoodle-leaderboard-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mod_kahoodle-leaderboard-name {
+    flex: 1;
+    color: var(--mod_kahoodle-light);
+    font-size: 1.5rem;
+    font-weight: 600;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mod_kahoodle-leaderboard-score {
+    color: var(--mod_kahoodle-light);
+    font-size: 1.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-leaderboard-change {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-leaderboard-up {
+    color: #00c853;
+}
+
+.mod_kahoodle-leaderboard-down {
+    color: #ff5252;
+}
+
+.mod_kahoodle-leaderboard-status {
+    color: var(--mod_kahoodle-muted);
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 1rem 0;
+    flex-shrink: 0;
+}
+
+/* Leaderboard responsive */
+@media (max-width: 768px) {
+    .mod_kahoodle-revision-title {
+        font-size: 1.25rem;
+    }
+
+    .mod_kahoodle-leaderboard-title {
+        font-size: 1.75rem;
+    }
+
+    .mod_kahoodle-leaderboard-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .mod_kahoodle-leaderboard-name {
+        font-size: 1.1rem;
+    }
+
+    .mod_kahoodle-leaderboard-score {
+        font-size: 1.25rem;
+    }
+
+    .mod_kahoodle-leaderboard-row {
+        padding: 0.5rem 0.5rem;
+        gap: 0.25rem;
+    }
+
+    .mod_kahoodle-leaderboard-rank {
+        font-size: 1rem;
+        width: 1.5rem;
+    }
+}
+
+/* ========================================
+   PARTICIPANT RESULT SCREEN
+   ======================================== */
+
+.mod_kahoodle-participant-result-container {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.mod_kahoodle-participant-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-participant-question-pill {
+    background: var(--mod_kahoodle-light);
+    color: var(--mod_kahoodle-dark);
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.35rem 0.85rem;
+    border-radius: 16px;
+    box-shadow: var(--mod_kahoodle-shadow-sm);
+}
+
+.mod_kahoodle-participant-quiz-title {
+    color: var(--mod_kahoodle-light);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.35rem 0;
+}
+
+.mod_kahoodle-participant-result-header .mod_kahoodle-participant-close {
+    position: static;
+}
+
+/* Result content - centered */
+.mod_kahoodle-participant-preview-content,
+.mod_kahoodle-participant-question-content,
+.mod_kahoodle-participant-result-content,
+.mod_kahoodle-participant-revision-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 1rem;
+    width: 100%;
+}
+
+.mod_kahoodle-participant-result-status {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--mod_kahoodle-light);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mod_kahoodle-participant-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5rem 0;
+}
+
+.mod_kahoodle-participant-revision-content .mod_kahoodle-participant-icon {
+    width: 200px;
+    height: 150px;
+}
+
+.mod_kahoodle-result-correct {
+    background: linear-gradient(135deg, #00c853, #00a844);
+    box-shadow: 0 8px 32px rgba(0, 200, 83, 0.4);
+    color: white;
+}
+
+.mod_kahoodle-result-incorrect {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+    box-shadow: 0 8px 32px rgba(244, 67, 54, 0.4);
+    color: white;
+}
+
+.mod_kahoodle-result-timeout {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    box-shadow: 0 8px 32px rgba(255, 152, 0, 0.4);
+    color: white;
+}
+
+.mod_kahoodle-result-preview {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    box-shadow: 0 8px 32px rgba(33, 150, 243, 0.4);
+    color: white;
+}
+
+.mod_kahoodle-result-question {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    box-shadow: 0 8px 32px rgba(156, 39, 176, 0.4);
+    color: white;
+}
+
+.mod_kahoodle-result-answered {
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+    box-shadow: 0 8px 32px rgba(76, 175, 80, 0.4);
+    color: white;
+}
+
+.mod_kahoodle-result-connectionlost {
+    background: linear-gradient(135deg, #78909c, #546e7a);
+    box-shadow: 0 8px 32px rgba(84, 110, 122, 0.4);
+    color: white;
+}
+
+.mod_kahoodle-connectionlost-refresh {
+    margin-top: 1rem;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--mod_kahoodle-dark);
+    background: var(--mod_kahoodle-light);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.mod_kahoodle-participant-result-score {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #0f8;
+    text-shadow: 0 2px 12px rgba(0, 255, 136, 0.4);
+}
+
+.mod_kahoodle-participant-rank {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    max-width: 280px;
+}
+
+.mod_kahoodle-participant-result-content .mod_kahoodle-participant-rank {
+    min-height: 5rem;
+}
+
+/* Footer bar with user info */
+.mod_kahoodle-participant-result-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.75rem 1rem;
+    border-radius: 12px 12px 0 0;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.mod_kahoodle-participant-result-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mod_kahoodle-participant-result-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #fff;
+    object-fit: cover;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.mod_kahoodle-participant-result-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--mod_kahoodle-dark);
+}
+
+.mod_kahoodle-participant-result-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.mod_kahoodle-participant-result-total-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.mod_kahoodle-participant-result-total-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--mod_kahoodle-dark);
+}
+
+/* Participant result responsive - large screens */
+@media (min-width: 501px) {
+    .mod_kahoodle-overlay-solid .mod_kahoodle-participant-body {
+        background-color: #4a4a4a;
+    }
+
+    .mod_kahoodle-overlay-solid .mod_kahoodle-participant-container {
+        background-color: #2a2a2a;
+        border-radius: 12px 12px 0 0;
+    }
+}
+
+.mod_kahoodle-participant-result-status {
+    font-size: 2rem;
+}
+
+.mod_kahoodle-participant-revision-content .mod_kahoodle-participant-icon img {
+    max-width: 200px;
+    max-height: 150px;
+}
+
+.mod_kahoodle-participant-result-score {
+    font-size: 2.5rem;
+}
+
+/* ========================================
+   PARTICIPANT MULTICHOICE OPTIONS
+   ======================================== */
+/* Override centering when options are present */
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"]:has(.mod_kahoodle-options) {
+    justify-content: stretch;
+    padding: 0.75rem;
+    gap: 0;
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-options {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-options-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-options-grid-compact {
+    grid-template-rows: repeat(4, 1fr);
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    height: 100%;
+    padding: 1rem;
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-option-icon {
+    width: 60px;
+    height: 60px;
+    margin-right: 0;
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-icon-letter {
+    font-size: 2rem;
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-option-selected {
+    opacity: 1;
+    transform: scale(0.98);
+    box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-option-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mod_kahoodle-participant-question-content[data-questiontype="multichoice"] .mod_kahoodle-option-disabled:hover {
+    transform: none;
+}
+
+/* ========================================
+   WAITING AFTER ANSWER
+   ======================================== */
+.mod_kahoodle-waiting-icon {
+    width: 80px;
+    height: 80px;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+/* ========================================
+   PODIUM STAGE STYLES
+   ======================================== */
+
+.mod_kahoodle-podium-title {
+    color: var(--mod_kahoodle-light);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-align: center;
+    flex-shrink: 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.mod_kahoodle-podium-container {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    position: relative;
+}
+
+/* Winners positioned above the podium */
+.mod_kahoodle-podium-winners {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.mod_kahoodle-podium-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Position each place to match the SVG podium layout */
+/* 1st place (center) - tallest, no padding */
+.mod_kahoodle-podium-rank1 {
+    flex: 1;
+}
+
+/* 2nd place (left) - medium height */
+.mod_kahoodle-podium-rank2 {
+    flex: 1;
+    padding-top: 4rem;
+}
+
+/* 3rd place (right) - shortest */
+.mod_kahoodle-podium-rank3 {
+    flex: 1;
+    padding-top: 5rem;
+}
+
+/* Single winner display */
+.mod_kahoodle-podium-winner-single {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mod_kahoodle-podium-avatar-large {
+    width: 108px;
+    height: 108px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #fff;
+    border: 4px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mod_kahoodle-podium-rank1 .mod_kahoodle-podium-avatar-large {
+    width: 140px;
+    height: 140px;
+    border-width: 5px;
+    border-color: #f0d060;
+    box-shadow: 0 4px 30px rgba(240, 208, 96, 0.5);
+}
+
+.mod_kahoodle-podium-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mod_kahoodle-podium-winner-name {
+    color: var(--mod_kahoodle-light);
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mod_kahoodle-podium-rank1 .mod_kahoodle-podium-winner-name {
+    font-size: 1.5rem;
+    max-width: 250px;
+}
+
+/* Rank1 tie - larger pills for 1st place */
+.mod_kahoodle-podium-rank1 .mod_kahoodle-podium-winner-pill {
+    padding: 0.5rem 1.25rem 0.5rem 0.5rem;
+}
+
+.mod_kahoodle-podium-rank1 .mod_kahoodle-podium-pill-avatar {
+    width: 70px;
+    height: 70px;
+    border-width: 3px;
+    border-color: #f0d060;
+}
+
+.mod_kahoodle-podium-rank1 .mod_kahoodle-podium-pill-name {
+    font-size: 1.25rem;
+    max-width: 200px;
+}
+
+/* Tie display - pill layout like lobby */
+.mod_kahoodle-podium-winners-tie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 280px;
+}
+
+.mod_kahoodle-podium-winner-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    padding: 0.35rem 1rem 0.35rem 0.35rem;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.mod_kahoodle-podium-winner-pill:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.02);
+}
+
+.mod_kahoodle-podium-pill-avatar {
+    width: 39px;
+    height: 39px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.mod_kahoodle-podium-pill-name {
+    color: var(--mod_kahoodle-light);
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mod_kahoodle-podium-more {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Podium SVG container */
+.mod_kahoodle-podium-svg {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.mod_kahoodle-podium-graphic {
+    width: auto;
+    height: 100%;
+}
+
+/* Podium responsive - hide on small screens */
+@media (max-width: 992px) {
+    .mod_kahoodle-podium-main {
+        display: none;
+    }
+}
+
+/* Podium responsive - large screens */
+@media (min-width: 1200px) {
+    .mod_kahoodle-podium-winner-name {
+        font-size: 1.5rem;
+        max-width: 250px;
+    }
+
+    .mod_kahoodle-podium-rank1 .mod_kahoodle-podium-winner-name {
+        font-size: 1.75rem;
+        max-width: 300px;
+    }
+
+    .mod_kahoodle-podium-pill-name {
+        font-size: 1rem;
+    }
+}
+
+.mod_kahoodle-leaderboard-main[data-stage="revision"][data-substage="none"] .mod_kahoodle-leaderboard-container,
+.mod_kahoodle-leaderboard-main[data-stage="revision"][data-substage="podium"] .mod_kahoodle-leaderboard-container {
+    display: none;
+}
+
+.mod_kahoodle-leaderboard-main[data-stage="revision"][data-substage="none"] .mod_kahoodle-podium-container,
+.mod_kahoodle-leaderboard-main[data-stage="revision"][data-substage="leaders"] .mod_kahoodle-podium-container {
+    display: none;
+}
+
+/* ========================================
+   JOIN FORM - IDENTITY PICKER
+   ======================================== */
+.mod_kahoodle-identity-img {
+    vertical-align: middle;
+    background-color: #fff;
+}
+
+.mod-kahoodle-landing input[type="text"] {
+    height: calc(1.5em + 1rem + 2px);
+    padding: .5rem 1rem;
+    font-size: 1.171875rem;
+    line-height: 1.5;
+    border-radius: .6rem;
+}

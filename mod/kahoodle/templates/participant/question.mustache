@@ -1,0 +1,49 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/participant/question
+
+    Shown to participants during the question stage.
+
+    Context variables:
+    * sortorder - Current question number
+    * answered - Whether the participant has answered
+
+    Example context (json):
+    {
+        "sortorder": 1,
+        "answered": true,
+        "avatarurl": "/user/pix.php/2/f1.jpg",
+        "displayname": "Alex Johnson"
+    }
+}}
+{{< mod_kahoodle/participant/common/base }}
+{{$ main_content }}
+{{> mod_kahoodle/participant/common/questionheader }}
+
+<div class="mod_kahoodle-participant-question-content">
+    {{^answered}}
+    {{! Question type specific content - answer options }}
+    {{/answered}}
+    {{#answered}}
+    {{> mod_kahoodle/participant/common/waiting_after_answer }}
+    {{/answered}}
+</div>
+
+{{> mod_kahoodle/participant/common/participantinfo }}
+{{/ main_content }}
+{{/ mod_kahoodle/participant/common/base }}

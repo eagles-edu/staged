@@ -1,0 +1,1133 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Steps definitions related with the mootyper activity.
+ *
+ * @package mod_mootyper
+ * @category test
+ * @copyright 2015 The Open University
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+// NOTE: no MOODLE_INTERNAL test here, this file may be required by behat before including /config.php.
+
+require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
+
+use Behat\Behat\Context\Step\Given,
+Behat\Gherkin\Node\TableNode;
+use Behat\Behat\Context\Step\Then;
+use Behat\Mink\Exception\ElementNotFoundException;
+
+/**
+ * mootyper-related steps definitions.
+ *
+ * @package    mod_mootyper
+ * @category   test
+ * @copyright  2015 The Open University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class behat_mod_mootyper extends behat_base {
+    /** @var int Seeded mootyper id for delete-guard regression checks. */
+    protected $seededmootyperid = 0;
+
+    /** @var int Seeded user id for delete-guard regression checks. */
+    protected $seededuserid = 0;
+
+    /** @var int Older seeded grade id. */
+    protected $seededoldergradeid = 0;
+
+    /** @var int Newer seeded grade id. */
+    protected $seedednewergradeid = 0;
+
+    /**
+     * Resolve the current MooTyper instance id from page state.
+     *
+     * @return int
+     */
+    protected function get_current_mootyper_id_from_page(): int {
+        $mootyperid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpSityperId\"]') || {}).value || '0', 10);"
+        );
+        if (!empty($mootyperid)) {
+            return $mootyperid;
+        }
+
+        $url = $this->getSession()->getCurrentUrl();
+        $query = parse_url($url, PHP_URL_QUERY);
+        if (!empty($query)) {
+            parse_str($query, $params);
+            if (!empty($params['id'])) {
+                $cm = get_coursemodule_from_id('mootyper', (int)$params['id'], 0, false, MUST_EXIST);
+                return (int)$cm->instance;
+            }
+            if (!empty($params['n'])) {
+                return (int)$params['n'];
+            }
+        }
+
+        throw new \Exception('Unable to detect current MooTyper id from page state.');
+    }
+
+    /**
+     * Seed a tiny lesson and configure the current MooTyper to use it.
+     *
+     * @Given /^the current mootyper uses layout "([^"]*)" with a tiny lesson "([^"]*)" containing "([^"]*)"$/
+     * @param string $layoutname
+     * @param string $lessonname
+     * @param string $texttotype
+     */
+    public function thecurrentmootyperuseslayoutwithatinylessoncontaining($layoutname, $lessonname, $texttotype) {
+        global $DB, $USER;
+
+        $mootyperid = $this->get_current_mootyper_id_from_page();
+        $mootyper = $DB->get_record('mootyper', ['id' => $mootyperid], '*', MUST_EXIST);
+        $layout = $DB->get_record('mootyper_layouts', ['name' => $layoutname], '*', MUST_EXIST);
+
+        $lesson = new \stdClass();
+        $lesson->lessonname = $lessonname;
+        $lesson->authorid = !empty($USER->id) ? $USER->id : 0;
+        $lesson->visible = 0;
+        $lesson->editable = 2;
+        $lesson->courseid = $mootyper->course;
+        $lessonid = $DB->insert_record('mootyper_lessons', $lesson, true);
+
+        $exercise = new \stdClass();
+        $exercise->texttotype = str_replace(["\r\n", "\r", "\n"], '\\n', $texttotype);
+        $exercise->exercisename = 'Behat harness exercise';
+        $exercise->lesson = $lessonid;
+        $exercise->snumber = 1;
+        $DB->insert_record('mootyper_exercises', $exercise, true);
+
+        $update = new \stdClass();
+        $update->id = $mootyper->id;
+        $update->lesson = $lessonid;
+        $update->exercise = 0;
+        $update->layout = $layout->id;
+        $update->isexam = 0;
+        $update->showkeyboard = 1;
+        $update->continuoustype = 0;
+        $update->countmistypedspaces = 0;
+        $update->countmistakes = 0;
+        $update->completionexercise = 1;
+        $update->timemodified = time();
+        $DB->update_record('mootyper', $update);
+    }
+
+    /**
+     * Assert Continue gate behavior directly in the browser:
+     * Enter key on Continue must not submit, mouse click must submit.
+     *
+     * @Then /^mootyper Continue gate should block Enter and allow click$/
+     */
+    public function mootypercontinuegateshouldblockenterandallowclick() {
+        $script = "
+            window.__mootypergateresult = 'not_set';
+            try {
+                var btn = document.getElementById('btnContinue');
+                var form = document.getElementById('form1');
+                if (!btn) {
+                    window.__mootypergateresult = 'missing_btn';
+                } else if (!form) {
+                    window.__mootypergateresult = 'missing_form';
+                } else {
+                    window.__mootypersubmitcount = 0;
+                    var intercept = function(e) {
+                        window.__mootypersubmitcount++;
+                        if (e && typeof e.preventDefault === 'function') {
+                            e.preventDefault();
+                        }
+                        return false;
+                    };
+
+                    form.addEventListener('submit', intercept, true);
+
+                    window.ended = true;
+                    btn.style.visibility = 'visible';
+                    btn.disabled = false;
+                    btn.focus();
+
+                    ['keydown', 'keypress', 'keyup'].forEach(function(type) {
+                        var ev = new KeyboardEvent(type, {
+                            bubbles: true,
+                            cancelable: true,
+                            key: 'Enter',
+                            code: 'Enter',
+                            keyCode: 13,
+                            which: 13
+                        });
+                        btn.dispatchEvent(ev);
+                    });
+
+                    var afterenter = window.__mootypersubmitcount;
+
+                    var clickEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    btn.dispatchEvent(clickEvent);
+
+                    var afterclick = window.__mootypersubmitcount;
+                    var clickaccepted = !!window.continueSubmitting;
+                    form.removeEventListener('submit', intercept, true);
+
+                    if (afterenter !== 0) {
+                        window.__mootypergateresult = 'enter_submitted:' + afterenter;
+                    } else if (afterclick < 1 && !clickaccepted) {
+                        window.__mootypergateresult = 'click_not_accepted';
+                    } else {
+                        window.__mootypergateresult = 'ok';
+                    }
+                }
+            } catch (e) {
+                window.__mootypergateresult = 'js_error:' + (e && e.message ? e.message : String(e));
+            }
+        ";
+
+        $this->getSession()->executeScript($script);
+        $result = $this->getSession()->evaluateScript('window.__mootypergateresult || "empty_result";');
+        if ($result !== 'ok') {
+            throw new \Exception('Continue gate assertion failed: ' . $result);
+        }
+    }
+
+    /**
+     * Create a completed grade record for the current MooTyper exercise shown on page.
+     *
+     * @Given /^I create a completed mootyper grade for the current exercise$/
+     */
+    public function icreateacompletedmootypergradeforthecurrentexercise() {
+        global $DB, $USER;
+
+        $mootyperid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpSityperId\"]') || {}).value || '0', 10);"
+        );
+            $pageuserid = (int)$this->getSession()->evaluateScript(
+                "parseInt((document.querySelector('input[name=\"rpUser\"]') || {}).value || '0', 10);"
+            );
+        if (empty($mootyperid) || empty($pageuserid)) {
+            throw new \Exception('Unable to detect MooTyper id or page user id from current page context.');
+        }
+
+        $mootyper = $DB->get_record('mootyper', ['id' => $mootyperid], '*', MUST_EXIST);
+        $mootyperupdate = new \stdClass();
+        $mootyperupdate->id = $mootyper->id;
+        $mootyperupdate->isexam = '0';
+        $mootyperupdate->lesson = !empty($mootyper->lesson) ? $mootyper->lesson : 1;
+        $DB->update_record('mootyper', $mootyperupdate);
+        $mootyper = $DB->get_record('mootyper', ['id' => $mootyperid], '*', MUST_EXIST);
+        $exercise = $DB->get_record('mootyper_exercises', [
+            'lesson' => $mootyper->lesson,
+            'snumber' => 1,
+        ], '*', MUST_EXIST);
+        $exerciseid = (int)$exercise->id;
+
+        if (empty($exerciseid)) {
+            throw new \Exception('Unable to resolve lesson exercise id for progression setup.');
+        }
+
+        $attempt = (object)[
+            'mootyperid' => $mootyperid,
+                'userid' => $pageuserid,
+            'timetaken' => time() - 5,
+            'inprogress' => 0,
+            'suspicion' => 0,
+        ];
+        $attemptid = $DB->insert_record('mootyper_attempts', $attempt, true);
+
+        $grade = (object)[
+            'mootyper' => $mootyperid,
+                'userid' => $pageuserid,
+            'grade' => 100,
+            'mistakes' => 0,
+            'timeinseconds' => 1,
+            'hitsperminute' => 60,
+            'fullhits' => 1,
+            'precisionfield' => 100,
+            'timetaken' => time(),
+            'exercise' => $exerciseid,
+            'pass' => 1,
+            'attemptid' => $attemptid,
+            'wpm' => 12,
+            'mistakedetails' => get_string('nomistakes', 'mootyper'),
+        ];
+
+        $DB->insert_record('mootyper_grades', $grade, false);
+    }
+
+    /**
+     * Create a failed grade record for the current MooTyper exercise shown on page.
+     *
+     * @Given /^I create a failed mootyper grade for the current exercise$/
+     */
+    public function icreateafailedmootypergradeforthecurrentexercise() {
+        global $DB;
+
+        $mootyperid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpSityperId\"]') || {}).value || '0', 10);"
+        );
+        $pageuserid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpUser\"]') || {}).value || '0', 10);"
+        );
+        if (empty($mootyperid) || empty($pageuserid)) {
+            throw new \Exception('Unable to detect MooTyper id or page user id from current page context.');
+        }
+
+        $mootyper = $DB->get_record('mootyper', ['id' => $mootyperid], '*', MUST_EXIST);
+        $mootyperupdate = new \stdClass();
+        $mootyperupdate->id = $mootyper->id;
+        $mootyperupdate->isexam = '0';
+        $mootyperupdate->lesson = !empty($mootyper->lesson) ? $mootyper->lesson : 1;
+        $DB->update_record('mootyper', $mootyperupdate);
+        $mootyper = $DB->get_record('mootyper', ['id' => $mootyperid], '*', MUST_EXIST);
+        $exercise = $DB->get_record('mootyper_exercises', [
+            'lesson' => $mootyper->lesson,
+            'snumber' => 1,
+        ], '*', MUST_EXIST);
+        $exerciseid = (int)$exercise->id;
+
+        if (empty($exerciseid)) {
+            throw new \Exception('Unable to resolve lesson exercise id for progression setup.');
+        }
+
+        $attempt = (object)[
+            'mootyperid' => $mootyperid,
+            'userid' => $pageuserid,
+            'timetaken' => time() - 5,
+            'inprogress' => 0,
+            'suspicion' => 0,
+        ];
+        $attemptid = $DB->insert_record('mootyper_attempts', $attempt, true);
+
+        $grade = (object)[
+            'mootyper' => $mootyperid,
+            'userid' => $pageuserid,
+            'grade' => 40,
+            'mistakes' => 5,
+            'timeinseconds' => 5,
+            'hitsperminute' => 30,
+            'fullhits' => 5,
+            'precisionfield' => 40,
+            'timetaken' => time(),
+            'exercise' => $exerciseid,
+            'pass' => 0,
+            'attemptid' => $attemptid,
+            'wpm' => 6,
+            'mistakedetails' => 'failed_for_progression_test',
+        ];
+
+        $DB->insert_record('mootyper_grades', $grade, false);
+    }
+
+    /**
+     * Seed two completed grades so one is non-latest for delete-guard testing.
+     *
+     * @Given /^I seed two completed mootyper grades for the current user$/
+     */
+    public function iseedtwocompletedmootypergradesforthecurrentuser() {
+        global $DB;
+
+        $mootyperid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpSityperId\"]') || {}).value || '0', 10);"
+        );
+        $pageuserid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpUser\"]') || {}).value || '0', 10);"
+        );
+        if (empty($mootyperid) || empty($pageuserid)) {
+            throw new \Exception('Unable to detect MooTyper id or page user id from current page context.');
+        }
+
+        $mootyper = $DB->get_record('mootyper', ['id' => $mootyperid], '*', MUST_EXIST);
+        $lessonid = (int)$mootyper->lesson;
+        $exercisecandidates = $DB->get_records(
+            'mootyper_exercises',
+            ['lesson' => $lessonid],
+            'snumber ASC, id ASC',
+            'id,snumber',
+            0,
+            2
+        );
+
+        if (count($exercisecandidates) < 2) {
+            throw new \Exception('Need at least two exercises in the selected lesson for delete-guard regression test.');
+        }
+
+        $exercises = array_values($exercisecandidates);
+        $olderexerciseid = (int)$exercises[0]->id;
+        $newerexerciseid = (int)$exercises[1]->id;
+
+        $oldattempt = (object)[
+            'mootyperid' => $mootyperid,
+            'userid' => $pageuserid,
+            'timetaken' => time() - 120,
+            'inprogress' => 0,
+            'suspicion' => 0,
+        ];
+        $oldattemptid = $DB->insert_record('mootyper_attempts', $oldattempt, true);
+
+        $oldgrade = (object)[
+            'mootyper' => $mootyperid,
+            'userid' => $pageuserid,
+            'grade' => 100,
+            'mistakes' => 0,
+            'timeinseconds' => 1,
+            'hitsperminute' => 60,
+            'fullhits' => 1,
+            'precisionfield' => 100,
+            'timetaken' => time() - 120,
+            'exercise' => $olderexerciseid,
+            'pass' => 1,
+            'attemptid' => $oldattemptid,
+            'wpm' => 12,
+            'mistakedetails' => get_string('nomistakes', 'mootyper'),
+        ];
+        $oldergradeid = (int)$DB->insert_record('mootyper_grades', $oldgrade, true);
+
+        $newattempt = (object)[
+            'mootyperid' => $mootyperid,
+            'userid' => $pageuserid,
+            'timetaken' => time() - 60,
+            'inprogress' => 0,
+            'suspicion' => 0,
+        ];
+        $newattemptid = $DB->insert_record('mootyper_attempts', $newattempt, true);
+
+        $newgrade = (object)[
+            'mootyper' => $mootyperid,
+            'userid' => $pageuserid,
+            'grade' => 100,
+            'mistakes' => 0,
+            'timeinseconds' => 1,
+            'hitsperminute' => 60,
+            'fullhits' => 1,
+            'precisionfield' => 100,
+            'timetaken' => time() - 60,
+            'exercise' => $newerexerciseid,
+            'pass' => 1,
+            'attemptid' => $newattemptid,
+            'wpm' => 12,
+            'mistakedetails' => get_string('nomistakes', 'mootyper'),
+        ];
+        $newergradeid = (int)$DB->insert_record('mootyper_grades', $newgrade, true);
+
+        $this->seededmootyperid = $mootyperid;
+        $this->seededuserid = $pageuserid;
+        $this->seededoldergradeid = $oldergradeid;
+        $this->seedednewergradeid = $newergradeid;
+    }
+
+    /**
+     * Seed a latest grade for a named user in the current activity.
+     *
+     * @Given /^I seed a completed mootyper grade for user "([^"]+)"$/
+     * @param string $username
+     */
+    public function iseedacompletedmootypergradeforuser(string $username): void {
+        global $DB;
+
+        $mootyperid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpSityperId\"]') || {}).value || '0', 10);"
+        );
+        $mootyper = $DB->get_record('mootyper', ['id' => $mootyperid], '*', MUST_EXIST);
+        $user = $DB->get_record('user', ['username' => $username], 'id', MUST_EXIST);
+        $exercise = $DB->get_record_sql(
+            "SELECT id
+               FROM {mootyper_exercises}
+              WHERE lesson = :lesson
+           ORDER BY snumber ASC, id ASC",
+            ['lesson' => $mootyper->lesson],
+            IGNORE_MULTIPLE
+        );
+        if (!$exercise) {
+            throw new \Exception('Unable to resolve an exercise for the current MooTyper lesson.');
+        }
+        $attempt = (object)[
+            'mootyperid' => $mootyperid,
+            'userid' => $user->id,
+            'timetaken' => time() - 60,
+            'inprogress' => 0,
+            'suspicion' => 0,
+        ];
+        $attemptid = $DB->insert_record('mootyper_attempts', $attempt, true);
+        $grade = (object)[
+            'mootyper' => $mootyperid,
+            'userid' => $user->id,
+            'grade' => 100,
+            'mistakes' => 0,
+            'timeinseconds' => 1,
+            'hitsperminute' => 60,
+            'fullhits' => 1,
+            'precisionfield' => 100,
+            'timetaken' => time() - 60,
+            'exercise' => $exercise->id,
+            'pass' => 1,
+            'attemptid' => $attemptid,
+            'wpm' => 12,
+            'mistakedetails' => get_string('nomistakes', 'mootyper'),
+        ];
+        $this->seededmootyperid = $mootyperid;
+        $this->seededuserid = (int)$user->id;
+        $this->seededoldergradeid = (int)$DB->insert_record('mootyper_grades', $grade, true);
+    }
+
+    /**
+     * Request deletion of the older seeded grade via view-all mode URL.
+     *
+     * @When /^I request deletion of the older seeded mootyper grade in view-all mode$/
+     */
+    public function irequestdeletionoftheolderseededmootypergradeinviewallmode() {
+        global $CFG, $DB;
+
+        if (empty($this->seededmootyperid) || empty($this->seededoldergradeid)) {
+            throw new \Exception('Seeded grade context is missing; run the grade seeding step first.');
+        }
+
+        $mootyper = $DB->get_record('mootyper', ['id' => $this->seededmootyperid], '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('mootyper', $mootyper->id, $mootyper->course, false, MUST_EXIST);
+        $sesskey = $this->getSession()->evaluateScript('M.cfg.sesskey');
+        $url = $CFG->wwwroot . '/mod/mootyper/attrem.php?c_id=' . (int)$cm->id
+            . '&m_id=' . (int)$mootyper->id
+            . '&g=' . (int)$this->seededoldergradeid
+            . '&sesskey=' . rawurlencode((string)$sesskey);
+
+        $this->getSession()->visit($url);
+    }
+
+    /**
+     * Assert both seeded grades still exist after blocked delete attempt.
+     *
+     * @Then /^the seeded mootyper grades should both still exist$/
+     */
+    public function theseededmootypergradesshouldbothstillexist() {
+        global $DB;
+
+        if (empty($this->seededoldergradeid) || empty($this->seedednewergradeid)) {
+            throw new \Exception('Seeded grade ids are missing; run the grade seeding step first.');
+        }
+
+        $older = $DB->record_exists('mootyper_grades', ['id' => $this->seededoldergradeid]);
+        $newer = $DB->record_exists('mootyper_grades', ['id' => $this->seedednewergradeid]);
+        $count = (int)$DB->count_records('mootyper_grades', [
+            'mootyper' => $this->seededmootyperid,
+            'userid' => $this->seededuserid,
+        ]);
+
+        if (!$older || !$newer || $count < 2) {
+            throw new \Exception(
+                'Expected both seeded grades to remain. older=' . (int)$older
+                . ' newer=' . (int)$newer
+                . ' count=' . $count
+            );
+        }
+    }
+
+    /**
+     * Assert a seeded peer grade remains after an unauthorized deletion attempt.
+     *
+     * @Then /^the seeded peer mootyper grade should still exist$/
+     */
+    public function theseededpeermootypergradeshouldstillexist(): void {
+        global $DB;
+
+        if (empty($this->seededoldergradeid) || !$DB->record_exists('mootyper_grades', ['id' => $this->seededoldergradeid])) {
+            throw new \Exception('The peer grade was deleted despite the ownership guard.');
+        }
+    }
+
+    /**
+     * Assert current page points to a specific exercise sequence number.
+     *
+     * @Then /^the current mootyper exercise snumber should be (\d+)$/
+     * @param int $expected
+     */
+    public function thecurrentmootyperexercisesnumbershouldbe($expected) {
+        global $DB;
+
+        $exerciseid = (int)$this->getSession()->evaluateScript(
+            "parseInt((document.querySelector('input[name=\"rpExercise\"]') || {}).value || '0', 10);"
+        );
+
+        if (empty($exerciseid)) {
+            throw new \Exception('No current rpExercise id found on page.');
+        }
+
+        $exercise = $DB->get_record('mootyper_exercises', ['id' => $exerciseid], 'id,snumber', MUST_EXIST);
+        if ((int)$exercise->snumber !== (int)$expected) {
+            throw new \Exception('Expected exercise snumber ' . (int)$expected . ', got ' . (int)$exercise->snumber . '.');
+        }
+    }
+
+    /**
+     * Assert the live edit-form exercise info list contains the expected text.
+     *
+     * @Then /^the mootyper exercise info should contain "([^"]*)"$/
+     * @param string $expectedtext
+     */
+    public function themootyperexerciseinfoshouldcontain($expectedtext) {
+        $lastseen = '';
+        $this->spin(function () use ($expectedtext, &$lastseen) {
+            $text = $this->getSession()->evaluateScript(
+                'document.getElementById("mootyper-exerciseinfo") ? '
+                . 'document.getElementById("mootyper-exerciseinfo").textContent : "";'
+            );
+            if ($text === null) {
+                return false;
+            }
+            $lastseen = trim((string)$text);
+            return strpos($lastseen, $expectedtext) !== false;
+        }, false, false, new \Exception(
+            'Expected exercise info to contain: ' . $expectedtext
+            . ' | Actual: ' . $lastseen
+            . ' | Lesson change debug: '
+            . (string)$this->getSession()->evaluateScript('window.__mootyperlessonchange || "no_debug";')
+        ));
+    }
+
+    /**
+     * Assert the live edit-form exercise info list does not contain the given text.
+     *
+     * @Then /^the mootyper exercise info should not contain "([^"]*)"$/
+     * @param string $unexpectedtext
+     */
+    public function themootyperexerciseinfoshouldnotcontain($unexpectedtext) {
+        $lastseen = '';
+        $this->spin(function () use ($unexpectedtext, &$lastseen) {
+            $text = $this->getSession()->evaluateScript(
+                'document.getElementById("mootyper-exerciseinfo") ? '
+                . 'document.getElementById("mootyper-exerciseinfo").textContent : "";'
+            );
+            if ($text === null) {
+                return false;
+            }
+            $lastseen = trim((string)$text);
+            return strpos($lastseen, $unexpectedtext) === false;
+        }, false, false, new \Exception('Expected exercise info not to contain: ' . $unexpectedtext . ' | Actual: ' . $lastseen));
+    }
+
+    /**
+     * Change the edit-form lesson selector using JavaScript and trigger its change event.
+     *
+     * @When /^I change the mootyper lesson field to "([^"]*)" using javascript$/
+     * @param string $lessonname
+     */
+    public function ichangethemootyperlessonfieldtousingjavascript($lessonname) {
+        $quotedlesson = json_encode($lessonname);
+        $script = '
+            window.__mootyperlessonchange = "not_set";
+            (function() {
+                var lessonname = ' . $quotedlesson . ';
+                var select = document.getElementById("id_lesson");
+                if (!select) {
+                    window.__mootyperlessonchange = "missing_select";
+                    return;
+                }
+                var matched = false;
+                for (var i = 0; i < select.options.length; i++) {
+                    if (select.options[i].text === lessonname) {
+                        select.selectedIndex = i;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    window.__mootyperlessonchange = "missing_option:" + lessonname;
+                    return;
+                }
+                var evt;
+                if (typeof Event === "function") {
+                    evt = new Event("change", {bubbles: true});
+                } else {
+                    evt = document.createEvent("HTMLEvents");
+                    evt.initEvent("change", true, false);
+                }
+                select.dispatchEvent(evt);
+                if (typeof select.onchange === "function") {
+                    select.onchange();
+                }
+                if (typeof window.__mootyperUpdateLessonExercises === "function") {
+                    window.__mootyperUpdateLessonExercises();
+                }
+                var info = document.getElementById("mootyper-exerciseinfo");
+                var exercise = document.getElementById("id_exercise");
+                var firstoption = exercise && exercise.options.length ? exercise.options[0].text : "no_options";
+                window.__mootyperlessonchange = "ok:value=" + select.value
+                    + "; options=" + (exercise ? exercise.options.length : -1)
+                    + "; first=" + firstoption
+                    + "; info=" + (info ? info.textContent : "missing_info");
+            })();';
+
+        $this->getSession()->executeScript($script);
+        $result = $this->getSession()->evaluateScript('window.__mootyperlessonchange || "empty_result";');
+        if (strpos((string)$result, 'ok:') !== 0) {
+            throw new \Exception('Unable to change mootyper lesson field: ' . $result);
+        }
+    }
+
+    /**
+     * Assert that the MooTyper Continue button is visible and enabled.
+     *
+     * @Then /^mootyper Continue button should be visible$/
+     */
+    public function mootypercontinuebuttonshouldbevisible() {
+        $script = "
+            (function() {
+                var btn = document.getElementById('btnContinue');
+                if (!btn) {
+                    return 'missing';
+                }
+                var style = window.getComputedStyle(btn);
+                var visible = style && style.visibility !== 'hidden' && style.display !== 'none';
+                if (!visible) {
+                    return 'hidden';
+                }
+                if (btn.disabled) {
+                    return 'disabled';
+                }
+                return 'ok';
+            })();
+        ";
+        $result = $this->getSession()->evaluateScript($script);
+        if ($result !== 'ok') {
+            throw new \Exception('Continue button is not ready: ' . $result);
+        }
+    }
+
+    /**
+     * Simulate Enter key activation on the MooTyper Continue button.
+     *
+     * @When /^I activate mootyper Continue with keyboard Enter$/
+     */
+    public function iactivatemootypercontinuewithkeyboardenter() {
+        $script = "
+            (function() {
+                var btn = document.getElementById('btnContinue');
+                if (!btn) {
+                    return 'missing';
+                }
+                btn.focus();
+                ['keydown', 'keypress', 'keyup'].forEach(function(type) {
+                    var ev = new KeyboardEvent(type, {
+                        bubbles: true,
+                        cancelable: true,
+                        key: 'Enter',
+                        code: 'Enter',
+                        keyCode: 13,
+                        which: 13
+                    });
+                    btn.dispatchEvent(ev);
+                });
+                return 'ok';
+            })();
+        ";
+        $result = $this->getSession()->evaluateScript($script);
+        if ($result !== 'ok') {
+            throw new \Exception('Failed to activate Continue via keyboard: ' . $result);
+        }
+    }
+
+    /**
+     * To assert a select value.
+     * @Then /^"([^"]*)" from "([^"]*)" is selected$/
+     *
+     * Shamelessly inspired by: https://stackoverflow.com/a/33223002/1038565
+     * @param string $optionvalue
+     * @param string $select
+     */
+    public function theoptionfromselectisselected($optionvalue, $select) {
+        $selectfield = $this->getSession()->getPage()->findField($select);
+
+        if (null === $selectfield) {
+            throw new \Exception(sprintf(
+                'The select "%s" was not found in the page %s',
+                $select,
+                $this->getSession()->getCurrentUrl()
+            ));
+        }
+
+        $optionfield = $selectfield->find('xpath', "//option[@selected]");
+        if (null === $optionfield) {
+            throw new \Exception(sprintf(
+                'No option is selected in the %s select in the page %s',
+                $select,
+                $this->getSession()->getCurrentUrl()
+            ));
+        }
+
+        if ($optionfield->getValue() != $optionvalue) {
+            throw new \Exception(sprintf(
+                'The option "%s" was not selected in the page %s, %s was selected',
+                $optionvalue,
+                $this->getSession()->getCurrentUrl(),
+                $optionfield->getValue()
+            ));
+        }
+    }
+
+    /**
+     * Assert that a specific keyboard key is currently highlighted as the next key.
+     *
+     * @Then /^the mootyper key "([^"]*)" should be highlighted as next$/
+     * @param string $keyid
+     */
+    public function themootyperkeyshouldbehighlightedasnext($keyid) {
+        $page = $this->getSession()->getPage();
+        $selector = '#' . $keyid;
+        $keyel = $page->find('css', $selector);
+        if (!$keyel) {
+            throw new \Exception('Key element not found: ' . $keyid);
+        }
+
+        $input = $page->find('css', '#tb1');
+        if ($input) {
+            $input->click();
+        }
+
+        $classname = (string)$keyel->getAttribute('class');
+        if (strpos($classname, 'next') === 0) {
+            return;
+        }
+
+        // Retry briefly because focus/keyboard highlighting can lag in WebDriver runs.
+        for ($i = 0; $i < 20; $i++) {
+            $this->getSession()->executeScript(
+                "try { var input = document.getElementById('tb1'); if (input) { input.focus(); } } catch (e) {}"
+            );
+            $this->getSession()->executeScript(
+                "try { if (typeof focusSet === 'function') { focusSet(); } } catch (e) {}"
+            );
+            usleep(200000);
+
+            $keyel = $page->find('css', $selector);
+            if (!$keyel) {
+                break;
+            }
+            $classname = (string)$keyel->getAttribute('class');
+            if (strpos($classname, 'next') === 0) {
+                return;
+            }
+        }
+
+        throw new \Exception('Expected key ' . $keyid . ' to be highlighted as next, current class is: ' . $classname);
+    }
+
+    /**
+     * Assert that at least one MooTyper keyboard key is highlighted as next.
+     * On failure, throws a detailed diagnostic message covering: keyboard
+     * container visibility, showkeyboard JS variable, total jkey* element
+     * count, and the classes of the first 10 jkey* elements.
+     *
+     * @Then /^at least one mootyper key should be highlighted as next$/
+     */
+    public function atleastonemootyperkeyshouldbehighlightedasnext() {
+        // Collect diagnostics + count via executeScript (window var pattern is
+        // the only reliable way to return data in this Selenium Grid runner).
+        $collectscript = "
+            window.__mootyperdiag = (function() {
+                var diag = {};
+
+                // --- keyboard container visibility ---
+                var kbdDiv = document.getElementById('keyboard');
+                if (!kbdDiv) {
+                    kbdDiv = document.querySelector('.keyboard');
+                }
+                diag.kbdFound   = kbdDiv ? 'yes' : 'no';
+                diag.kbdDisplay = kbdDiv ? (kbdDiv.style.display || getComputedStyle(kbdDiv).display) : 'n/a';
+                diag.kbdVisible = kbdDiv ? (kbdDiv.offsetParent !== null ? 'yes' : 'no') : 'n/a';
+
+                // --- showkeyboard JS variable ---
+                diag.showkeyboard = (typeof showkeyboard !== 'undefined') ? String(showkeyboard) : 'undefined';
+
+                // --- fullText / currentChar ---
+                diag.fullText    = (typeof fullText !== 'undefined') ? String(fullText).substring(0, 30) : 'undefined';
+                diag.currentChar = (typeof currentChar !== 'undefined') ? String(currentChar) : 'undefined';
+
+                // --- keyboardElement constructor ---
+                diag.hasKeyboardElement = (typeof keyboardElement === 'function') ? 'yes' : 'no';
+
+                // --- jkey* elements ---
+                var nodes = document.querySelectorAll('[id^=jkey]');
+                diag.jkeyCount = nodes.length;
+                var sample = [];
+                var nextCount = 0;
+                for (var i = 0; i < nodes.length; i++) {
+                    var cls = nodes[i].className || '';
+                    if (cls.indexOf('next') === 0) {
+                        nextCount++;
+                    }
+                    if (i < 10) {
+                        sample.push(nodes[i].id + ':' + (cls || '(empty)'));
+                    }
+                }
+                diag.nextCount  = nextCount;
+                diag.keySample  = sample.join(' | ');
+
+                // --- __mootyperfirstcommit result (set by previous step) ---
+                diag.commitResult = (typeof window.__mootyperfirstcommit !== 'undefined')
+                    ? String(window.__mootyperfirstcommit) : 'not_set';
+
+                return JSON.stringify(diag);
+            })();
+        ";
+        $this->getSession()->executeScript($collectscript);
+        $raw = $this->getSession()->evaluateScript('window.__mootyperdiag');
+
+        $diag = @json_decode((string)$raw, true);
+        $nextcount = isset($diag['nextCount']) ? (int)$diag['nextCount'] : 0;
+
+        if ($nextcount < 1) {
+            $diagline = is_array($diag)
+                ? 'kbdFound=' . ($diag['kbdFound'] ?? '?')
+                  . ' kbdDisplay=' . ($diag['kbdDisplay'] ?? '?')
+                  . ' kbdVisible=' . ($diag['kbdVisible'] ?? '?')
+                  . ' showkeyboard=' . ($diag['showkeyboard'] ?? '?')
+                  . ' fullText=' . ($diag['fullText'] ?? '?')
+                  . ' currentChar=' . ($diag['currentChar'] ?? '?')
+                  . ' hasKeyboardElement=' . ($diag['hasKeyboardElement'] ?? '?')
+                  . ' jkeyCount=' . ($diag['jkeyCount'] ?? '?')
+                  . ' commitResult=' . ($diag['commitResult'] ?? '?')
+                  . ' keySample=[' . ($diag['keySample'] ?? '') . ']'
+                : 'raw=' . $raw;
+            throw new \Exception(
+                'Expected at least one keyboard key highlighted as next; found 0. DIAG: ' . $diagline
+            );
+        }
+    }
+
+    /**
+     * Initialize MooTyper keyboard guidance for the current (first) character.
+     * This keeps the harness deterministic when the browser run does not trigger
+     * the same focus path as manual UI use.
+     *
+     * @When /^I initialize mootyper key guidance for current character$/
+     */
+    public function iinitializemootyperkeyguidanceforcurrentcharacter() {
+        $script = "
+            (function() {
+                try {
+                    if (typeof keyboardElement !== 'function') {
+                        return 'missing_keyboardElement';
+                    }
+                    if (!window.fullText || !window.fullText.length) {
+                        return 'missing_fullText';
+                    }
+
+                    var first = window.fullText[0];
+                    var el = new keyboardElement(first);
+                    if (!el || typeof el.turnOn !== 'function') {
+                        return 'missing_turnOn';
+                    }
+                    el.turnOn();
+                    return 'ok';
+                } catch (e) {
+                    return 'js_error:' + (e && e.message ? e.message : String(e));
+                }
+            })();
+        ";
+
+        $result = $this->getSession()->evaluateScript($script);
+        if ($result !== 'ok') {
+            throw new \Exception('Failed to initialize MooTyper key guidance: ' . $result);
+        }
+    }
+
+    /**
+     * Simulate committing the current (first) MooTyper character.
+     *
+     * @When /^I simulate committing the first mootyper character$/
+     */
+    public function isimulatecommittingthefirstmootypercharacter() {
+        $script = "
+            window.__mootyperfirstcommit = '';
+            try {
+                if (typeof keyPressed !== 'function') {
+                    window.__mootyperfirstcommit = 'missing_keyPressed';
+                } else {
+                    var ch = (typeof currentChar === 'string' && currentChar.length)
+                        ? currentChar
+                        : ((typeof fullText === 'string' && fullText.length) ? fullText.charAt(0) : '');
+
+                    if (!ch) {
+                        window.__mootyperfirstcommit = 'missing_char';
+                    } else {
+                        keyPressed({
+                            type: 'compositionend',
+                            data: ch,
+                            key: ch,
+                            preventDefault: function() {},
+                            stopImmediatePropagation: function() {}
+                        });
+                        window.__mootyperfirstcommit = 'ok';
+                    }
+                }
+            } catch (e) {
+                window.__mootyperfirstcommit = 'js_error:' + (e && e.message ? e.message : String(e));
+            }
+        ";
+
+        $this->getSession()->executeScript($script);
+        $result = $this->getSession()->evaluateScript('window.__mootyperfirstcommit || "";');
+        if ($result !== 'ok') {
+            throw new \Exception('Failed to simulate first MooTyper commit: ' . $result);
+        }
+    }
+
+    /**
+     * Type text into MooTyper using keyboard events.
+     * Hangul syllables (AC00-D7A3) are entered via composition events.
+     * Other characters are entered via keypress events.
+     *
+     * @When /^I type "([^"]*)" in mootyper using simulated input$/
+     * @param string $text
+     */
+    public function itypeinmootyperusingsimulatedinput($text) {
+        $jsontext = json_encode($text, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        // Use executeScript + window var read-back: evaluateScript with IIFE return
+        // is unreliable in this Selenium Grid runner (silently returns empty string).
+        $script = "
+            window.__mootypertyperesult = (function(text) {
+                try {
+                    var input = document.getElementById('tb1');
+                    if (!input) {
+                        return 'missing_tb1';
+                    }
+
+                    function dispatchComposition(type, data) {
+                        var ev;
+                        try {
+                            ev = new CompositionEvent(type, {bubbles: true, cancelable: true, data: data});
+                        } catch (e) {
+                            ev = new Event(type, {bubbles: true, cancelable: true});
+                            try {
+                                Object.defineProperty(ev, 'data', {value: data});
+                            } catch (e2) {
+                                ev.data = data;
+                            }
+                        }
+                        input.dispatchEvent(ev);
+                    }
+
+                    function dispatchSequenceAwareComposition(ch) {
+                        if (typeof isCharSequence !== 'function' || typeof getSequence !== 'function') {
+                            return false;
+                        }
+                        if (!isCharSequence(ch)) {
+                            return false;
+                        }
+                        var seq = getSequence(ch);
+                        if (!Array.isArray(seq) || !seq.length) {
+                            return false;
+                        }
+                        dispatchComposition('compositionstart', '');
+                        seq.forEach(function(part) {
+                            dispatchComposition('compositionupdate', part);
+                        });
+                        dispatchComposition('compositionend', ch);
+                        return true;
+                    }
+
+                    function dispatchViaKeyPressed(ch) {
+                        if (typeof keyPressed !== 'function') {
+                            return false;
+                        }
+                        var code = (ch === '\\n') ? 13 : ch.charCodeAt(0);
+                        var key = (ch === '\\n') ? 'Enter' : ch;
+                        var ev = {
+                            type: 'keypress',
+                            key: key,
+                            which: code,
+                            keyCode: code,
+                            preventDefault: function() {},
+                            stopImmediatePropagation: function() {}
+                        };
+                        // getPressedChar in typer.js references global event in some paths.
+                        window.event = ev;
+                        keyPressed(ev);
+                        return true;
+                    }
+
+                    function dispatchKeypress(ch) {
+                        var code = (ch === '\\n') ? 13 : ch.charCodeAt(0);
+                        var key = (ch === '\\n') ? 'Enter' : ch;
+                        var ev = new KeyboardEvent('keypress', {
+                            bubbles: true,
+                            cancelable: true,
+                            key: key,
+                            charCode: code,
+                            keyCode: code,
+                            which: code
+                        });
+                        input.dispatchEvent(ev);
+                    }
+
+                    input.focus();
+                    var chars = Array.from(text);
+                    var syllable = /[\\uAC00-\\uD7A3]/;
+
+                    chars.forEach(function(ch) {
+                        if (dispatchSequenceAwareComposition(ch)) {
+                            return;
+                        }
+                        if (syllable.test(ch)) {
+                            dispatchComposition('compositionstart', '');
+                            dispatchComposition('compositionupdate', ch);
+                            dispatchComposition('compositionend', ch);
+                        } else if (!dispatchViaKeyPressed(ch)) {
+                            dispatchKeypress(ch);
+                        }
+                    });
+
+                    return 'ok';
+                } catch (e) {
+                    return 'js_error:' + (e && e.message ? e.message : String(e));
+                }
+            })(" . $jsontext . ");
+        ";
+
+        $this->getSession()->executeScript($script);
+        $result = $this->getSession()->evaluateScript('window.__mootypertyperesult');
+        if ($result !== 'ok') {
+            throw new \Exception('Failed to simulate MooTyper input: ' . $result);
+        }
+    }
+
+    /**
+     * Assert that MooTyper progress is complete (x/x).
+     *
+     * @Then /^mootyper progress should be complete$/
+     */
+    public function mootyperprogressshouldbecomplete() {
+        $script = "
+            window.__mootyperprogress = (function() {
+                var progress = document.getElementById('jsProgress2');
+                if (!progress) {
+                    return 'missing';
+                }
+                var txt = progress.textContent.trim();
+                var parts = txt.split('/');
+                if (parts.length !== 2) {
+                    return 'bad:' + txt;
+                }
+                return (parts[0] === parts[1]) ? 'complete' : txt;
+            })();
+        ";
+        $this->getSession()->executeScript($script);
+        $result = $this->getSession()->evaluateScript('window.__mootyperprogress');
+        if ($result !== 'complete') {
+            throw new \Exception('MooTyper progress is not complete: ' . $result);
+        }
+    }
+}

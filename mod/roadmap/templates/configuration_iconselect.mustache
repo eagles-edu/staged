@@ -1,0 +1,63 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_roadmap/configuration_iconselect
+
+    Example context (json):
+    {
+        "icons": [{
+            "name": "icon-1"
+        }]
+    }
+}}
+<div class="icon-select-container">
+    <div class="icon-categories-container">
+        {{# categories }}
+            <h6>{{ name }}</h6><hr />
+            {{# icons }}
+                <div class="icon-container">
+                    <img class="icon" data-iconname="{{ name }}"  data-iconfilename="{{ file }}" src="{{ iconurl }}">
+                </div>
+            {{/ icons }}
+        {{/ categories }}
+    </div>
+    {{# selectedicon }}
+        <div class="selected-icon-container">
+            <h5>Selected Icon Preview</h5>
+            <span class="img-incomplete">
+                {{# pix }} icons/{{ selectedicon.file }} , mod_roadmap, {{ selectedicon.name }} {{/ pix }}
+            </span>
+            <span class="img-partial">
+                {{# pix }} icons/{{ selectedicon.file }} , mod_roadmap, {{ selectedicon.name }} {{/ pix }}
+            </span>
+            <span class="img-alert">
+                {{# pix }} icons/{{ selectedicon.file }} , mod_roadmap, {{ selectedicon.name }} {{/ pix }}
+            </span>
+            <span class="img-complete">
+                {{# pix }} icons/{{ selectedicon.file }} , mod_roadmap, {{ selectedicon.name }} {{/ pix }}
+            </span>
+            <span class="img-ontime">
+                {{# pix }} icons/{{ selectedicon.file }} , mod_roadmap, {{ selectedicon.name }} {{/ pix }}
+            </span>
+            <input type="hidden" id="current-selected-icon" name="current-selected-icon">
+        </div>
+    {{/ selectedicon }}
+    <input type="hidden" id="icon-url" name="icon-url">
+    <input type="hidden" id="step-id" name="step-id">
+</div>
+
+

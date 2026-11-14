@@ -1,0 +1,32 @@
+
+{{!
+    @template mod_roadmap/view_step
+
+    Displays the following cycle data:
+    * rollover text
+    * icon
+    * activities to trigger?  -- not shown here
+    * link to page
+    * complete on time (if true, we show the star)
+
+    Example context (json):
+    {
+        "id": "1",
+        "rollovertext": "Hover Text",
+        "incomplete": "true",
+        "lowontime": "true",
+        "completedontime": "false",
+        "stepicon": "icon-1",
+        "stepiconsvg": "svgdata",
+        "stepurl": "http://ncsu.edu",
+        "iconurl": "http://localhost/mod/roadmap/icon.php?name=icon-1",
+        "completionmodules": "1,2,3",
+        "configuration": "jsonData"
+    }
+}}
+
+<div class="roadmap-step {{# incomplete }}incomplete{{/ incomplete }}" title="{{ rollovertext }}" data-html="true" data-clickable="0" data-toggle="tooltip" data-placement="bottom">
+    {{# stepurl }}<a href="{{ stepurl }}">{{/stepurl}}
+    <img class="icon step-icon roadmap-form-control-step" alt="Step Icon" data-iconname="{{ stepicon }}" src="{{ iconurl }}" >
+    {{# stepurl }}</a>{{/ stepurl }}
+</div>

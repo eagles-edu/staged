@@ -1,0 +1,197 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Site settings form.
+ *
+ * @package   plagiarism_pchkorg
+ * @category  plagiarism
+ * @copyright PlagiarismCheck.org, https://plagiarismcheck.org/
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../classes/roles.php');
+
+/**
+ * Class defined plugin settings form.
+ */
+class plagiarism_pchkorg_setup_form extends moodleform {
+    /**
+     *
+     * Method defined plugin settings form.
+     *
+     * @throws coding_exception
+     */
+    public function definition() {
+
+        $mform = &$this->_form;
+
+        $mform->addElement(
+            'select',
+            'pchkorg_use',
+            get_string('pchkorg_use', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+        $mform->addHelpButton('pchkorg_use', 'pchkorg_use', 'plagiarism_pchkorg');
+
+        $mform->addElement('password', 'pchkorg_token', get_string('pchkorg_token', 'plagiarism_pchkorg'));
+        $mform->addHelpButton('pchkorg_token', 'pchkorg_token', 'plagiarism_pchkorg');
+        $mform->addRule('pchkorg_token', null, 'required', null, 'client');
+        $mform->setType('pchkorg_token', PARAM_TEXT);
+
+        $mform->addElement(
+            'select',
+            'pchkorg_enable_ignore_templates',
+            get_string('pchkorg_enable_ignore_templates', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+        $mform->addHelpButton(
+            'pchkorg_enable_ignore_templates',
+            'pchkorg_enable_ignore_templates',
+            'plagiarism_pchkorg'
+        );
+        $mform->setDefault('pchkorg_enable_ignore_templates', '0');
+
+        $mform->addElement(
+            'select',
+            'pchkorg_enable_debug',
+            get_string('pchkorg_enable_debug', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+        $mform->addHelpButton('pchkorg_enable_debug', 'pchkorg_enable_debug', 'plagiarism_pchkorg');
+
+        $mform->registerRule('check_pchkorg_min_percent', 'callback', 'pchkorg_check_pchkorg_min_percent');
+
+        $label = get_string('pchkorg_min_percent', 'plagiarism_pchkorg');
+        if (!empty($minpercent)) {
+            $label = \str_replace('X%', $minpercent . '%', $label);
+        }
+
+        $mform->addElement('text', 'pchkorg_min_percent', $label);
+        $mform->addHelpButton('pchkorg_min_percent', 'pchkorg_min_percent', 'plagiarism_pchkorg');
+        $mform->addRule('pchkorg_min_percent', null, 'numeric', null, 'client');
+        $mform->addRule('pchkorg_min_percent', get_string('pchkorg_min_percent_range', 'plagiarism_pchkorg'), 'check_pchkorg_min_percent');
+        $mform->setType('pchkorg_min_percent', PARAM_INT);
+
+        $mform->addElement(
+            'select',
+            'pchkorg_enable_quiz',
+            get_string('pchkorg_enable_quiz', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+
+        $mform->addElement(
+            'select',
+            'pchkorg_enable_forum',
+            get_string('pchkorg_enable_forum', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+
+        $mform->addElement(
+            'select',
+            'pchkorg_enabled_by_default',
+            get_string('pchkorg:enabledbydefault', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+        $mform->setDefault('pchkorg_enabled_by_default', '1');
+
+        // Deliberately the same setting name the activity form uses. Stored
+        // against cm 0 it is the site-wide value, and an activity storing the
+        // same name overrides it -- the arrangement pchkorg_min_percent
+        // already has, and what lets the sender fall back to this for an
+        // activity that has never been saved.
+        $mform->addElement(
+            'select',
+            'pchkorg_check_ai',
+            get_string('pchkorg_check_ai_default', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+        $mform->addHelpButton('pchkorg_check_ai', 'pchkorg_check_ai_default', 'plagiarism_pchkorg');
+        $mform->setDefault('pchkorg_check_ai', '1');
+
+        $mform->addElement(
+            'select',
+            'pchkorg_teacher_auto_registration',
+            get_string('pchkorg:teacherautoregistration', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+        $mform->setDefault('pchkorg_teacher_auto_registration', '0');
+
+        $mform->addElement(
+            'textarea',
+            plagiarism_pchkorg_roles::CONFIG_NAME,
+            get_string('pchkorg_custom_teacher_roles', 'plagiarism_pchkorg'),
+            ['rows' => 8, 'cols' => 30]
+        );
+        $mform->addHelpButton(
+            plagiarism_pchkorg_roles::CONFIG_NAME,
+            'pchkorg_custom_teacher_roles',
+            'plagiarism_pchkorg'
+        );
+        $mform->setType(plagiarism_pchkorg_roles::CONFIG_NAME, PARAM_TEXT);
+        $mform->setDefault(
+            plagiarism_pchkorg_roles::CONFIG_NAME,
+            plagiarism_pchkorg_roles::format_shortnames(plagiarism_pchkorg_roles::DEFAULT_CUSTOM_TEACHER_SHORTNAMES)
+        );
+
+        $mform->addElement(
+            'select',
+            'pchkorg_course_access',
+            get_string('pchkorg:courseaccess', 'plagiarism_pchkorg'),
+            [get_string('no'), get_string('yes')]
+        );
+        $mform->addHelpButton('pchkorg_course_access', 'pchkorg:courseaccess', 'plagiarism_pchkorg');
+        $mform->setDefault('pchkorg_course_access', '0');
+
+        $this->add_action_buttons(true);
+    }
+
+    /**
+     * Validate the settings.
+     *
+     * @param array $data
+     * @param array $files
+     * @return array Errors keyed by element name.
+     */
+    public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        $name = plagiarism_pchkorg_roles::CONFIG_NAME;
+        if (isset($data[$name])) {
+            $invalid = plagiarism_pchkorg_roles::invalid_shortnames($data[$name]);
+            if (!empty($invalid)) {
+                $errors[$name] = get_string(
+                    'pchkorg_custom_teacher_roles_invalid',
+                    'plagiarism_pchkorg',
+                    implode(', ', $invalid)
+                );
+            } else if (
+                core_text::strlen(plagiarism_pchkorg_roles::normalise_setting($data[$name]))
+                    > plagiarism_pchkorg_roles::CONFIG_MAX_LENGTH
+            ) {
+                $errors[$name] = get_string(
+                    'pchkorg_custom_teacher_roles_toolong',
+                    'plagiarism_pchkorg',
+                    plagiarism_pchkorg_roles::CONFIG_MAX_LENGTH
+                );
+            }
+        }
+
+        return $errors;
+    }
+}

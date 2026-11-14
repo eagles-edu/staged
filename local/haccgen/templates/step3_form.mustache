@@ -1,0 +1,949 @@
+{{! 
+This file is part of Moodle
+
+ISO Latin-1 encoding translations
+Source: PostScript::ISOLatin1Encoding (Perl)
+
+@package local_haccgen
+@copyright 2026 Dynamicpixel Multimedia Solutions
+@license GNU GPL v3 or later
+}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* General Layout */
+        .haccgen-container {
+            padding: 20px;
+            background: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        body {
+            position: relative;
+            z-index: 0;
+            background: #ffffff;
+        }
+
+        /* Enhanced Step Progress Bar */
+        .step-progress-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            position: relative;
+            margin-top: 25px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            border: 2px solid #bbb;
+        }
+
+        .step-circle-active {
+            background: #0069cc;
+            color: #ffffff;
+            border: 2px solid #0056b3;
+        }
+
+        .step-label {
+            margin-top: 8px;
+            font-size: 1rem;
+            color: #666;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .step-active .step-label {
+            color: #0069cc;
+        }
+
+        .step-connector {
+            flex-grow: 1;
+            height: 2.5px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-bottom: 25px;
+        }
+
+        .connector-active {
+            background: #0069cc;
+        }
+
+        /* Tooltip Styling */
+        .step::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -40px;
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-family: 'Roboto', sans-serif;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(10px);
+        }
+
+        .step:hover::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Input Section */
+        .input-section {
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        /* Topic Item Styling */
+        .topic-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+            transition: background 0.3s ease;
+            cursor: move;
+        }
+
+        .topic-item:hover {
+            background: #e9ecef;
+        }
+
+        .topic-item-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .topic-item span {
+            font-size: 1rem;
+            color: #333;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .topic-meta {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .topic-item button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .topic-item button:hover {
+            color: #0069cc;
+        }
+
+        /* Card Styling (Preview) */
+        .preview-card {
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        #preview-title {
+            color: #333;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-family: 'Roboto', sans-serif;
+            animation: slideIn 0.5s ease;
+        }
+
+        #preview-audience, #preview-level, #preview-tone, #preview-duration, #preview-file {
+            font-style: italic;
+            color: #666;
+            font-size: 0.95rem;
+            font-family: 'Roboto', sans-serif;
+            animation: slideIn 0.5s ease 0.2s;
+        }
+
+        .audience-tag {
+            background: #e0e0e0;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.85rem;
+            margin-right: 8px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        /* Button Styling */
+        .modern-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-family: 'Roboto', sans-serif;
+            transition: background 0.3s ease, transform 0.3s ease;
+            color: #fff;
+        }
+         
+        .modern-btn-secondary {
+            background: #6c757d;
+            border: none;
+        }
+
+        .modern-btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .modern-btn-primary {
+            background: #0069cc;
+            border: none;
+        }
+
+        .modern-btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .haccgen-limit-warning {
+            background: #8a6d1b !important;
+            border-color: #8a6d1b !important;
+        }
+
+        .haccgen-limit-warning,
+        .haccgen-limit-warning p,
+        .haccgen-limit-warning a.btn {
+            color: #fff !important;
+        }
+
+        .haccgen-limit-warning a.btn {
+            background: #0069cc !important;
+            border-color: #0069cc !important;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 767px) {
+            .col-md-7, .col-md-5 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .preview-card {
+                margin-top: 20px;
+            }
+        }
+        .help-hover{
+    margin-bottom: 5px;
+}
+.secondary-navigation .moremenu .nav-tabs .nav-link.active {
+    background-color: #0069cc !important;
+    color: #fff !important;
+    border-color: #0056b3 #0056b3 #0069cc !important;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container-fluid haccgen-container">
+        <div class="row">
+            <!-- Left Side: Input Section (col-md-7) -->
+            <div class="col-md-7">
+                <div class="input-section">
+                    {{#errors.general}}
+                        <div class="alert alert-danger" role="alert">
+                            <p class="mb-2">{{errors.general}}</p>
+                            {{#errors.quota_exceeded}}
+                            <a href="{{quota_upgrade_url}}" class="btn btn-primary btn-sm">{{#str}}quota_exceeded_upgrade, local_haccgen{{/str}}</a>
+                            {{/errors.quota_exceeded}}
+                        </div>
+                    {{/errors.general}}
+                    <form action="{{action}}" method="post" id="haccgen-form" data-course-minutes="{{course_duration_minutes}}" data-affordable-minutes="{{affordable_minutes}}" data-max-topic-minutes="{{max_topic_minutes}}" data-has-minute-allowance="{{#has_minute_allowance}}1{{/has_minute_allowance}}{{^has_minute_allowance}}0{{/has_minute_allowance}}" data-generation-minutes="{{generation_minutes}}" data-minutes-unlimited="{{#minutes_unlimited}}1{{/minutes_unlimited}}{{^minutes_unlimited}}0{{/minutes_unlimited}}">
+                        <input type="hidden" name="id" value="{{courseid}}">
+                        <input type="hidden" name="step" value="{{currentstep}}">
+                        <input type="hidden" name="generationtype" value="{{generationtype}}">
+                        <input type="hidden" name="topic_order" id="topic-order">
+                        <input type="hidden" name="activelang" id="active-lang-step3" value="{{activelang}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+
+                        {{#topic_generated_in_text}}
+                        <div class="alert alert-info d-flex align-items-center mb-3" role="status">
+                            <i class="fa fa-clock-o me-2" aria-hidden="true"></i>
+                            <span>{{topic_generated_in_text}}</span>
+                        </div>
+                        {{/topic_generated_in_text}}
+
+                        <!-- Topics List -->
+                        <div id="topics-wrapper">
+                            {{#topics}}
+                            
+                                <div class="topic-item" draggable="true" data-index="{{@index}}" data-content="{{content}}" data-id="{{id}}" data-topicdata="{{&encoded_topicdata}}" tabindex="0">
+                                    <div class="topic-item-text">
+                                        <span class="topic-title">Topic {{index_plus_one}}: {{title}}</span>
+                                        <small class="topic-meta"></small>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="move-btn"><i class="fas fa-arrows-alt"></i></button>
+                                        <button type="button" class="edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                                        <button type="button" class="delete-btn"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            {{/topics}}
+                            {{^topics}}
+                                <p>{{#str}}notopics, local_haccgen{{/str}}</p>
+                                <button type="button" class="btn modern-btn modern-btn-secondary" onclick="window.location.href='{{action}}?id={{courseid}}&step=1'">{{#str}}returntostep1, local_haccgen{{/str}}</button>
+                            {{/topics}}
+                        </div>
+                        {{#word_limit_warning}}
+                        <div class="alert alert-warning haccgen-limit-warning mt-3 mb-0" role="status">
+                            <p class="mb-2">{{word_limit_warning}}</p>
+                            <a href="{{quota_upgrade_url}}" class="btn btn-primary btn-sm">{{#str}}quota_exceeded_upgrade, local_haccgen{{/str}}</a>
+                        </div>
+                        {{/word_limit_warning}}
+
+                        {{#add_topic_blocked_message}}
+                        <div class="alert alert-warning mt-3" role="status">
+                            <p class="mb-2">{{add_topic_blocked_message}}</p>
+                            <a href="{{quota_upgrade_url}}" class="btn btn-primary btn-sm">{{#str}}quota_exceeded_upgrade, local_haccgen{{/str}}</a>
+                        </div>
+                        {{/add_topic_blocked_message}}
+
+                        <!-- Add More Topics Button -->
+                        {{#can_add_topics}}
+                        <button type="button" id="add-topic-btn" class="btn modern-btn modern-btn-primary mt-3">{{#str}}addtopic, local_haccgen{{/str}}</button>
+                        {{/can_add_topics}}
+
+                        <!-- Form Buttons -->
+                         <div class="form-group d-flex justify-content-start gap-2 mt-4">
+                            <button type="submit" name="action" value="back" class="btn modern-btn modern-btn-secondary">{{#str}}back, local_haccgen{{/str}}</button>
+                            {{#can_add_topics}}
+                            <button type="submit" name="action" value="save" class="btn modern-btn modern-btn-primary" id="save-btn">{{#str}}generate, local_haccgen{{/str}}</button>
+                            {{/can_add_topics}}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Side: Preview Section (col-md-5) -->
+            <div class="col-md-5">
+                <div class="step-progress-bar">
+                    <div class="step {{#stepstates.is_step1_active}}step-active{{/stepstates.is_step1_active}}" data-tooltip="{{#str}}basics, local_haccgen{{/str}}">
+                        <span class="step-circle {{#stepstates.is_step1_active}}step-circle-active{{/stepstates.is_step1_active}}"></span>
+                        <span class="step-label">{{#str}}basics, local_haccgen{{/str}}</span>
+                    </div>
+                    <div class="step-connector {{#stepstates.is_connector1_active}}connector-active{{/stepstates.is_connector1_active}}"></div>
+                    <div class="step {{#stepstates.is_step2_active}}step-active{{/stepstates.is_step2_active}}" data-tooltip="{{#str}}details, local_haccgen{{/str}}">
+                        <span class="step-circle {{#stepstates.is_step2_active}}step-circle-active{{/stepstates.is_step2_active}}"></span>
+                        <span class="step-label">{{#str}}details, local_haccgen{{/str}}</span>
+                    </div>
+                    <div class="step-connector {{#stepstates.is_connector2_active}}connector-active{{/stepstates.is_connector2_active}}"></div>
+                    <div class="step {{#stepstates.is_step3_active}}step-active{{/stepstates.is_step3_active}}" data-tooltip="{{#str}}review, local_haccgen{{/str}}">
+                        <span class="step-circle {{#stepstates.is_step3_active}}step-circle-active{{/stepstates.is_step3_active}}"></span>
+                        <span class="step-label">{{#str}}review, local_haccgen{{/str}}</span>
+                    </div>
+                    <div class="step-connector {{#stepstates.is_connector3_active}}connector-active{{/stepstates.is_connector3_active}}"></div>
+                    <div class="step {{#stepstates.is_step4_active}}step-active{{/stepstates.is_step4_active}}" data-tooltip="{{#str}}finalize, local_haccgen{{/str}}">
+                        <span class="step-circle {{#stepstates.is_step4_active}}step-circle-active{{/stepstates.is_step4_active}}"></span>
+                        <span class="step-label">{{#str}}finalize, local_haccgen{{/str}}</span>
+                    </div>
+                </div>
+                <div class="preview-card">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #6c757d; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 12px;">
+                        <i class="fa fa-eye" aria-hidden="true"></i>
+                        <span>{{#str}}previewtitle, local_haccgen{{/str}}</span>
+                    </div>
+                    <h4 id="preview-title">{{TOPICTITLE}}</h4>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 1rem;">
+                        <span style="color: #6c757d; margin-right: 0.5rem;">{{#str}}audience, local_haccgen{{/str}}</span>
+                        {{#audiencetags}}
+                            <span class="audience-tag">{{.}}</span>
+                        {{/audiencetags}}
+                    </div>
+                    <p id="preview-audience">{{#str}}courseisfor, local_haccgen, {"title": "{{TOPICTITLE}}", "audience": "{{targetaudience}}"}{{/str}}</p>
+                    <p id="preview-level"><strong>{{#str}}levelofunderstanding, local_haccgen{{/str}}:</strong> <span id="preview-level-value">{{levelofunderstanding}}</span></p>
+                    <p id="preview-tone"><strong>{{#str}}toneofnarrative, local_haccgen{{/str}}:</strong> <span id="preview-tone-value">{{toneofnarrative}}</span></p>
+                    <p id="preview-duration"><strong>{{#str}}courseduration, local_haccgen{{/str}}:</strong> <span id="preview-duration-value">{{courseduration}}</span></p>
+                    {{#pdfuploaded}}
+                        <p id="preview-file"><strong>{{#str}}pdfuploaded, local_haccgen{{/str}}:</strong> <span id="preview-file-value">{{pdfuploaded}}</span></p>
+                    {{/pdfuploaded}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Topic Modal -->
+<div class="modal fade" id="editTopicModal" tabindex="-1" aria-labelledby="editTopicModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="edit-topic-form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editTopicModalLabel">{{#str}}edittopic, local_haccgen{{/str}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <input type="hidden" id="edit-topic-id" name="id">
+
+          <div class="mb-3">
+            <label for="edit-topic-title" class="form-label">{{#str}}title, local_haccgen{{/str}}</label>
+            <input type="text" class="form-control" id="edit-topic-title" name="title" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit-topic-description" class="form-label">{{#str}}description, local_haccgen{{/str}}</label>
+            <textarea class="form-control" id="edit-topic-description" name="description" rows="4" required></textarea>
+          </div>
+
+ <div class="mb-3">
+  <label for="edit-topic-duration" class="form-label">{{#str}}estimatedduration, local_haccgen{{/str}}</label>
+  <input type="number" class="form-control" id="edit-topic-duration" name="estimated_duration" min="1" max="{{max_topic_minutes}}" step="1" required>
+  <div id="topic-duration-budget" class="form-text"></div>
+  <div id="topic-duration-error" class="text-danger small"></div>
+</div>
+
+<div class="mb-3">
+  <label class="form-label">{{#str}}learningobjectives, local_haccgen{{/str}}</label>
+  <ul id="edit-topic-objectives" class="list-group ps-3 mb-2"></ul>
+  <div class="input-group">
+    <input type="text" id="new-objective-input" class="form-control" placeholder="{{#str}}addobjective_placeholder, local_haccgen{{/str}}">
+    <button type="button" id="add-objective-btn" class="btn btn-outline-primary">{{#str}}add, local_haccgen{{/str}}</button>
+  </div>
+</div>
+
+
+
+
+        
+<div class="mb-3">
+  <label class="form-label">{{#str}}includequiz, local_haccgen{{/str}}</label>
+  <div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="edit-topic-has-quiz" id="quiz-yes" value="yes">
+      <label class="form-check-label" for="quiz-yes">{{#str}}yes, local_haccgen{{/str}}</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="edit-topic-has-quiz" id="quiz-no" value="no" checked>
+      <label class="form-check-label" for="quiz-no">{{#str}}no, local_haccgen{{/str}}</label>
+    </div>
+  </div>
+</div>
+
+<div class="mb-3" id="quiz-question-count-group" style="display: none;">
+  <label for="edit-topic-quiz-questions" class="form-label">{{#str}}numberofquizquestions, local_haccgen{{/str}}</label>
+  <input type="number" class="form-control" id="edit-topic-quiz-questions" min="1" max="10" step="1" value="1">
+</div>
+
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">{{#str}}savechanges, local_haccgen{{/str}}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+window.isAddingNewTopic = false;
+
+document.addEventListener('DOMContentLoaded', function () {
+    const topicsWrapper = document.getElementById('topics-wrapper');
+    const topicOrderInput = document.getElementById('topic-order');
+    const addTopicBtn = document.getElementById('add-topic-btn');
+    const form = document.getElementById('haccgen-form');
+    const saveBtn = document.getElementById('save-btn');
+    const backBtn = form.querySelector('button[name="action"][value="back"]');
+
+    const editModal = document.getElementById('editTopicModal');
+    const edittitleInput = document.getElementById('edit-topic-title');
+    const editDescriptionInput = document.getElementById('edit-topic-description');
+    const editDurationSpan = document.getElementById('edit-topic-duration');
+    const objectivesList = document.getElementById('edit-topic-objectives');
+    const editIdInput = document.getElementById('edit-topic-id');
+    const editDurationInput = document.getElementById('edit-topic-duration');
+    const newObjectiveInput = document.getElementById('new-objective-input');
+    const addObjectiveBtn = document.getElementById('add-objective-btn');
+
+
+    const quizYesRadio = document.getElementById('quiz-yes');
+    const quizNoRadio = document.getElementById('quiz-no');
+    const quizQuestionCountGroup = document.getElementById('quiz-question-count-group');
+    const quizQuestionInput = document.getElementById('edit-topic-quiz-questions');
+// Prevent Enter from submitting form except in textarea
+document.getElementById('edit-topic-form').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.id !== 'new-objective-input') {
+    e.preventDefault();
+  }
+});
+
+// Add Objective button
+addObjectiveBtn.addEventListener('click', () => {
+  const text = newObjectiveInput.value.trim();
+  if (text) {
+    const li = document.createElement('li');
+    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+    const span = document.createElement('span');
+    span.textContent = text;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-sm btn-danger ms-2';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => li.remove());
+
+    li.appendChild(span);
+    li.appendChild(removeBtn);
+    objectivesList.appendChild(li);
+    newObjectiveInput.value = '';
+  }
+});
+
+// Allow Enter to act like clicking "Add"
+newObjectiveInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addObjectiveBtn.click();
+  }
+});
+
+
+
+    const spinnerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Generating..`;
+
+    function toggleQuizQuestionCount() {
+        quizQuestionCountGroup.style.display = quizYesRadio.checked ? 'block' : 'none';
+    }
+
+    function applyQuizRestrictions(topicdata) {
+        const isSummary = !!(topicdata && topicdata.is_course_summary);
+        quizYesRadio.disabled = isSummary;
+        quizNoRadio.disabled = isSummary;
+        if (isSummary) {
+            quizNoRadio.checked = true;
+            quizYesRadio.checked = false;
+            quizQuestionCountGroup.style.display = 'none';
+        } else {
+            quizYesRadio.disabled = false;
+            quizNoRadio.disabled = false;
+        }
+    }
+
+    const MIN_TOPIC_MINUTES = 1;
+    const parsedTopicCap = parseInt(form && form.dataset.maxTopicMinutes ? form.dataset.maxTopicMinutes : '30', 10);
+    const MAX_TOPIC_MINUTES = Number.isInteger(parsedTopicCap) && parsedTopicCap > 0 ? parsedTopicCap : 30;
+    const MAX_LESSON_TOPICS = 25;
+    const MAX_QUIZ_QUESTIONS = 10;
+
+    function topicMetaText(data) {
+        const minutes = parseDurationMinutes(data.estimated_duration);
+        let text = minutes > 0 ? minutes + ' minutes' : '';
+        if (!isSummaryTopic(data) && data.has_quiz) {
+            const count = Math.max(0, Math.min(MAX_QUIZ_QUESTIONS, parseInt(data.quiz_question_count || '0', 10) || 0));
+            if (count > 0) {
+                const label = count === 1 ? 'question' : 'questions';
+                text += (text ? ' · ' : '') + 'Quiz, ' + count + ' ' + label;
+            }
+        }
+        return text;
+    }
+
+    function refreshTopicWordDisplay() {
+        Array.from(topicsWrapper.querySelectorAll('.topic-item')).forEach((item) => {
+            const data = readTopicItem(item);
+            const meta = item.querySelector('.topic-meta');
+            if (meta) {
+                meta.textContent = topicMetaText(data);
+            }
+        });
+    }
+    const durationBudgetEl = document.getElementById('topic-duration-budget');
+    const durationErrorEl = document.getElementById('topic-duration-error');
+
+    function parseDurationMinutes(value) {
+        const text = String(value || '').toLowerCase();
+        const range = text.match(/(\d+)\s*-\s*(\d+)/);
+        if (range) {
+            return Math.round((parseInt(range[1], 10) + parseInt(range[2], 10)) / 2);
+        }
+        const match = text.match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : 0;
+    }
+
+    function readTopicItem(item) {
+        try {
+            return JSON.parse(decodeURIComponent(item.dataset.topicdata || '{}'));
+        } catch (ignore) {
+            return {};
+        }
+    }
+
+    function isSummaryTopic(data) {
+        return !!(data && (data.is_course_summary || data.is_summary || data.is_summary_topic));
+    }
+
+    function lessonItems(exceptItem) {
+        return Array.from(topicsWrapper.querySelectorAll('.topic-item')).filter((item) => {
+            if (item === exceptItem) {
+                return false;
+            }
+            return !isSummaryTopic(readTopicItem(item));
+        });
+    }
+
+    function showDurationBudget() {
+        if (durationErrorEl) {
+            durationErrorEl.textContent = '';
+        }
+        if (durationBudgetEl) {
+            durationBudgetEl.textContent = 'Enter 1 to ' + MAX_TOPIC_MINUTES + ' minutes.';
+        }
+    }
+
+    function topicPlanError() {
+        const items = Array.from(topicsWrapper.querySelectorAll('.topic-item'));
+        let lessonCount = 0;
+        for (const item of items) {
+            const data = readTopicItem(item);
+            const minutes = parseDurationMinutes(data.estimated_duration);
+            const summary = isSummaryTopic(data);
+            if (minutes < MIN_TOPIC_MINUTES) {
+                return 'Enter a valid duration in minutes for "' + (data.title || 'this topic') + '".';
+            }
+            if (minutes > MAX_TOPIC_MINUTES) {
+                return 'Enter a duration between 1 and ' + MAX_TOPIC_MINUTES + ' minutes for "' + (data.title || 'this topic') + '".';
+            }
+            if (summary) {
+                continue;
+            }
+            if (data.has_quiz) {
+                const quizCount = parseInt(data.quiz_question_count || '0', 10);
+                if (quizCount < 1 || quizCount > MAX_QUIZ_QUESTIONS) {
+                    return 'Quiz questions for "' + (data.title || 'this topic') + '" must be between 1 and 10.';
+                }
+            }
+            lessonCount++;
+        }
+        if (lessonCount < 1) {
+            return 'Add at least one topic before generating content.';
+        }
+        if (lessonCount > MAX_LESSON_TOPICS) {
+            return 'A course can have at most 25 topics besides the course summary.';
+        }
+        return '';
+    }
+
+    quizYesRadio.addEventListener('change', toggleQuizQuestionCount);
+    quizNoRadio.addEventListener('change', toggleQuizQuestionCount);
+
+    // Handle topic click (Edit/Delete)
+    topicsWrapper.addEventListener('click', (e) => {
+        const item = e.target.closest('.topic-item');
+        if (!item) return;
+
+        const deleteBtn = e.target.closest('.delete-btn');
+        const editBtn = e.target.closest('.edit-btn');
+
+        if (deleteBtn) {
+            item.remove();
+            updateTopicOrder();
+        } else if (editBtn) {
+            let topicdata = {};
+            try {
+                topicdata = JSON.parse(decodeURIComponent(item.dataset.topicdata || '{}'));
+            } catch (err) {
+                console.warn('Failed to parse topic data:', err);
+            }
+
+            editIdInput.value = topicdata.id || item.dataset.id || '';
+            edittitleInput.value = topicdata.title || '';
+            editDescriptionInput.value = topicdata.description || '';
+            const parsedMinutes = parseDurationMinutes(topicdata.estimated_duration);
+            editDurationInput.value = parsedMinutes ? String(parsedMinutes) : '';
+            showDurationBudget();
+            quizYesRadio.checked = false || topicdata.has_quiz;
+            quizNoRadio.checked = !topicdata.has_quiz;
+            quizQuestionCountGroup.style.display = topicdata.has_quiz ? 'block' : 'none';
+            quizQuestionInput.value = topicdata.quiz_question_count || 1;
+            applyQuizRestrictions(topicdata);
+            objectivesList.innerHTML = '';
+     (topicdata.learning_objectives || []).forEach(obj => {
+  const li = document.createElement('li');
+  li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+  const span = document.createElement('span');
+  span.textContent = obj;
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'btn btn-sm btn-danger ms-2';
+  removeBtn.textContent = '×';
+  removeBtn.addEventListener('click', () => li.remove());
+
+  li.appendChild(span);
+  li.appendChild(removeBtn);
+  objectivesList.appendChild(li);
+});
+
+            window.currentEditingItem = item;
+            window.isAddingNewTopic = false;
+
+            const modalInstance = new bootstrap.Modal(editModal);
+            modalInstance.show();
+        }
+    });
+
+    // Handle Add Topic button
+    if (addTopicBtn) {
+    addTopicBtn.addEventListener('click', () => {
+        if (lessonItems(null).length >= MAX_LESSON_TOPICS) {
+            window.alert('A course can have at most 25 topics besides the course summary.');
+            return;
+        }
+        edittitleInput.value = '';
+        editDescriptionInput.value = '';
+        editDurationInput.value = '10';
+        showDurationBudget();
+        objectivesList.innerHTML = '';
+        quizNoRadio.checked = true;
+        quizYesRadio.checked = false;
+        quizQuestionInput.value = 1;
+        quizQuestionCountGroup.style.display = 'none';
+        applyQuizRestrictions({});
+        editIdInput.value = '';
+        window.currentEditingItem = null;
+        window.isAddingNewTopic = true;
+
+        const modalInstance = new bootstrap.Modal(editModal);
+        modalInstance.show();
+    });
+    }
+
+    // Handle Save Changes in Modal (Add/Edit)
+    document.getElementById('edit-topic-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const newTitle = edittitleInput.value.trim();
+        const newDesc = editDescriptionInput.value.trim();
+      
+        const minutes = parseInt(editDurationInput.value, 10);
+        showDurationBudget();
+        const quizCount = parseInt(quizQuestionInput.value || '1', 10);
+        if (!Number.isInteger(minutes) || minutes < MIN_TOPIC_MINUTES || minutes > MAX_TOPIC_MINUTES) {
+            if (durationErrorEl) {
+                durationErrorEl.textContent = 'Enter a duration between 1 and ' + MAX_TOPIC_MINUTES + ' minutes.';
+            }
+            return;
+        }
+        if (quizYesRadio.checked && (quizCount < 1 || quizCount > MAX_QUIZ_QUESTIONS)) {
+            if (durationErrorEl) {
+                durationErrorEl.textContent = 'Quiz questions must be between 1 and 10.';
+            }
+            return;
+        }
+
+const objectives = Array.from(objectivesList.querySelectorAll('li')).map(li =>
+  li.querySelector('span').textContent.trim()
+);
+
+        let existingTopic = {};
+        if (window.currentEditingItem) {
+            try {
+                existingTopic = JSON.parse(decodeURIComponent(window.currentEditingItem.dataset.topicdata || '{}'));
+            } catch (e) {}
+        }
+
+        const topicdata = {
+            id: editIdInput.value || `topic-${Date.now()}`,
+            title: newTitle,
+            description: newDesc,
+            estimated_duration: minutes + ' minutes',
+            learning_objectives: objectives,
+            has_quiz: quizYesRadio.checked,
+            quiz_question_count: quizYesRadio.checked ? quizCount : 0,
+            is_course_summary: existingTopic.is_course_summary || false,
+            content: ''
+        };
+
+        if (topicdata.is_course_summary) {
+            topicdata.has_quiz = false;
+            topicdata.quiz_question_count = 0;
+        }
+
+        const encodedData = encodeURIComponent(JSON.stringify(topicdata));
+
+        if (window.isAddingNewTopic) {
+            const newIndex = topicsWrapper.querySelectorAll('.topic-item').length;
+            const newTopic = document.createElement('div');
+            newTopic.className = 'topic-item';
+            newTopic.setAttribute('draggable', 'true');
+            newTopic.setAttribute('data-index', newIndex);
+            newTopic.setAttribute('data-id', topicdata.id);
+            newTopic.setAttribute('data-content', '');
+            newTopic.setAttribute('data-topicdata', encodedData);
+            newTopic.tabIndex = 0;
+            newTopic.innerHTML = `
+                <div class="topic-item-text">
+                    <span class="topic-title">Topic ${newIndex + 1}: ${newTitle}</span>
+                    <small class="topic-meta"></small>
+                </div>
+                <div>
+                    <button type="button" class="move-btn"><i class="fas fa-arrows-alt"></i></button>
+                    <button type="button" class="edit-btn"><i class="fas fa-pencil-alt"></i></button>
+                    <button type="button" class="delete-btn"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            topicsWrapper.appendChild(newTopic);
+        } else if (window.currentEditingItem) {
+            const item = window.currentEditingItem;
+            item.dataset.topicdata = encodedData;
+            const span = item.querySelector('.topic-title') || item.querySelector('span');
+            const index = Array.from(topicsWrapper.querySelectorAll('.topic-item')).indexOf(item);
+            span.textContent = `Topic ${index + 1}: ${newTitle}`;
+        }
+
+        updateTopicOrder();
+        bootstrap.Modal.getInstance(editModal).hide();
+        if (saveBtn) {
+            saveBtn.disabled = false;
+        }
+    });
+
+    // Reset modal state when closed
+    editModal.addEventListener('hidden.bs.modal', function () {
+        window.currentEditingItem = null;
+        window.isAddingNewTopic = false;
+        if (saveBtn) {
+            saveBtn.disabled = false;
+        }
+    });
+
+    // Update topic order
+    function updateTopicOrder() {
+        const topics = Array.from(topicsWrapper.querySelectorAll('.topic-item'));
+        const order = topics.map((item, index) => {
+            const span = item.querySelector('.topic-title') || item.querySelector('span');
+            const title = span.textContent.split(':').slice(1).join(':').trim();
+            item.dataset.index = index;
+            span.textContent = `Topic ${index + 1}: ${title}`;
+            let topicdata = {};
+            try {
+                topicdata = JSON.parse(decodeURIComponent(item.dataset.topicdata || '{}'));
+            } catch (e) {}
+            return {
+                id: topicdata.id,
+                title: topicdata.title,
+                description: topicdata.description,
+                estimated_duration: topicdata.estimated_duration,
+                learning_objectives: topicdata.learning_objectives,
+                content: topicdata.content,
+                has_quiz: topicdata.has_quiz || false,
+                quiz_question_count: topicdata.quiz_question_count || 0,
+                is_course_summary: topicdata.is_course_summary || false
+            };
+        });
+
+        topicOrderInput.value = JSON.stringify(order);
+        refreshTopicWordDisplay();
+    }
+
+updateTopicOrder();
+
+let draggedItem = null;
+
+topicsWrapper.addEventListener('dragstart', (e) => {
+    draggedItem = e.target.closest('.topic-item');
+    e.dataTransfer.effectAllowed = 'move';
+});
+
+topicsWrapper.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const target = e.target.closest('.topic-item');
+    if (!target || target === draggedItem) return;
+    topicsWrapper.insertBefore(draggedItem, target.nextSibling || target);
+});
+
+topicsWrapper.addEventListener('drop', (e) => {
+    e.preventDefault();
+    updateTopicOrder(); // reorder and update hidden field
+});
+      //console.log('Updated topic_order:', topicOrderInput.value);
+topicsWrapper.addEventListener('dragend', () => {
+    draggedItem = null;
+});
+
+
+    form.addEventListener('submit', function (e) {
+        const submitter = e.submitter || document.activeElement;
+        if (submitter && submitter === saveBtn) {
+            updateTopicOrder();
+            const planError = topicPlanError();
+            if (planError) {
+                e.preventDefault();
+                window.alert(planError);
+                return;
+            }
+            setTimeout(() => {
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = spinnerHTML;
+                }
+                if (backBtn) {
+                    backBtn.disabled = true;
+                }
+                if (addTopicBtn) {
+                    addTopicBtn.disabled = true;
+                }
+            }, 0);
+        }
+    });
+});
+
+
+
+
+</script>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+</body>
+</html>

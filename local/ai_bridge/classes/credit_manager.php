@@ -1,0 +1,241 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * credit_manager.php
+ *
+ * @package   local_ai_bridge
+ * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_ai_bridge;
+
+use core\lock\lock_config;
+use moodle_exception;
+use stdClass;
+
+/**
+ * Class credit_manager.
+ */
+class credit_manager {
+    /**
+     * Method assert_available.
+     *
+     * @param stdClass $tenant Parameter tenant.
+     * @param stdClass $usercontrol Parameter usercontrol.
+     * @param float $credits Parameter credits.
+     * @return void Return value.
+     */
+    public static function assert_available(stdClass $tenant, stdClass $usercontrol, float $credits): void {
+        if ($credits <= 0) {
+            return;
+        }
+        if ((float)$tenant->creditbalance < $credits) {
+            throw new moodle_exception('error:tenantcredits', 'local_ai_bridge');
+        }
+        if ($usercontrol->creditlimit !== null && $usercontrol->creditlimit !== '' &&
+            ((float)$usercontrol->creditused + $credits) > (float)$usercontrol->creditlimit) {
+            throw new moodle_exception('error:usercredits', 'local_ai_bridge');
+        }
+    }
+
+    /**
+     * Reserve quota atomically before calling an external provider.
+     *
+     * @param int $tenantid Tenant.
+     * @param int $userid User.
+     * @param float $credits Cost.
+     * @return void
+     */
+    public static function reserve(int $tenantid, int $userid, float $credits): void {
+        self::update_reservation($tenantid, $userid, $credits);
+    }
+
+    /**
+     * Release quota after all providers fail, without affecting usage logs.
+     *
+     * @param int $tenantid Tenant.
+     * @param int $userid User.
+     * @param float $credits Amount.
+     * @return void
+     */
+    public static function release(int $tenantid, int $userid, float $credits): void {
+        self::update_reservation($tenantid, $userid, -$credits);
+    }
+
+    /**
+     * Serialize both reservations and releases on the same tenant lock.
+     *
+     * @param int $tenantid Tenant.
+     * @param int $userid User.
+     * @param float $credits Positive to reserve and negative to release.
+     * @return void
+     */
+    private static function update_reservation(int $tenantid, int $userid, float $credits): void {
+        global $DB;
+        if ($credits == 0) {
+            return;
+        }
+        $factory = lock_config::get_lock_factory("local_ai_bridge");
+        $lock = $factory->get_lock("credits_tenant_" . $tenantid, 10);
+        if (!$lock) {
+            throw new moodle_exception("error:creditlock", "local_ai_bridge");
+        }
+        try {
+            $tenant = $DB->get_record("local_ai_bridge_tenant", ["id" => $tenantid], "*", MUST_EXIST);
+            $user = $DB->get_record("local_ai_bridge_user",
+                ["tenantid" => $tenantid, "userid" => $userid], "*", MUST_EXIST);
+            if ($credits > 0) {
+                if (!$tenant->enabled || !$user->enabled) {
+                    throw new moodle_exception("error:userdisabled", "local_ai_bridge");
+                }
+                self::assert_available($tenant, $user, $credits);
+            }
+            // Check quota before opening a transaction to preserve any caller transaction.
+            $transaction = $DB->start_delegated_transaction();
+            $tenant->creditbalance = (float)$tenant->creditbalance - $credits;
+            $tenant->timemodified = time();
+            $DB->update_record("local_ai_bridge_tenant", $tenant);
+            $user->creditused = max(0, (float)$user->creditused + $credits);
+            $user->timemodified = time();
+            $DB->update_record("local_ai_bridge_user", $user);
+            $transaction->allow_commit();
+        } catch (\Throwable $exception) {
+            if (isset($transaction)) {
+                $transaction->rollback($exception);
+            }
+            throw $exception;
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * Convert a previously charged reservation into a permanent ledger entry.
+     * This is called inside the same transaction as the successful usage record.
+     *
+     * @param int $tenantid Tenant.
+     * @param int $userid User.
+     * @param int $usageid Usage record.
+     * @param float $credits Already reserved cost.
+     * @return void
+     */
+    public static function record_reserved_usage(int $tenantid, int $userid, int $usageid, float $credits): void {
+        global $DB;
+        if ($credits <= 0) {
+            return;
+        }
+        $DB->insert_record("local_ai_bridge_credit", (object)[
+            "tenantid" => $tenantid,
+            "userid" => $userid,
+            "actorid" => null,
+            "usageid" => $usageid,
+            "amount" => -$credits,
+            "type" => "usage",
+            "note" => null,
+            "timecreated" => time(),
+        ]);
+    }
+
+    /**
+     * Method debit.
+     *
+     * @param int $tenantid Parameter tenantid.
+     * @param int $userid Parameter userid.
+     * @param int $usageid Parameter usageid.
+     * @param float $credits Parameter credits.
+     * @return void Return value.
+     */
+    public static function debit(int $tenantid, int $userid, int $usageid, float $credits): void {
+        global $DB;
+        if ($credits <= 0) {
+            return;
+        }
+        $factory = lock_config::get_lock_factory('local_ai_bridge');
+        $lock = $factory->get_lock('credits_tenant_' . $tenantid, 10);
+        if (!$lock) {
+            throw new moodle_exception('error:creditlock', 'local_ai_bridge');
+        }
+        try {
+            $tenant = $DB->get_record('local_ai_bridge_tenant', ['id' => $tenantid], '*', MUST_EXIST);
+            $user = user_service::get_or_create($tenantid, $userid);
+            self::assert_available($tenant, $user, $credits);
+            $tenant->creditbalance = (float)$tenant->creditbalance - $credits;
+            $tenant->timemodified = time();
+            $DB->update_record('local_ai_bridge_tenant', $tenant);
+            $user->creditused = (float)$user->creditused + $credits;
+            $user->timemodified = time();
+            $DB->update_record('local_ai_bridge_user', $user);
+            $DB->insert_record('local_ai_bridge_credit', (object)[
+                'tenantid' => $tenantid,
+                'userid' => $userid,
+                'actorid' => null,
+                'usageid' => $usageid,
+                'amount' => -$credits,
+                'type' => 'usage',
+                'note' => null,
+                'timecreated' => time(),
+            ]);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * Method adjust.
+     *
+     * @param int $tenantid Parameter tenantid.
+     * @param float $amount Parameter amount.
+     * @param int $actorid Parameter actorid.
+     * @param string $note Parameter note.
+     * @return void Return value.
+     */
+    public static function adjust(int $tenantid, float $amount, int $actorid, string $note = ''): void {
+        global $DB;
+        $factory = lock_config::get_lock_factory('local_ai_bridge');
+        $lock = $factory->get_lock('credits_tenant_' . $tenantid, 10);
+        if (!$lock) {
+            throw new moodle_exception('error:creditlock', 'local_ai_bridge');
+        }
+        try {
+            $transaction = $DB->start_delegated_transaction();
+            $tenant = $DB->get_record('local_ai_bridge_tenant', ['id' => $tenantid], '*', MUST_EXIST);
+            $tenant->creditbalance = (float)$tenant->creditbalance + $amount;
+            $tenant->timemodified = time();
+            $DB->update_record('local_ai_bridge_tenant', $tenant);
+            $creditid = $DB->insert_record('local_ai_bridge_credit', (object)[
+                'tenantid' => $tenantid,
+                'userid' => null,
+                'actorid' => $actorid,
+                'usageid' => null,
+                'amount' => $amount,
+                'type' => $amount >= 0 ? 'purchase' : 'adjustment',
+                'note' => $note,
+                'timecreated' => time(),
+            ]);
+            $transaction->allow_commit();
+            \local_ai_bridge\event\credit_adjusted::create([
+                "context" => \context_system::instance(),
+                "objectid" => $creditid,
+                "other" => ["tenantid" => $tenantid, "amount" => $amount],
+            ])->trigger();
+        } finally {
+            $lock->release();
+        }
+    }
+
+}

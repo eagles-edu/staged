@@ -1,0 +1,8 @@
+{
+  "subplugintypes": {
+    "realtimeplugin": "plugin"
+  },
+  "plugintypes": {
+    "realtimeplugin": "admin/tool/realtime/plugin"
+  }
+}

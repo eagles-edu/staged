@@ -1,0 +1,67 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/participant/revision
+
+    Shown to participants during the revision stage (final leaderboard).
+
+    Context variables:
+    * quiztitle - The quiz/activity title
+    * rank - Final rank position
+    * rankstatus - Text describing final rank (e.g. "You finished in 3rd place!")
+    Example context (json):
+    {
+        "quiztitle": "Geography Quiz",
+        "rank": 3,
+        "rankstatus": "You finished in 3rd place!",
+        "rankimage": "/mod/kahoodle/pix/3.png",
+        "avatarurl": "/user/pix.php/2/f1.jpg",
+        "displayname": "Alex Johnson",
+        "suspenseimage": "/mod/kahoodle/pix/drums.png",
+        "suspenseheader": "Drumroll please..."
+    }
+}}
+{{< mod_kahoodle/participant/common/base }}
+{{$ main_content }}
+{{! Custom header with quiz title instead of question number }}
+<div class="mod_kahoodle-participant-result-header">
+    <div class="mod_kahoodle-participant-quiz-title">{{{quiztitle}}}</div>
+    <a href="#" class="mod_kahoodle-participant-close" data-action="close" aria-label="{{#str}}close, mod_kahoodle{{/str}}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </a>
+</div>
+
+<div class="mod_kahoodle-participant-revision-content" data-autorevealin="{{autorevealin}}" data-rank="{{rank}}">
+    <div class="mod_kahoodle-participant-result-status" data-region="suspense">{{{suspenseheader}}}</div>
+    <div class="mod_kahoodle-participant-icon mod_kahoodle-result-trophy" data-region="suspense">
+        <img src="{{suspenseimage}}" alt="">
+    </div>
+    <div class="mod_kahoodle-participant-result-status" data-region="aftersuspense" style="display: none;">{{{rankheader}}}</div>
+    <div class="mod_kahoodle-participant-icon mod_kahoodle-result-trophy" data-region="aftersuspense" style="display: none;">
+        <img src="{{rankimage}}" alt="">
+    </div>
+    {{#rankstatus}}
+    <div class="mod_kahoodle-participant-rank" data-region="aftersuspense" style="display: none;">{{{rankstatus}}}</div>
+    {{/rankstatus}}
+</div>
+
+{{> mod_kahoodle/participant/common/participantinfo }}
+{{/ main_content }}
+{{/ mod_kahoodle/participant/common/base }}

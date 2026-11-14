@@ -1,0 +1,806 @@
+<?php
+// This file is part of mod_kahoodle plugin
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+namespace mod_kahoodle\local\game;
+
+use core\exception\moodle_exception;
+use mod_kahoodle\local\game\instance;
+use mod_kahoodle\constants;
+use mod_kahoodle\local\entities\round;
+use mod_kahoodle\local\entities\round_question;
+
+/**
+ * Class questions
+ *
+ * @package    mod_kahoodle
+ * @copyright  Marina Glancy
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class questions {
+    /**
+     * Static cache for question type instances
+     * @var null|array
+     */
+    protected static ?array $questiontypescache = null;
+
+    /**
+     * Get available question types
+     *
+     * @return \mod_kahoodle\local\questiontypes\base[] Array of question type instances
+     */
+    public static function get_question_types(): array {
+        if (self::$questiontypescache === null) {
+            $types = [
+                new \mod_kahoodle\local\questiontypes\multichoice(),
+                // Future question types can be added here.
+            ];
+            self::$questiontypescache = array_combine(
+                array_map(fn($qt) => $qt->get_type(), $types),
+                $types
+            );
+        }
+        return array_values(self::$questiontypescache);
+    }
+
+    /**
+     * Get a question type instance by its type property.
+     *
+     * @param string $type The type string (from base::get_type())
+     * @return \mod_kahoodle\local\questiontypes\base|null The question type instance or null if not found
+     */
+    public static function get_question_type_instance(string $type): ?\mod_kahoodle\local\questiontypes\base {
+        self::get_question_types(); // Ensure cache is populated.
+        return self::$questiontypescache[$type] ?? null;
+    }
+
+    /**
+     * Get the default question type instance
+     *
+     * @return \mod_kahoodle\local\questiontypes\base
+     */
+    public static function get_default_question_type(): \mod_kahoodle\local\questiontypes\base {
+        $types = self::get_question_types();
+        return reset($types);
+    }
+
+    /**
+     * Get a question type instance by its type property, or return default if not found.
+     *
+     * @param string $type
+     * @param bool $showdebugging show debugging message if not found
+     * @return \mod_kahoodle\local\questiontypes\base
+     */
+    public static function get_question_type_instance_or_default(
+        string $type,
+        bool $showdebugging = true
+    ): \mod_kahoodle\local\questiontypes\base {
+        $questiontype = self::get_question_type_instance($type);
+        if ($questiontype === null) {
+            $questiontype = self::get_default_question_type();
+            if ($showdebugging) {
+                debugging("Unknown question type '" . s($type) . "' requested, using '" .
+                    s($questiontype->get_type()) . "' as default.");
+            }
+        }
+        return $questiontype;
+    }
+
+    /**
+     * Get the last round for a Kahoodle activity
+     *
+     * Returns the most recent round, creating one if none exist.
+     *
+     * @param int $kahoodleid The Kahoodle activity ID
+     * @return round Round entity
+     */
+    public static function get_last_round(int $kahoodleid): round {
+        $rounds = instance::get_all_rounds($kahoodleid, 1);
+        return reset($rounds);
+    }
+
+    /**
+     * Get the ID of the editable round for a Kahoodle activity
+     *
+     * Returns the ID of a round that can be edited (not yet started).
+     * If no editable round exists, creates a new one.
+     *
+     * @param int $kahoodleid The Kahoodle activity ID
+     * @return int|null Round ID if editable round exists/created, null if last round is started
+     */
+    public static function get_editable_round_id(int $kahoodleid): ?int {
+        $lastround = self::get_last_round($kahoodleid);
+
+        // Return the round ID only if it is editable.
+        if ($lastround->is_fully_editable()) {
+            return $lastround->get_id();
+        }
+
+        // Last round has been started, return null.
+        return null;
+    }
+
+    /**
+     * Checks that the draft area for the question image (plain text format) only contains web images
+     *
+     * The file manager in the form only accepts web images but this is not enforced on the server.
+     *
+     * @param int $draftitemid
+     * @throws \moodle_exception
+     */
+    protected static function validate_question_image(int $draftitemid): void {
+        global $USER;
+        $usercontext = \context_user::instance($USER->id);
+        $files = get_file_storage()->get_area_files($usercontext->id, 'user', 'draft', $draftitemid, 'id', false);
+        foreach ($files as $file) {
+            if (!file_mimetype_in_typegroup($file->get_mimetype(), 'web_image')) {
+                throw new \moodle_exception('invalidfiletype', 'error', '', $file->get_filename());
+            }
+        }
+    }
+
+    /**
+     * Add a new question to the editable round
+     *
+     * Creates a new question, its first version, and links it to the editable round.
+     * Accepts both question content and behavior data.
+     *
+     * @param \stdClass $questiondata Question data including:
+     *   - kahoodleid: Kahoodle activity ID (required if $round is not passed)
+     *   - questiontype: Question type (required)
+     *   - questiontext: Question text (required)
+     *   - questiontextformat: Text format (optional, default FORMAT_HTML)
+     *   - questionconfig: Type-specific configuration (optional)
+     *   - questionpreviewduration: Preview duration override (optional)
+     *   - questionduration: Question duration override (optional)
+     *   - questionresultsduration: Results duration override (optional)
+     *   - maxpoints: Maximum points override (optional)
+     *   - minpoints: Minimum points override (optional)
+     *   - imagedraftitemid: Draft item ID for question images (optional)
+     * @param round|null $round round, if known
+     * @return round_question The question entity
+     * @throws \moodle_exception If no editable round exists
+     */
+    public static function add_question(\stdClass $questiondata, ?round $round): round_question {
+        global $DB;
+
+        // Get editable round ID, throw exception if there is no editable round.
+        $round = $round ?? self::get_last_round($questiondata->kahoodleid);
+        if (!$round->is_fully_editable()) {
+            throw new \moodle_exception('noeditableround', 'mod_kahoodle');
+        }
+        $kahoodleid = $round->get_kahoodleid();
+        $roundquestionobj = round_question::new_for_round_and_type($round, $questiondata->questiontype ?? null);
+        $defaultdata = $roundquestionobj->get_data();
+        $roundquestionobj->get_question_type()->sanitize_data($roundquestionobj, $questiondata);
+        if (!empty($questiondata->imagedraftitemid) && $defaultdata->questionformat != constants::QUESTIONFORMAT_RICHTEXT) {
+            self::validate_question_image((int)$questiondata->imagedraftitemid);
+        }
+
+        $time = time();
+
+        // Create new question.
+        $question = new \stdClass();
+        $question->kahoodleid = $kahoodleid;
+        $question->questiontype = $defaultdata->questiontype; // Normalised value.
+        $question->timecreated = $time;
+
+        $questionid = $DB->insert_record('kahoodle_questions', $question);
+
+        // Create first version of the question.
+        $version = new \stdClass();
+        $version->questionid = $questionid;
+        $version->version = 1;
+        foreach (constants::FIELDS_QUESTION_VERSION as $field) {
+            if (property_exists($questiondata, $field)) {
+                $version->$field = $questiondata->$field;
+            } else {
+                $version->$field = $defaultdata->$field;
+            }
+        }
+        $version->timecreated = $time;
+        $version->timemodified = $time;
+        $version->islast = 1;
+
+        $versionid = $DB->insert_record('kahoodle_question_versions', $version);
+
+        // Handle file uploads if draft item ID is provided.
+        if (!empty($questiondata->imagedraftitemid)) {
+            $context = $round->get_context();
+
+            if ($roundquestionobj->get_data()->questionformat == constants::QUESTIONFORMAT_RICHTEXT) {
+                // For rich text, save files and rewrite @@PLUGINFILE@@ URLs in text.
+                $questiontext = file_save_draft_area_files(
+                    $questiondata->imagedraftitemid,
+                    $context->id,
+                    'mod_kahoodle',
+                    constants::FILEAREA_QUESTION_IMAGE,
+                    $versionid,
+                    ['subdirs' => false, 'maxfiles' => EDITOR_UNLIMITED_FILES],
+                    $version->questiontext
+                );
+                // Update the version record with rewritten text.
+                $DB->set_field('kahoodle_question_versions', 'questiontext', $questiontext, ['id' => $versionid]);
+            } else {
+                // For plain text, just save the image file(s).
+                file_save_draft_area_files(
+                    $questiondata->imagedraftitemid,
+                    $context->id,
+                    'mod_kahoodle',
+                    constants::FILEAREA_QUESTION_IMAGE,
+                    $versionid,
+                    ['subdirs' => false, 'maxfiles' => 1]
+                );
+            }
+        }
+
+        // Get the next sort order for this round.
+        $maxroundsortorder = $DB->get_field(
+            'kahoodle_round_questions',
+            'MAX(sortorder)',
+            ['roundid' => $round->get_id()]
+        );
+        $roundsortorder = $maxroundsortorder ? $maxroundsortorder + 1 : 1;
+
+        // Link the question version to the editable round.
+        $roundquestion = new \stdClass();
+        $roundquestion->roundid = $round->get_id();
+        $roundquestion->questionversionid = $versionid;
+        $roundquestion->sortorder = $roundsortorder;
+        foreach (constants::FIELDS_ROUND_QUESTION as $field) {
+            if (property_exists($questiondata, $field)) {
+                $roundquestion->$field = $questiondata->$field;
+            } else {
+                $roundquestion->$field = $defaultdata->$field;
+            }
+        }
+        // Timestamps.
+        $roundquestion->timecreated = $time;
+        $roundquestion->timemodified = $time;
+
+        $id = $DB->insert_record('kahoodle_round_questions', $roundquestion);
+
+        $round->clear_questions_cache();
+
+        $event = \mod_kahoodle\event\question_created::create([
+            'objectid' => $id,
+            'context' => $round->get_context(),
+            'other' => [
+                'kahoodleid' => $kahoodleid,
+                'roundid' => $round->get_id(),
+            ],
+        ]);
+        $event->trigger();
+
+        return round_question::create_from_round_question_id($id);
+    }
+
+    /**
+     * Edit a question in the editable round
+     *
+     * Updates question content and/or behavior data. For content changes, creates a new
+     * version if the current version is used in non-editable rounds.
+     *
+     * @param round_question $roundquestion The round question entity to edit
+     * @param \stdClass $questiondata Question data including:
+     *   - questiontext: Question text (optional)
+     *   - questiontextformat: Text format (optional)
+     *   - questionconfig: Type-specific configuration (optional)
+     *   - questionpreviewduration: Preview duration override (optional)
+     *   - questionduration: Question duration override (optional)
+     *   - questionresultsduration: Results duration override (optional)
+     *   - maxpoints: Maximum points override (optional)
+     *   - minpoints: Minimum points override (optional)
+     * @return void
+     * @throws \moodle_exception If question not found or edit changes are invalid
+     */
+    public static function edit_question(round_question $roundquestion, \stdClass $questiondata): void {
+        global $DB;
+
+        if (!$roundquestion->get_id()) {
+            throw new \moodle_exception('questionnotfound', 'mod_kahoodle');
+        }
+
+        $questionid = $roundquestion->get_data()->questionid;
+        $round = $roundquestion->get_round();
+        $roundquestion->get_question_type()->sanitize_data($roundquestion, $questiondata);
+        if (
+            !empty($questiondata->imagedraftitemid)
+            && $roundquestion->get_data()->questionformat != constants::QUESTIONFORMAT_RICHTEXT
+        ) {
+            self::validate_question_image((int)$questiondata->imagedraftitemid);
+        }
+
+        $contentchanges = [];
+        $content = [];
+        foreach (constants::FIELDS_QUESTION_VERSION as $field) {
+            if (property_exists($questiondata, $field) && $questiondata->$field !== $roundquestion->get_data()->$field) {
+                $contentchanges[$field] = $questiondata->$field;
+                $content[$field] = $questiondata->$field;
+            } else {
+                $content[$field] = $roundquestion->get_data()->$field;
+            }
+        }
+
+        $behaviorchanges = [];
+        foreach (constants::FIELDS_ROUND_QUESTION as $field) {
+            if (property_exists($questiondata, $field) && $questiondata->$field !== $roundquestion->get_data()->$field) {
+                $behaviorchanges[$field] = $questiondata->$field;
+            }
+        }
+
+        // Update behavior data in kahoodle_round_questions table.
+        if ($behaviorchanges) {
+            $behaviorchanges['id'] = $roundquestion->get_id();
+            $DB->update_record('kahoodle_round_questions', $behaviorchanges);
+        }
+
+        // Handle content changes.
+        if ($contentchanges || !empty($questiondata->imagedraftitemid)) {
+            // Check if this version is already used in any non-editable rounds.
+            $sql = "SELECT COUNT(rq.id)
+                      FROM {kahoodle_round_questions} rq
+                      JOIN {kahoodle_rounds} r ON r.id = rq.roundid
+                     WHERE rq.questionversionid = :versionid
+                       AND (r.id != :roundid OR r.timestarted IS NOT NULL)";
+            $usedinotherrounds = $DB->count_records_sql($sql, [
+                'versionid' => $roundquestion->get_data()->questionversionid,
+                'roundid' => $roundquestion->get_round()->get_id(),
+            ]);
+
+            $versionid = $roundquestion->get_data()->questionversionid;
+
+            if ($usedinotherrounds > 0) {
+                // Create a new version.
+                $lastversion = (int)$DB->get_field_sql(
+                    'SELECT MAX(version) AS version FROM {kahoodle_question_versions} WHERE questionid = ?',
+                    [$questionid]
+                );
+                $content['version'] = $lastversion + 1;
+                $content['questionid'] = $questionid;
+                $content['timecreated'] = $content['timemodified'] = time();
+                $content['islast'] = 1;
+
+                // Set islast=0 for all existing versions of this question.
+                $DB->set_field('kahoodle_question_versions', 'islast', 0, ['questionid' => $questionid]);
+
+                $versionid = $DB->insert_record('kahoodle_question_versions', $content);
+
+                // Update the round question to use the new version.
+                $DB->set_field(
+                    'kahoodle_round_questions',
+                    'questionversionid',
+                    $versionid,
+                    ['id' => $roundquestion->get_id()]
+                );
+            } else if ($contentchanges) {
+                // Edit the existing version.
+                $contentchanges['id'] = $roundquestion->get_data()->questionversionid;
+                $contentchanges['timemodified'] = time();
+                $DB->update_record('kahoodle_question_versions', $contentchanges);
+            }
+
+            // Handle file uploads if draft item ID is provided.
+            if (!empty($questiondata->imagedraftitemid)) {
+                $context = $round->get_context();
+
+                if ($roundquestion->get_data()->questionformat == constants::QUESTIONFORMAT_RICHTEXT) {
+                    // For rich text, save files and rewrite @@PLUGINFILE@@ URLs in text.
+                    $questiontext = file_save_draft_area_files(
+                        $questiondata->imagedraftitemid,
+                        $context->id,
+                        'mod_kahoodle',
+                        constants::FILEAREA_QUESTION_IMAGE,
+                        $versionid,
+                        ['subdirs' => false, 'maxfiles' => EDITOR_UNLIMITED_FILES],
+                        $content['questiontext']
+                    );
+                    // Update the version record with rewritten text.
+                    $DB->set_field('kahoodle_question_versions', 'questiontext', $questiontext, ['id' => $versionid]);
+                } else {
+                    // For plain text, just save the image file(s).
+                    file_save_draft_area_files(
+                        $questiondata->imagedraftitemid,
+                        $context->id,
+                        'mod_kahoodle',
+                        constants::FILEAREA_QUESTION_IMAGE,
+                        $versionid,
+                        ['subdirs' => false, 'maxfiles' => 1]
+                    );
+                }
+            }
+        }
+
+        $round->clear_questions_cache();
+
+        $event = \mod_kahoodle\event\question_updated::create([
+            'objectid' => $roundquestion->get_question_id(),
+            'context' => $round->get_context(),
+            'other' => [
+                'kahoodleid' => $round->get_kahoodleid(),
+                'roundid' => $round->get_id(),
+                'roundstage' => $round->get_current_stage_name(),
+            ],
+        ]);
+        $event->trigger();
+    }
+
+    /**
+     * Move a given question to a new sortorder position
+     *
+     * @param round_question $roundquestion
+     * @param int $newsortorder The new sortorder position (1-based), -1 means last position
+     * @throws \moodle_exception
+     * @return void
+     */
+    public static function change_question_sortorder(round_question $roundquestion, int $newsortorder): void {
+        global $DB;
+
+        // Get editable round ID.
+        $round = $roundquestion->get_round();
+        if (!$round->is_fully_editable()) {
+            throw new \moodle_exception('noeditableround', 'mod_kahoodle');
+        }
+
+        $currentorder = $roundquestion->get_data()->sortorder;
+        $maxsortorder = $roundquestion->get_round()->get_questions_count();
+        if ($newsortorder == -1) {
+            $newsortorder = $maxsortorder;
+        }
+        $newsortorder = min(max(1, $newsortorder), $maxsortorder);
+        if ($newsortorder == $currentorder) {
+            // No change.
+            return;
+        }
+
+        // Update sort orders of other questions in the round.
+        if ($newsortorder < $currentorder) {
+            // Moving up: increment sortorder of questions between new and current position.
+            $DB->execute(
+                "UPDATE {kahoodle_round_questions}
+                 SET sortorder = sortorder + 1
+                 WHERE roundid = :roundid
+                   AND sortorder >= :newsortorder
+                   AND sortorder < :currentorder",
+                [
+                    'roundid' => $round->get_id(),
+                    'newsortorder' => $newsortorder,
+                    'currentorder' => $currentorder,
+                ]
+            );
+        } else {
+            // Moving down: decrement sortorder of questions between current and new position.
+            $DB->execute(
+                "UPDATE {kahoodle_round_questions}
+                 SET sortorder = sortorder - 1
+                 WHERE roundid = :roundid
+                   AND sortorder <= :newsortorder
+                   AND sortorder > :currentorder",
+                [
+                    'roundid' => $round->get_id(),
+                    'newsortorder' => $newsortorder,
+                    'currentorder' => $currentorder,
+                ]
+            );
+        }
+
+        // Update sortorder of the moved question.
+        $DB->set_field(
+            'kahoodle_round_questions',
+            'sortorder',
+            $newsortorder,
+            ['id' => $roundquestion->get_id()]
+        );
+
+        // Just in case validate that sortorders are sequential.
+        self::fix_round_sortorder($round->get_id());
+        $round->clear_questions_cache();
+
+        $event = \mod_kahoodle\event\question_updated::create([
+            'objectid' => $roundquestion->get_question_id(),
+            'context' => $round->get_context(),
+            'other' => [
+                'kahoodleid' => $round->get_kahoodleid(),
+                'roundid' => $round->get_id(),
+                'roundstage' => $round->get_current_stage_name(),
+            ],
+        ]);
+        $event->trigger();
+    }
+
+    /**
+     * Delete a question from the editable round
+     *
+     * Removes question from editable round. If the question version is used in non-editable rounds,
+     * only removes the link. Otherwise also deletes the version and question if it's the only version.
+     *
+     * @param round_question $roundquestion The round question entity to delete
+     * @return void
+     * @throws \moodle_exception If no editable round exists or question not found
+     */
+    public static function delete_question(round_question $roundquestion): void {
+        global $DB;
+
+        // Get editable round ID.
+        $round = $roundquestion->get_round();
+        if (!$round->is_fully_editable()) {
+            throw new \moodle_exception('noeditableround', 'mod_kahoodle');
+        }
+
+        $transaction = $DB->start_delegated_transaction();
+
+        // Always delete the link between the question and the editable round.
+        $DB->delete_records('kahoodle_round_questions', ['id' => $roundquestion->get_id()]);
+
+        // Fix sortorder for the round.
+        self::fix_round_sortorder($round->get_id());
+
+        // Check if this version is used in any non-editable rounds.
+        $questionversionid = $roundquestion->get_data()->questionversionid;
+        $usedinotherrounds = $DB->count_records('kahoodle_round_questions', ['questionversionid' => $questionversionid]);
+
+        if ($usedinotherrounds == 0) {
+            // This version is not used in any started rounds, we can delete it.
+            // First check if it was the last version (islast=1) so we can update the next version.
+            $waslastversion = $DB->get_field('kahoodle_question_versions', 'islast', ['id' => $questionversionid]);
+            $questionid = $roundquestion->get_question_id();
+
+            $DB->delete_records('kahoodle_question_versions', ['id' => $questionversionid]);
+            get_file_storage()->delete_area_files(
+                $round->get_context()->id,
+                'mod_kahoodle',
+                constants::FILEAREA_QUESTION_IMAGE,
+                $questionversionid
+            );
+
+            // Check if this was the only version of the question.
+            $remainingversions = $DB->count_records('kahoodle_question_versions', ['questionid' => $questionid]);
+            if ($remainingversions == 0) {
+                // Delete the question itself.
+                $DB->delete_records('kahoodle_questions', ['id' => $questionid]);
+            } else if ($waslastversion) {
+                // The deleted version was the last one. Update the new highest version to be the last.
+                $versions = $DB->get_records(
+                    'kahoodle_question_versions',
+                    ['questionid' => $questionid],
+                    'version DESC',
+                    'id',
+                    0,
+                    1
+                );
+                if ($versions) {
+                    $DB->set_field('kahoodle_question_versions', 'islast', 1, ['id' => reset($versions)->id]);
+                }
+            }
+        }
+
+        $transaction->allow_commit();
+
+        $round->clear_questions_cache();
+        $event = \mod_kahoodle\event\question_removed::create([
+            'objectid' => $roundquestion->get_question_id(),
+            'context' => $round->get_context(),
+            'other' => [
+                'kahoodleid' => $round->get_kahoodleid(),
+                'roundid' => $round->get_id(),
+                'fullydeleted' => !$usedinotherrounds,
+            ],
+        ]);
+        $event->trigger();
+    }
+
+    /**
+     * Duplicate a question into a round
+     *
+     * Creates a new question with a copy of the current version's content and
+     * the same behavior settings. When duplicating within the same round, the duplicate
+     * is placed right after the original. When duplicating to a different round,
+     * it is appended at the end. Only works if the target round is fully editable.
+     *
+     * @param round_question $roundquestion The round question entity to duplicate
+     * @param round|null $targetround Target round (null = same round as the source question)
+     * @return round_question The newly created duplicate
+     * @throws \moodle_exception If target round is not fully editable
+     */
+    public static function duplicate_question(round_question $roundquestion, ?round $targetround = null): round_question {
+        global $DB;
+
+        $round = $targetround ?? $roundquestion->get_round();
+        // Target can only be within the same module.
+        if ($targetround && $targetround->get_context()->id != $roundquestion->get_round()->get_context()->id) {
+            throw new \dml_missing_record_exception('kahoodle_rounds', 'id = ?', [$targetround->get_id()]);
+        }
+        if (!$round->is_fully_editable()) {
+            throw new \moodle_exception('noeditableround', 'mod_kahoodle');
+        }
+
+        $data = $roundquestion->get_data();
+        $time = time();
+
+        // Create a new question record.
+        $question = new \stdClass();
+        $question->kahoodleid = $data->kahoodleid;
+        $question->questiontype = $data->questiontype;
+        $question->timecreated = $time;
+        $questionid = $DB->insert_record('kahoodle_questions', $question);
+
+        // Create first version as a copy of the current version.
+        $version = new \stdClass();
+        $version->questionid = $questionid;
+        $version->version = 1;
+        foreach (constants::FIELDS_QUESTION_VERSION as $field) {
+            $version->$field = $data->$field;
+        }
+        $version->timecreated = $time;
+        $version->timemodified = $time;
+        $version->islast = 1;
+        $versionid = $DB->insert_record('kahoodle_question_versions', $version);
+
+        // Copy files from the original version.
+        $context = $round->get_context();
+        $fs = get_file_storage();
+        $files = $fs->get_area_files(
+            $context->id,
+            'mod_kahoodle',
+            constants::FILEAREA_QUESTION_IMAGE,
+            $data->questionversionid,
+            'filename',
+            false
+        );
+        foreach ($files as $file) {
+            $fs->create_file_from_storedfile(
+                ['itemid' => $versionid],
+                $file
+            );
+        }
+
+        // Link the new question to the target round.
+        $issameround = ($round->get_id() === $roundquestion->get_round()->get_id());
+        $roundquestionrecord = new \stdClass();
+        $roundquestionrecord->roundid = $round->get_id();
+        $roundquestionrecord->questionversionid = $versionid;
+        if ($issameround) {
+            // Same round: use same sortorder so fix_round_sortorder places it right after the original.
+            $roundquestionrecord->sortorder = $data->sortorder;
+        } else {
+            // Different round: append at the end.
+            $maxsortorder = (int)$DB->get_field('kahoodle_round_questions', 'MAX(sortorder)', ['roundid' => $round->get_id()]);
+            $roundquestionrecord->sortorder = $maxsortorder + 1;
+        }
+        foreach (constants::FIELDS_ROUND_QUESTION as $field) {
+            $roundquestionrecord->$field = $data->$field;
+        }
+        $roundquestionrecord->timecreated = $time;
+        $roundquestionrecord->timemodified = $time;
+        $id = $DB->insert_record('kahoodle_round_questions', $roundquestionrecord);
+
+        // Renumber sortorders sequentially so the duplicate gets the next position.
+        self::fix_round_sortorder($round->get_id());
+
+        $round->clear_questions_cache();
+        $event = \mod_kahoodle\event\question_created::create([
+            'objectid' => $id,
+            'context' => $round->get_context(),
+            'other' => [
+                'kahoodleid' => $data->kahoodleid,
+                'roundid' => $round->get_id(),
+            ],
+        ]);
+        $event->trigger();
+
+        return round_question::create_from_round_question_id($id);
+    }
+
+    /**
+     * Validate question data and return any errors found.
+     *
+     * This is the single source of truth for validation of numeric question fields
+     * (durations, points). Called by both the form validation and sanitize_data().
+     *
+     * @param \stdClass $data The question data (fields may be null for "use default")
+     * @param round_question $roundquestion The round question entity
+     * @return array Error strings keyed by field name. Empty if valid.
+     */
+    public static function validate_question_data(\stdClass $data, round_question $roundquestion): array {
+        $errors = [];
+        $kahoodle = $roundquestion->get_round()->get_kahoodle();
+
+        // All numeric override fields must be non-negative if set.
+        foreach (constants::FIELDS_ROUND_QUESTION as $field) {
+            if (isset($data->$field) && $data->$field !== null && (int)$data->$field < 0) {
+                $errors[$field] = get_string('error_nonnegative', 'mod_kahoodle');
+            }
+        }
+
+        // Validate questiontext if set.
+        if (isset($data->questiontext) && $data->questiontext !== null && $data->questiontext !== '') {
+            $questionformat = $kahoodle->questionformat ?? constants::QUESTIONFORMAT_PLAIN;
+            if ($questionformat == constants::QUESTIONFORMAT_RICHTEXT) {
+                // Rich text: must contain an <h3> tag with non-empty content.
+                if (
+                    !preg_match('/<h3[^>]*>(.*?)<\/h3>/si', $data->questiontext, $matches)
+                    || trim(strip_tags($matches[1])) === ''
+                ) {
+                    $errors['questiontext'] = get_string('error_questiontext_h3_required', 'mod_kahoodle');
+                }
+            } else {
+                // Plain text: must equal its clean_param version.
+                if ($data->questiontext !== clean_param($data->questiontext, PARAM_TEXT)) {
+                    $errors['questiontext'] = get_string('error_questiontext_invalidchars', 'mod_kahoodle');
+                }
+            }
+        }
+
+        // Maxpoints must be >= minpoints (considering defaults).
+        if (!isset($errors['maxpoints']) && !isset($errors['minpoints'])) {
+            $maxpoints = isset($data->maxpoints) && $data->maxpoints !== null
+                ? (int)$data->maxpoints : (int)$kahoodle->maxpoints;
+            $minpoints = isset($data->minpoints) && $data->minpoints !== null
+                ? (int)$data->minpoints : (int)$kahoodle->minpoints;
+            if ($maxpoints < $minpoints) {
+                // Attribute the error to the field the caller actually set, or maxpoints by default.
+                $maxset = (string)($data->maxpoints ?? '') !== '';
+                $minset = (string)($data->minpoints ?? '') !== '';
+                $errorfield = (!$maxset && $minset) ? 'minpoints' : 'maxpoints';
+                $errors[$errorfield] = get_string('error_maxpoints_less_than_minpoints', 'mod_kahoodle');
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Check if any version of a question has responses
+     *
+     * @param int $questionid The question ID
+     * @return bool True if responses exist for any version of this question
+     */
+    public static function question_has_responses(int $questionid): bool {
+        global $DB;
+
+        $sql = "SELECT COUNT(1)
+                  FROM {kahoodle_responses} r
+                  JOIN {kahoodle_round_questions} rq ON rq.id = r.roundquestionid
+                  JOIN {kahoodle_question_versions} qv ON qv.id = rq.questionversionid
+                 WHERE qv.questionid = :questionid";
+        return $DB->count_records_sql($sql, ['questionid' => $questionid]) > 0;
+    }
+
+    /**
+     * Fix sortorder for questions in a round
+     *
+     * Renumbers questions sequentially (1, 2, 3, ...) based on their current order.
+     *
+     * @param int $roundid The round ID
+     * @return void
+     */
+    protected static function fix_round_sortorder(int $roundid): void {
+        global $DB;
+
+        $questions = $DB->get_records(
+            'kahoodle_round_questions',
+            ['roundid' => $roundid],
+            'sortorder ASC',
+            'id, sortorder'
+        );
+        $sortorder = 1;
+        foreach ($questions as $question) {
+            if ($question->sortorder != $sortorder) {
+                $DB->set_field('kahoodle_round_questions', 'sortorder', $sortorder, ['id' => $question->id]);
+            }
+            $sortorder++;
+        }
+    }
+}

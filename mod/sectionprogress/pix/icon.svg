@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <circle cx="8" cy="5" r="2.5"/>
+  <path d="M8 9c-3 0-5 1.5-5 3.5V14h10v-1.5C13 10.5 11 9 8 9z"/>
+  <circle cx="17" cy="5" r="2"/>
+  <path d="M17 9c-1 0-2 .3-2.8.8C15.3 10.5 16 11.9 16 13.5V14h6v-1.5C22 10.5 20.2 9 17 9z"/>
+  <polyline points="4,17 7,20 13,14" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

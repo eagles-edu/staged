@@ -1,0 +1,93 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+    Template for mod_gradelist report output.
+
+    @package    mod_gradelist
+    @copyright  2026 Brian Pool
+    @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+
+<div class="mod-gradelist-report">
+
+    {{! Sort controls }}
+    <div class="mod-gradelist-sortbar mb-3">
+        <span class="mr-2"><strong>{{#str}} sortby, gradelist {{/str}}:</strong></span>
+        <a href="{{sortbynameurl}}"
+           class="btn btn-sm {{#sortbyname}}btn-primary{{/sortbyname}}{{^sortbyname}}btn-outline-secondary{{/sortbyname}} mr-1">
+            {{#str}} sortbyname, gradelist {{/str}}
+        </a>
+        <a href="{{sortbygradeurl}}"
+           class="btn btn-sm {{#sortbygrade}}btn-primary{{/sortbygrade}}{{^sortbygrade}}btn-outline-secondary{{/sortbygrade}}">
+            {{#str}} sortbygrade, gradelist {{/str}}
+        </a>
+    </div>
+
+    {{! Student view info banner }}
+    {{#isstudent}}
+    <div class="alert alert-info mb-3">
+        {{#str}} studentviewinfo, gradelist {{/str}}
+    </div>
+    {{/isstudent}}
+
+    {{! Grade groups }}
+    {{#groups}}
+    <div class="mod-gradelist-group" data-groupkey="{{groupkey}}">
+
+        <button class="mod-gradelist-toggle btn btn-secondary w-100 text-left mb-1"
+                aria-expanded="false"
+                aria-controls="gradelist-group-{{groupkey}}">
+            <span class="mod-gradelist-toggle-icon">&#9654;</span>
+            {{grouplabel}}
+            <span class="badge badge-light ml-2">{{count}}</span>
+        </button>
+
+        <div class="mod-gradelist-group-body collapse"
+             id="gradelist-group-{{groupkey}}">
+            <table class="generaltable mod-gradelist-table w-100 mb-3">
+                <thead>
+                    <tr>
+                        {{#isteacher}}
+                        <th>{{#str}} studentname, gradelist {{/str}}</th>
+                        <th>{{#str}} username, gradelist {{/str}}</th>
+                        {{/isteacher}}
+                        <th>{{#str}} lettergrade, gradelist {{/str}}</th>
+                        <th>{{#str}} percentage, gradelist {{/str}}</th>
+                        <th>{{#str}} coursename, gradelist {{/str}}</th>
+                        <th>{{#str}} lastaccess, gradelist {{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#rows}}
+                    <tr>
+                        {{#fullname}}
+                        <td>{{fullname}}</td>
+                        <td>{{username}}</td>
+                        {{/fullname}}
+                        <td>{{lettergrade}}</td>
+                        <td>{{percentage}}</td>
+                        <td>{{coursename}}</td>
+                        <td>{{lastaccess}}</td>
+                    </tr>
+                    {{/rows}}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    {{/groups}}
+
+</div>

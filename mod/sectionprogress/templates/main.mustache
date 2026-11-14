@@ -1,0 +1,227 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template    mod_sectionprogress/main
+    @copyright   2026 Brian Pool
+    @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+    Context variables:
+    * canviewall       {bool}   True if the viewer is a teacher
+    * sectionname      {string} Human-readable section name
+    * groupselector    {string} HTML for the group dropdown (teachers only)
+    * hasgroupselector {bool}
+    * noactivities     {bool}   True when no completable activities exist
+    * isteacher        {bool}
+    * isstudent        {bool}
+    * activityheaders  {array}  [{name, title}]
+    * rows             {array}  Teacher rows: [{firstname, lastname, fullname, profileurl, cells:[{complete,icon,title}]}]
+    * nostudents       {bool}
+    * studentrows      {array}  Student cells: [{name, activityurl, complete, icon, title}]
+}}
+
+<div class="mod-sectionprogress">
+
+    <h3 class="sectionprogress-heading">
+        {{# isteacher }}{{# str }}teacherview, sectionprogress{{/ str }}{{/ isteacher }}
+        {{# isstudent }}{{# str }}studentview, sectionprogress{{/ str }}{{/ isstudent }}
+        &mdash; {{{sectionname}}}
+    </h3>
+
+    {{# hasgroupselector }}
+    <div class="sectionprogress-groupselector mb-3">
+        {{{groupselector}}}
+    </div>
+    {{/ hasgroupselector }}
+
+    {{# noactivities }}
+    <div class="alert alert-info">
+        {{# str }}noactivities, sectionprogress{{/ str }}
+    </div>
+    {{/ noactivities }}
+
+    {{^ noactivities }}
+
+    {{! ===================== TEACHER VIEW ===================== }}
+    {{# isteacher }}
+        {{# nostudents }}
+        <div class="alert alert-info">
+            {{# str }}nostudents, sectionprogress{{/ str }}
+        </div>
+        {{/ nostudents }}
+
+        {{^ nostudents }}
+        <div class="sectionprogress-table-wrapper" style="overflow-x: auto;">
+        <table class="table table-bordered table-sm sectionprogress-table">
+            <thead>
+                <tr>
+                    <th scope="col">{{# str }}firstname, sectionprogress{{/ str }}</th>
+                    <th scope="col">{{# str }}lastname, sectionprogress{{/ str }}</th>
+                    {{# activityheaders }}
+                    <th scope="col" class="sectionprogress-actheader text-center"
+                        title="{{title}}">
+                        <span class="sectionprogress-rotated-label">{{name}}</span>
+                    </th>
+                    {{/ activityheaders }}
+                </tr>
+            </thead>
+            <tbody>
+                {{# rows }}
+                <tr>
+                    <td>
+                        <a href="{{{profileurl}}}">{{firstname}}</a>
+                    </td>
+                    <td>
+                        <a href="{{{profileurl}}}">{{lastname}}</a>
+                    </td>
+                    {{# cells }}
+                    <td class="text-center sectionprogress-cell">
+                        {{# complete }}
+                        <span class="sectionprogress-complete text-success" title="{{title}}"
+                              aria-label="{{title}}">
+                            <i class="fa fa-check" aria-hidden="true"></i>
+                        </span>
+                        {{/ complete }}
+                        {{# incomplete }}
+                        <span class="sectionprogress-incomplete text-muted" title="{{title}}"
+                              aria-label="{{title}}">
+                            <i class="fa fa-square-o" aria-hidden="true"></i>
+                        </span>
+                        {{/ incomplete }}
+                    </td>
+                    {{/ cells }}
+                </tr>
+                {{/ rows }}
+            </tbody>
+        </table>
+        </div>
+        {{/ nostudents }}
+    {{/ isteacher }}
+
+    {{! ===================== STUDENT VIEW ===================== }}
+    {{# isstudent }}
+    <div class="sectionprogress-table-wrapper" style="overflow-x: auto;">
+    <table class="table table-bordered table-sm sectionprogress-table">
+        <thead>
+            <tr>
+                <th scope="col">{{# str }}activity, sectionprogress{{/ str }}</th>
+                <th scope="col" class="text-center">{{# str }}completedalt, sectionprogress{{/ str }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{# studentrows }}
+            <tr>
+                <td>
+                    <a href="{{{activityurl}}}">{{name}}</a>
+                </td>
+                <td class="text-center sectionprogress-cell">
+                    {{# complete }}
+                    <span class="sectionprogress-complete text-success" title="{{title}}"
+                          aria-label="{{title}}">
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                    </span>
+                    {{/ complete }}
+                    {{# incomplete }}
+                    <span class="sectionprogress-incomplete text-muted" title="{{title}}"
+                          aria-label="{{title}}">
+                        <i class="fa fa-square-o" aria-hidden="true"></i>
+                    </span>
+                    {{/ incomplete }}
+                </td>
+            </tr>
+            {{/ studentrows }}
+        </tbody>
+    </table>
+    </div>
+    {{/ isstudent }}
+
+    {{/ noactivities }}
+
+</div>
+
+<style>
+/* Wrapper keeps the table scrollable horizontally on small screens */
+.path-mod-sectionprogress .sectionprogress-table-wrapper {
+    overflow-x: auto;
+}
+
+/* Reserve enough vertical space in the header row for rotated labels */
+.path-mod-sectionprogress .sectionprogress-table thead tr {
+    height: 14em;
+}
+
+/* Each activity column header: narrow width, label sticks up from the bottom */
+.path-mod-sectionprogress .sectionprogress-table th.sectionprogress-actheader {
+    width: 2.2em;
+    min-width: 2.2em;
+    max-width: 2.2em;
+    vertical-align: bottom;
+    padding: 0 0.25em 0.25em 0.25em;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+    overflow: visible;
+    position: relative;
+}
+
+/* The label itself: rotated -65 degrees, anchored at bottom-left of its cell */
+.path-mod-sectionprogress .sectionprogress-rotated-label {
+    display: block;
+    position: absolute;
+    bottom: 0.5em;
+    left: 50%;
+    white-space: nowrap;
+    font-size: 1em;
+    transform: rotate(-65deg);
+    transform-origin: left bottom;
+    overflow: visible;
+    line-height: 1.2;
+    padding-bottom: 0.1em;
+}
+
+/* Completion icon cells */
+.path-mod-sectionprogress .sectionprogress-cell {
+    vertical-align: middle;
+    text-align: center;
+    font-size: 1.15em;
+    padding: 0.3em;
+}
+
+/* Name columns shrink-wrap to content */
+.path-mod-sectionprogress .sectionprogress-table {
+    width: 1px;
+}
+.path-mod-sectionprogress .sectionprogress-table td:first-child,
+.path-mod-sectionprogress .sectionprogress-table td:nth-child(2),
+.path-mod-sectionprogress .sectionprogress-table th:first-child,
+.path-mod-sectionprogress .sectionprogress-table th:nth-child(2) {
+    width: 1%;
+    white-space: nowrap;
+}
+
+/* Data cells - normal weight */
+.path-mod-sectionprogress .sectionprogress-table td {
+    font-weight: normal;
+}
+
+.path-mod-sectionprogress .sectionprogress-heading {
+    margin-bottom: 0.75em;
+}
+
+/* Group selector styling */
+.path-mod-sectionprogress .sectionprogress-groupselector {
+    margin-bottom: 1.25em;
+}
+</style>

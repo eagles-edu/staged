@@ -15,7 +15,7 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) { // sp
     $title = get_string('logo', 'admin');
     $description = get_string('logo_desc', 'admin');
     $setting = new admin_setting_configstoredfile('core_admin/logo', $title, $description, 'logo', 0,
-        ['maxfiles' => 1, 'accepted_types' => ['.jpg', '.png']]);
+        ['maxfiles' => 1, 'accepted_types' => ['web_image']]);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $temp->add($setting);
 
@@ -23,7 +23,7 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) { // sp
     $title = get_string('logocompact', 'admin');
     $description = get_string('logocompact_desc', 'admin');
     $setting = new admin_setting_configstoredfile('core_admin/logocompact', $title, $description, 'logocompact', 0,
-        ['maxfiles' => 1, 'accepted_types' => ['.jpg', '.png']]);
+        ['maxfiles' => 1, 'accepted_types' => ['web_image']]);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $temp->add($setting);
 
@@ -31,7 +31,7 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) { // sp
     $title = get_string('favicon', 'admin');
     $description = get_string('favicon_desc', 'admin');
     $setting = new admin_setting_configstoredfile('core_admin/favicon', $title, $description, 'favicon', 0,
-        ['maxfiles' => 1, 'accepted_types' => ['image']]);
+        ['maxfiles' => 1, 'accepted_types' => ['web_image']]);
     $setting->set_updatedcallback('theme_reset_all_caches');
     $temp->add($setting);
 

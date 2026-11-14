@@ -1,0 +1,52 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_roadmap/configuration_learningobjective
+
+    This template includes ajax functionality, so it cannot be shown in the template library.
+
+    Example context (json):
+    {
+        "id": "1",
+        "number": "1",
+        "name": "Course Learning Objective 1"
+    }
+}}
+{{!
+    This template is a table row partial and must only be used inside a <table>
+    (e.g., inside <tbody> in configuration_learningobjectives.mustache).
+    Rendering this template standalone will produce invalid HTML.
+}}
+<tr class="learningobjective" data-id="{{ id }}">
+    <td class="col-8">
+        <span class="number">{{ number }}</span>. <input class="learning-objective-name form-control " type="text" value="{{ name }}" >
+    </td>
+    <td class="col-3">
+        <a class="learningobjective-delete-control" href="" onclick="return false;">
+            {{#pix}}t/delete, core, {{#str}}delete{{/str}}{{/pix}}</a>
+        {{^isfirst}}
+            <a class="learningobjective-up-control" href="" onclick="return false;">
+                {{#pix}}t/up, core, {{#str}}moveup{{/str}}{{/pix}}</a>
+        {{/isfirst}}
+        {{#isfirst}}{{#pix}}spacer, moodle{{/pix}}{{/isfirst}}
+        {{^islast}}
+            <a class="learningobjective-down-control" href="" onclick="return false;">
+                {{#pix}}t/down, core, {{#str}}movedown{{/str}}{{/pix}}</a>
+        {{/islast}}
+        {{#islast}}{{#pix}}spacer, moodle{{/pix}}{{/islast}}
+    </td>
+</tr>

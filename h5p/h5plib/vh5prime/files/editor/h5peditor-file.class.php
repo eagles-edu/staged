@@ -1,0 +1,268 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * h5peditor-file.class.php
+ *
+ * @package   h5plib_vh5prime
+ * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace Moodle;
+
+use stdClass;
+
+/**
+ * Class
+ */
+class H5peditorFile {
+    /**
+     * Property result.
+     *
+     * @var mixed
+     */
+    private $result, $field, $interface;
+    /**
+     * Property type.
+     *
+     * @var mixed
+     */
+    public $type, $name, $path, $mime, $size, $extension;
+
+    /**
+     * Constructor. Process data for file uploaded through the editor.
+     */
+    function __construct($interface) {
+        $field = filter_input(INPUT_POST, 'field', FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_NO_ENCODE_QUOTES);
+
+        // Check for file upload.
+        if ($field === null || empty($_FILES) || !isset($_FILES['file'])) {
+            return;
+        }
+
+        $this->interface = $interface;
+
+        // Create a new result object.
+        $this->result = new stdClass();
+
+        // Get the field.
+        $this->field = json_decode($field);
+
+        // Handle temporarily uploaded form file
+        if (function_exists('finfo_file')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $this->type = finfo_file($finfo, $_FILES['file']['tmp_name']);
+            finfo_close($finfo);
+        } else if (function_exists('mime_content_type')) {
+            // Deprecated, only when finfo isn't available.
+            $this->type = mime_content_type($_FILES['file']['tmp_name']);
+        } else {
+            $this->type = $_FILES['file']['type'];
+        }
+
+        $this->extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+        $this->size = $_FILES['file']['size'];
+    }
+
+    /**
+     * Indicates if an uploaded file was found or not.
+     *
+     * @return boolean
+     */
+    public function isLoaded() {
+        return is_object($this->result);
+    }
+
+    /**
+     * Check current file up agains mime types and extensions in the given list.
+     *
+     * @param array $mimes List to check against.
+     * @return boolean
+     */
+    public function check($mimes) {
+        $ext = strtolower($this->extension);
+        foreach ($mimes as $mime => $extension) {
+            if (is_array($extension)) {
+                // Multiple extensions
+                if (in_array($ext, $extension)) {
+                    $this->type = $mime;
+                    return true;
+                }
+            } else if (/*$this->type === $mime && */ $ext === $extension) {
+                // TODO: Either remove everything that has to do with mime types, or make it work
+                // Currently we're experiencing trouble with mime types on different servers...
+                $this->type = $mime;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Validate the file.
+     *
+     * @return boolean
+     */
+    public function validate() {
+        if (isset($this->result->error)) {
+            return false;
+        }
+
+        // Check for field type.
+        if (!isset($this->field->type)) {
+            $this->result->error = $this->interface->t('Unable to get field type.');
+            return false;
+        }
+
+        $whitelist = explode(' ', $this->interface->getWhitelist(
+            false,
+            H5PCore::$defaultContentWhitelist,
+            H5PCore::$defaultLibraryWhitelistExtras
+        ));
+
+        // Check if mime type is allowed.
+        $isValidMime = !isset($this->field->mimes) || in_array($this->type, $this->field->mimes);
+        $isPhp = substr($this->extension, 0, 3) === 'php';
+        $isWhitelisted = in_array(strtolower($this->extension), $whitelist);
+        if (!$isValidMime || !$isWhitelisted || $isPhp) {
+            $this->result->error = $this->interface->t("File type isn't allowed.");
+            return false;
+        }
+
+        // Type specific validations.
+        switch ($this->field->type) {
+            default:
+                $this->result->error = $this->interface->t('Invalid field type.');
+                return false;
+
+            case 'image':
+                $allowed = [
+                    'image/png' => 'png',
+                    'image/jpeg' => ['jpg', 'jpeg'],
+                    'image/gif' => 'gif',
+                ];
+                if (!$this->check($allowed)) {
+                    $this->result->error = $this->interface->t('Invalid image file format. Use jpg, png or gif.');
+                    return false;
+                }
+
+                // Image size from temp file
+                $image = @getimagesize($_FILES['file']['tmp_name']);
+
+                if (!$image) {
+                    $this->result->error = $this->interface->t('File is not an image.');
+                    return false;
+                }
+
+                $this->result->width = $image[0];
+                $this->result->height = $image[1];
+                $this->result->mime = $this->type;
+                break;
+
+            case 'audio':
+                $allowed = [
+                    'audio/mpeg' => 'mp3',
+                    'audio/mp3' => 'mp3',
+                    'audio/mp4' => 'm4a',
+                    'audio/x-wav' => 'wav',
+                    'audio/wav' => 'wav',
+                    //'application/ogg' => 'ogg',
+                    'audio/ogg' => 'ogg',
+                    //'video/ogg' => 'ogg',
+                ];
+                if (!$this->check($allowed)) {
+                    $this->result->error = $this->interface->t('Invalid audio file format. Use mp3 or wav.');
+                    return false;
+
+                }
+
+                $this->result->mime = $this->type;
+                break;
+
+            case 'video':
+                $allowed = [
+                    'video/mp4' => 'mp4',
+                    'video/webm' => 'webm',
+                    // 'application/ogg' => 'ogv',
+                    'video/ogg' => 'ogv',
+                ];
+                if (!$this->check($allowed)) {
+                    $this->result->error = $this->interface->t('Invalid video file format. Use mp4 or webm.');
+                    return false;
+                }
+
+                $this->result->mime = $this->type;
+                break;
+
+            case 'file':
+                // TODO: Try to get file extension for type and check that it matches the current extension.
+                $this->result->mime = $this->type;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the type of the current file.
+     *
+     * @return string
+     */
+    public function getType() {
+        return $this->field->type;
+    }
+
+    /**
+     * Get the name of the current file.
+     *
+     * @return string
+     */
+    public function getName() {
+        static $name;
+
+        if (empty($name)) {
+            $name = uniqid($this->field->name . '-');
+
+            $matches = [];
+            preg_match('/([a-z0-9]{1,})$/i', $_FILES['file']['name'], $matches);
+            if (isset($matches[0])) {
+                $name .= '.' . $matches[0];
+            }
+        }
+
+        return $name;
+    }
+
+    /**
+     * Get result from file processing.
+     */
+    public function getResult() {
+        return json_encode($this->result);
+    }
+
+    /**
+     * Print result from file processing.
+     */
+    public function printResult() {
+        $this->result->path = $this->getType() . 's/' . $this->getName() . '#tmp';
+
+        // text/plain is used to support IE
+        header('Cache-Control: no-cache');
+        header('Content-Type: text/plain; charset=utf-8');
+
+        print $this->getResult();
+    }
+}

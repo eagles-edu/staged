@@ -1,0 +1,48 @@
+
+{{!
+    @template mod_roadmap/view_cycle
+
+    Displays the following cycle data:
+    * title
+    * subtitle
+    * pagelink
+    * learning objectives
+    * step objectives
+
+    Example context (json):
+    {
+    	"title": "Cycle Title",
+    	"pagelink": "http://ncsu.edu",
+    	"subtitle": "Cycle Subtitle",
+    	"steps": [{
+    		"id": "1",
+    		"rollovertext": "Hover Text",
+    		"stepicon": "icon-1",
+            "iconurl": "http://localhost/mod/roadmap/icon.php?name=icon-1",
+    		"pagelink": "http://ncsu.edu",
+    		"completionmodules": "1,2,3",
+    		"configuration": "jsonData"
+    	}],
+    	"learningobjectives": "1, 2, 3"
+    }
+}}
+<div class="roadmap-cycle" data-cycle-pos="0">
+    {{# pagelink }}<a class="roadmap-cycle-title" href="{{ pagelink }}" >{{ title }}</a>{{/ pagelink }}
+    {{^ pagelink }}<span class="roadmap-cycle-title">{{ title }}</span>{{/ pagelink }}
+    <span class="roadmap-cycle-subtitle">{{ subtitle }}</span>
+    <div class="roadmap-step-row">
+        {{# steps }}
+            {{> mod_roadmap/view_step }}
+        {{/steps}}
+    </div>
+{{# learningobjectives }}
+    <div class="{{ clodecoration }}">
+        <div class="roadmap-topic-row {{ cloalignment }}">
+            <div class="roadmap-topic-container">
+                <span class="title">{{ prefix }}:</span>
+                <span class="learningobjectives">{{ learningobjectives }}</span>
+            </div>
+        </div>
+    </div>
+{{/ learningobjectives }}
+</div>

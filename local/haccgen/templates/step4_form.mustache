@@ -1,0 +1,2515 @@
+{{! 
+This file is part of Moodle
+21may
+@package local_haccgen
+@copyright 2026 Dynamicpixel Multimedia Solutions
+@license GNU GPL v3 or later
+}}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+{{#hamburger_enabled}}
+<!-- MAIN LAYOUT WRAPPER -->
+<div class="haccgen-layout">
+    <!-- HAMBURGER TOGGLE BUTTON - ALWAYS VISIBLE -->
+    <button class="hamburger-toggle-btn" id="hamburger-toggle">
+        <i class="fas fa-angle-double-right"></i>
+    </button>
+
+    <!-- SIDE MENU -->
+    <div class="haccgen-side-menu" id="haccgen-side-menu">
+        <div class="menu-header">
+            <div class="menu-header-content">
+                <h4>{{course_fullname}}</h4>
+                <small>{{user_fullname}}</small>
+            </div>
+            <button class="menu-close-btn" id="menu-close-btn" title="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+          <div class="menu-content">
+            <!-- Course Content Section -->
+            <div class="menu-section">
+                <div class="menu-section-title">Course Content</div>
+                <div id="menu-topics-list">
+                    {{#topics_for_menu}}
+                    <div class="menu-topic-item" data-topic-id="{{id}}" data-topic-title="{{{title}}}" data-original-title="{{{title}}}">
+                        <div class="menu-topic-header">
+                            <i class="fas fa-folder-open"></i>
+                            <span class="menu-topic-title">{{title}}</span>
+                            <div class="menu-topic-actions">
+                                <div class="menu-add-wrap">
+                                    <span class="menu-add-item" title="Add page or quiz" role="button" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-plus"></i>
+                                    </span>
+                                    <div class="menu-add-dropdown" role="menu">
+                                        <button type="button" class="menu-add-page" role="menuitem">
+                                            <i class="fas fa-file-alt"></i> Add page
+                                        </button>
+                                        <button type="button" class="menu-add-quiz" role="menuitem">
+                                            <i class="fas fa-question-circle"></i> Add quiz
+                                        </button>
+                                    </div>
+                                </div>
+                                <span class="move-four-direction move-topic" title="Move Topic (Drag to reposition)"><i class="fas fa-arrows-up-down-left-right"></i></span>
+                                <span class="menu-rename-topic" title="Rename Topic"><i class="fas fa-edit"></i></span>
+                                <span class="menu-delete-topic" title="Delete Topic"><i class="fas fa-trash-alt"></i></span>
+                            </div>
+                        </div>
+                        <div class="menu-subtopics-list">
+                            {{#outline_items}}
+                            {{#is_quiz}}
+                            <div class="menu-subtopic-item menu-quiz-item" data-quiz-title="{{{quiz_title}}}" data-type="quiz" data-quiz-id="{{quiz_id}}" data-original-title="{{{quiz_title}}}">
+                                <i class="fas fa-question-circle quiz-icon"></i>
+                                <div class="menu-subtopic-text">
+                                    <span class="menu-subtopic-title">{{quiz_title}}</span>
+                                    <span class="quiz-menu-meta"></span>
+                                </div>
+                                <span class="quiz-marks-badge"></span>
+                                <div class="menu-subtopic-actions">
+                                    <span class="move-four-direction move-quiz" title="Move Quiz (Drag within topic)"><i class="fas fa-arrows-up-down-left-right"></i></span>
+                                    <span class="menu-rename-quiz" title="Edit Quiz & Grading"><i class="fas fa-edit"></i></span>
+                                    <span class="menu-delete-subtopic" title="Delete"><i class="fas fa-trash-alt"></i></span>
+                                </div>
+                            </div>
+                            {{/is_quiz}}
+                            {{^is_quiz}}
+                            <div class="menu-subtopic-item" data-subtopic-id="{{id}}" data-subtopic-title="{{{title}}}" data-type="subtopic" data-original-title="{{{title}}}">
+                                <i class="fas fa-file-alt"></i>
+                                <span class="menu-subtopic-title">{{title}}</span>
+                                <div class="menu-subtopic-actions">
+                                    <span class="move-four-direction move-subtopic" title="Move Page (Drag within topic)"><i class="fas fa-arrows-up-down-left-right"></i></span>
+                                    <span class="menu-rename-subtopic" title="Rename Page"><i class="fas fa-edit"></i></span>
+                                    <span class="menu-delete-subtopic" title="Delete"><i class="fas fa-trash-alt"></i></span>
+                                </div>
+                            </div>
+                            {{/is_quiz}}
+                            {{/outline_items}}
+                        </div>
+                    </div>
+                    {{/topics_for_menu}}
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-add-section-bar">
+            <button type="button" class="menu-add-section-btn" id="add-section-btn">
+                <i class="fas fa-plus-circle"></i> Add section
+            </button>
+        </div>
+        
+        <div class="menu-footer">
+            <small>HACCGen Course Builder v2.0</small>
+        </div>
+    </div>
+
+    <!-- EDITOR SECTION -->
+    <div class="haccgen-editor-section" id="haccgen-editor-section">
+        <form method="post" action="{{{action}}}" id="step4-form">
+            <input type="hidden" name="id" value="{{courseid}}">
+            <input type="hidden" name="coursesummary" id="coursesummary-meta" value="{{coursesummary}}">
+            <input type="hidden" name="step" value="{{currentstep}}">
+            <input type="hidden" name="action" value="save">
+            <input type="hidden" name="topicsjson" id="topicsjson" value="">
+            <input type="hidden" name="quizjson" id="quizjson" value="">
+            <input type="hidden" name="payload" id="payload" value="">
+            <input type="hidden" name="payloadparts" id="payloadparts" value="0">            
+            <input type="hidden" name="activelang" id="active-lang-step4" value="{{activelang}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+
+            <div class="editor-container">
+                <div class="editor-header">
+                    <h5 id="content-title">{{#str}}selectsubtopic, local_haccgen{{/str}}</h5>
+                </div>
+
+                <div id="content-body" class="editor-content-wrapper">
+                    <input type="hidden" id="contenteditor_itemid" name="contenteditor_itemid" value="{{contenteditor_itemid}}">
+                    <input type="hidden" name="itemid" value="{{contenteditor_itemid}}">
+                    <input type="hidden" id="id_contenteditor_itemid" name="id_contenteditor_itemid" value="{{contenteditor_itemid}}">
+                    {{{contenteditor}}}
+                </div>
+
+                <div id="quiz-display" class="quiz-preview-wrapper d-none">
+                    <div class="quiz-editor-toolbar">
+                        <div class="quiz-toolbar-left">
+                            <h6><i class="fas fa-question-circle"></i> {{#str}}quiz_editor_title, local_haccgen{{/str}}</h6>
+                            <span id="quiz-editor-subtitle" class="quiz-editor-subtitle"></span>
+                        </div>
+                        <div class="quiz-toolbar-actions">
+                            <button type="button" id="quiz-config-grading-btn" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-sliders-h"></i> {{#str}}quiz_configure_grading, local_haccgen{{/str}}
+                            </button>
+                            <button type="button" class="btn btn-sm btn-primary" id="add-new-quiz-btn">
+                                <i class="fas fa-plus-circle"></i> {{#str}}quiz_add_question, local_haccgen{{/str}}
+                            </button>
+                            <button type="button" class="btn btn-sm btn-success" id="save-quiz-btn">
+                                <i class="fas fa-save"></i> {{#str}}quiz_save, local_haccgen{{/str}}
+                            </button>
+                        </div>
+                    </div>
+                    <div id="quiz-stats-bar" class="quiz-stats-bar"></div>
+                    <div id="quiz-content"></div>
+                </div>
+
+                <!-- Save buttons -->
+                <div class="button-group">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{cancelurl}}" class="btn modern-btn modern-btn-secondary" id="step4-cancel-btn">Cancel</a>
+                        <button type="submit" class="btn modern-btn modern-btn-primary" id="save-create-btn">Save & Create</button>
+                        <button type="submit" name="savedraft" value="1" class="btn modern-btn modern-btn-secondary" id="savedraft-btn">Save Draft</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rename Modal -->
+<div id="renameModal" class="rename-modal" style="display: none;">
+    <div class="rename-modal-content">
+        <div class="rename-modal-header">
+            <h3 id="renameModalTitle">Rename</h3>
+            <span class="rename-modal-close">&times;</span>
+        </div>
+        <div class="rename-modal-body">
+            <label for="newNameInput">New Name:</label>
+            <input type="text" id="newNameInput" class="form-control" placeholder="Enter new name">
+            <div class="edit-quiz-body-remark" id="quiz-marks-fields" style="display: none;">
+                <p class="small text-muted mb-2">{{#str}}quizgrading_modal_help, local_haccgen{{/str}}</p>
+                <div class="quiz-marks-grid">
+                    <div class="quiz-marks-field">
+                        <label for="quizTotalMarksInput">Total marks</label>
+                        <input type="number" id="quizTotalMarksInput" class="form-control" min="1" step="1" inputmode="numeric" placeholder="e.g. 10">
+                    </div>
+                    <div class="quiz-marks-field">
+                        <label for="quizMaxAttemptsInput">{{#str}}quizgrading_attempts, local_haccgen{{/str}}</label>
+                        <input type="number" id="quizMaxAttemptsInput" class="form-control" min="1" step="1" inputmode="numeric" placeholder="e.g. 3" value="1" title="{{#str}}quizgrading_attempts_help, local_haccgen{{/str}}">
+                    </div>
+                </div>
+                <div id="quiz-marks-preview" class="quiz-marks-preview small mt-2"></div>
+            </div>
+        </div>
+        <div class="rename-modal-footer">
+            <button class="btn modern-btn modern-btn-secondary" id="renameCancelBtn">Cancel</button>
+            <button class="btn modern-btn modern-btn-primary" id="renameConfirmBtn">Rename</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="rename-modal" style="display: none;">
+    <div class="rename-modal-content">
+        <div class="rename-modal-header">
+            <h3>Confirm Delete</h3>
+            <span class="delete-modal-close">&times;</span>
+        </div>
+        <div class="rename-modal-body">
+            <p id="deleteMessage">Are you sure you want to delete this item?</p>
+        </div>
+        <div class="rename-modal-footer">
+            <button class="btn modern-btn modern-btn-secondary" id="deleteCancelBtn">Cancel</button>
+            <button class="btn modern-btn btn-danger" id="deleteConfirmBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- MENU OVERLAY (for mobile) -->
+<div class="menu-overlay" id="menu-overlay"></div>
+{{/hamburger_enabled}}
+<!-- CONTENT LOADING SCREEN -->
+<div id="editor-loading-overlay" class="editor-loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading content...</div>
+</div>
+
+<!-- Raw data from PHP -->
+<script id="topics-data" type="application/json">{{{topicsjson_for_menu}}}</script>
+<script id="subtopic-content-data" type="application/json">{{{subtopic_content_json}}}</script>
+<script id="quiz-data" type="application/json">{{{quiz_content_json}}}</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+<script>
+/* ============================================================
+   COMPLETE WORKING CODE WITH FOUR-DIRECTION DRAG AND DROP
+   - Single four-direction arrow icon for repositioning (drag & drop)
+   - Add section, add page, and add quiz from the side menu
+   - Scope-restricted repositioning (topics globally, items within topics)
+   ============================================================ */
+
+// Global variables
+let currentTopicsData = [];
+let subtopicContents = {};
+let quizContents = {};
+let currentSubtopicTitle = null;
+let currentQuizTitle = null;
+let isDirty = false;
+let isMenuOpen = true;
+let isSubmitting = false;
+let isSaving = false;
+
+// Delete modal variables
+let deleteModal = null;
+let deletePendingItem = null;
+let deletePendingType = null;
+let deletePendingElement = null;
+
+// Rename modal variables
+let renameModal = null;
+let renameType = null;
+let renameElement = null;
+let renameOldName = null;
+
+// Sortable instances
+let sortableTopics = null;
+let sortableSubtopicInstances = new Map();
+
+let isContentLoading = true;
+
+/** Whether a subtopic row is a quiz (ordered inside subtopics). */
+function isQuizSubtopicItem(sub) {
+    return !!(sub && (sub.type === 'quiz' || (sub.quiz_title && Array.isArray(sub.questions))));
+}
+
+/** Topic quiz_data is a single object in PHP; tolerate legacy array shape. */
+function getTopicQuizList(topic) {
+    if (!topic || !topic.quiz_data) {
+        return [];
+    }
+    return Array.isArray(topic.quiz_data) ? topic.quiz_data : [topic.quiz_data];
+}
+
+function findQuizInTopic(topic, quizTitle) {
+    const inSubtopics = (topic.subtopics || []).find(
+        (s) => isQuizSubtopicItem(s) && s.quiz_title === quizTitle
+    );
+    if (inSubtopics) {
+        return inSubtopics;
+    }
+    return getTopicQuizList(topic).find((q) => q.quiz_title === quizTitle) || null;
+}
+
+function setTopicQuizData(topic, quizObj) {
+    if (!quizObj) {
+        delete topic.quiz_data;
+        delete topic.quiz_included;
+        return;
+    }
+    topic.quiz_data = packQuizRecord(quizObj.quiz_title, quizObj);
+    topic.quiz_included = 1;
+}
+
+function countTopicQuizzes(topic) {
+    const fromSubtopics = (topic.subtopics || []).filter(isQuizSubtopicItem).length;
+    if (fromSubtopics > 0) {
+        return fromSubtopics;
+    }
+    return getTopicQuizList(topic).length;
+}
+
+function countTopicPages(topic) {
+    return (topic.subtopics || []).filter((s) => !isQuizSubtopicItem(s)).length;
+}
+
+const DEFAULT_QUIZ_ATTEMPTS = 1;
+const DEFAULT_QUIZ_MARKS = 10;
+
+function copyQuizMarks(src, dest) {
+    if (!src || !dest) return dest;
+    if (src.total_marks != null && src.total_marks !== '') {
+        dest.total_marks = Number(src.total_marks);
+        dest.marks_configured = true;
+    }
+    if (src.max_attempts != null && src.max_attempts !== '') {
+        const n = parseInt(src.max_attempts, 10);
+        if (Number.isFinite(n) && n >= 1) {
+            dest.max_attempts = n;
+        }
+    }
+    if (src.marks_configured) {
+        dest.marks_configured = true;
+    }
+    return dest;
+}
+
+function packQuizRecord(title, src) {
+    const out = copyQuizMarks(src, {
+        quiz_title: title,
+        instructions: src?.instructions || '',
+        questions: Array.isArray(src?.questions) ? src.questions : []
+    });
+    if (src?.marks_configured) {
+        out.marks_configured = true;
+    }
+    return out;
+}
+
+function quizMarksConfigured(qdata) {
+    if (!qdata) return false;
+    if (qdata.marks_configured) return true;
+    return qdata.total_marks != null && qdata.total_marks !== '';
+}
+
+function perQuestionMarks(total, qcount) {
+    if (!total || total <= 0 || !qcount || qcount <= 0) return null;
+    return Math.round((total / qcount) * 100) / 100;
+}
+
+function resolveQuizMarksFromData(qdata) {
+    const qcount = Array.isArray(qdata?.questions) ? qdata.questions.length : 0;
+    const configured = quizMarksConfigured(qdata);
+    const total = configured ? Number(qdata.total_marks) : null;
+    let attempts = DEFAULT_QUIZ_ATTEMPTS;
+    if (qdata?.max_attempts != null && qdata.max_attempts !== '') {
+        const n = parseInt(qdata.max_attempts, 10);
+        if (Number.isFinite(n) && n >= 1) {
+            attempts = n;
+        }
+    }
+    return { configured, total, attempts, qcount, perQuestion: perQuestionMarks(total, qcount) };
+}
+
+function defaultQuizMarksFor(qdata) {
+    const qcount = Array.isArray(qdata?.questions) ? qdata.questions.length : 0;
+    return qcount > 0 ? qcount : DEFAULT_QUIZ_MARKS;
+}
+
+function persistQuizMarks(title, total, attempts) {
+    if (!title) return;
+    if (!quizContents[title]) {
+        quizContents[title] = { quiz_title: title, instructions: '', questions: [] };
+    }
+    const maxAttempts = Math.max(1, parseInt(attempts, 10) || 1);
+    quizContents[title].total_marks = total;
+    quizContents[title].max_attempts = maxAttempts;
+    quizContents[title].marks_configured = true;
+    (currentTopicsData || []).forEach(topic => {
+        (topic.subtopics || []).forEach(sub => {
+            if (isQuizSubtopicItem(sub) && (sub.quiz_title === title || sub.title === title)) {
+                sub.total_marks = total;
+                sub.max_attempts = maxAttempts;
+                sub.marks_configured = true;
+            }
+        });
+        const topicQuiz = getTopicQuizList(topic).find(q => q.quiz_title === title);
+        if (topicQuiz) {
+            topicQuiz.total_marks = total;
+            topicQuiz.max_attempts = maxAttempts;
+            topicQuiz.marks_configured = true;
+            setTopicQuizData(topic, topicQuiz);
+        }
+    });
+    updateQuizMenuBadges();
+    if (currentQuizTitle === title) {
+        renderQuizStatsBar(title);
+    }
+}
+
+function ensureQuizDefaults(title) {
+    if (!title) return;
+    if (!quizContents[title]) {
+        quizContents[title] = { quiz_title: title, instructions: '', questions: [] };
+    }
+    const dest = quizContents[title];
+    const configured = quizMarksConfigured(dest);
+    const total = configured && dest.total_marks != null && dest.total_marks !== ''
+        ? Number(dest.total_marks)
+        : defaultQuizMarksFor(dest);
+    let attempts = DEFAULT_QUIZ_ATTEMPTS;
+    if (dest.max_attempts != null && dest.max_attempts !== '') {
+        const n = parseInt(dest.max_attempts, 10);
+        if (Number.isFinite(n) && n >= 1) {
+            attempts = n;
+        }
+    }
+    persistQuizMarks(title, total, attempts);
+}
+
+function applyDefaultConfigToAllQuizzes() {
+    const titles = new Set(Object.keys(quizContents || {}));
+    document.querySelectorAll('.menu-subtopic-item[data-type="quiz"]').forEach(item => {
+        const title = item.getAttribute('data-quiz-title');
+        if (title) titles.add(title);
+    });
+    titles.forEach(title => ensureQuizDefaults(title));
+}
+
+function seedQuizContentsFromTopics() {
+    (currentTopicsData || []).forEach(topic => {
+        (topic.subtopics || []).forEach(sub => {
+            if (!isQuizSubtopicItem(sub)) return;
+            const title = sub.quiz_title || sub.title;
+            if (!title) return;
+            if (!quizContents[title] || !(quizContents[title].questions || []).length) {
+                quizContents[title] = packQuizRecord(title, sub);
+            } else {
+                copyQuizMarks(sub, quizContents[title]);
+            }
+        });
+        getTopicQuizList(topic).forEach(quiz => {
+            const title = quiz.quiz_title;
+            if (!title) return;
+            if (!quizContents[title] || !(quizContents[title].questions || []).length) {
+                quizContents[title] = packQuizRecord(title, quiz);
+            } else {
+                copyQuizMarks(quiz, quizContents[title]);
+            }
+        });
+    });
+}
+
+function buildQuizMenuItemHtml(title) {
+    return `
+        <i class="fas fa-question-circle quiz-icon"></i>
+        <div class="menu-subtopic-text">
+            <span class="menu-subtopic-title">${escapeHtml(title)}</span>
+            <span class="quiz-menu-meta"></span>
+        </div>
+        <span class="quiz-marks-badge"></span>
+        <div class="menu-subtopic-actions">
+            <span class="move-four-direction move-quiz" title="Move Quiz (Drag within topic)"><i class="fas fa-arrows-up-down-left-right"></i></span>
+            <span class="menu-rename-quiz" title="Edit Quiz & Grading"><i class="fas fa-edit"></i></span>
+            <span class="menu-delete-subtopic" title="Delete"><i class="fas fa-trash-alt"></i></span>
+        </div>`;
+}
+
+function updateQuizMenuBadges() {
+    document.querySelectorAll('.menu-subtopic-item[data-type="quiz"]').forEach(item => {
+        const title = item.getAttribute('data-quiz-title');
+        const qdata = quizContents[title] || {};
+        const summary = resolveQuizMarksFromData(qdata);
+        const qcount = Array.isArray(qdata.questions) ? qdata.questions.length : 0;
+        let metaEl = item.querySelector('.quiz-menu-meta');
+        if (!metaEl) {
+            metaEl = document.createElement('span');
+            metaEl.className = 'quiz-menu-meta';
+            const textWrap = item.querySelector('.menu-subtopic-text');
+            if (textWrap) textWrap.appendChild(metaEl);
+        }
+        let badgeEl = item.querySelector('.quiz-marks-badge');
+        if (!badgeEl) {
+            badgeEl = document.createElement('span');
+            badgeEl.className = 'quiz-marks-badge';
+            const actions = item.querySelector('.menu-subtopic-actions');
+            if (actions) item.insertBefore(badgeEl, actions);
+            else item.appendChild(badgeEl);
+        }
+        item.classList.toggle('quiz-marks-missing', !summary.configured);
+        if (summary.configured) {
+            badgeEl.className = 'quiz-marks-badge quiz-marks-badge-ok';
+            badgeEl.textContent = String(summary.total);
+            badgeEl.title = 'Total marks';
+            if (metaEl) metaEl.textContent = qcount + ' question' + (qcount === 1 ? '' : 's');
+        } else {
+            badgeEl.className = 'quiz-marks-badge quiz-marks-badge-warn';
+            badgeEl.textContent = '!';
+            badgeEl.title = 'Grading marks not configured — click edit';
+            if (metaEl) metaEl.textContent = qcount + ' q · Set marks';
+        }
+    });
+}
+
+function updateQuizMarksPreview() {
+    const preview = document.getElementById('quiz-marks-preview');
+    if (!preview) return;
+    const parsed = parseQuizMarksInputs();
+    if (!parsed.ok) {
+        preview.textContent = parsed.error || '';
+        preview.classList.toggle('is-error', !!parsed.error);
+        return;
+    }
+    preview.classList.remove('is-error');
+    const attempts = parsed.attempts || 1;
+    const qcount = (quizContents[renameOldName]?.questions || []).length
+        || (currentQuizTitle && (quizContents[currentQuizTitle]?.questions || []).length)
+        || 0;
+    const perQ = perQuestionMarks(parsed.total, qcount);
+    let line = parsed.total + ' total marks';
+    if (perQ != null) {
+        line += ' · ' + perQ + ' per question (' + qcount + ')';
+    }
+    line += ' · ' + attempts + ' attempt' + (attempts === 1 ? '' : 's');
+    preview.textContent = line;
+}
+
+function parseQuizMarksInputs() {
+    const totalRaw = (document.getElementById('quizTotalMarksInput')?.value ?? '').trim();
+    const attemptsRaw = (document.getElementById('quizMaxAttemptsInput')?.value ?? '').trim();
+    if (totalRaw === '') {
+        return { ok: false, error: 'Enter total marks' };
+    }
+    const total = Number(totalRaw);
+    if (!Number.isFinite(total) || total <= 0) {
+        return { ok: false, error: 'Total marks must be greater than 0' };
+    }
+    let attempts = 1;
+    if (attemptsRaw !== '') {
+        const attemptsNum = Number(attemptsRaw);
+        if (!Number.isInteger(attemptsNum) || attemptsNum < 1) {
+            return { ok: false, error: 'Number of attempts must be a whole number of 1 or more' };
+        }
+        attempts = attemptsNum;
+    }
+    return { ok: true, total, attempts };
+}
+
+function fillQuizMarksInputs(title) {
+    const quiz = quizContents[title] || {};
+    const questionCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+    const totalInput = document.getElementById('quizTotalMarksInput');
+    const attemptsInput = document.getElementById('quizMaxAttemptsInput');
+    if (totalInput) {
+        totalInput.value = (quiz.total_marks != null && quiz.total_marks !== '')
+            ? quiz.total_marks
+            : (questionCount || '');
+    }
+    if (attemptsInput) {
+        attemptsInput.value = (quiz.max_attempts != null && quiz.max_attempts !== '')
+            ? quiz.max_attempts
+            : 1;
+    }
+    updateQuizMarksPreview();
+}
+
+function renderQuizStatsBar(title) {
+    const bar = document.getElementById('quiz-stats-bar');
+    if (!bar) return;
+    const qdata = quizContents[title] || {};
+    const qcount = (qdata.questions || []).length;
+    const summary = resolveQuizMarksFromData(qdata);
+    const attemptsLabel = (summary.attempts || 1) + ' attempt' + ((summary.attempts || 1) === 1 ? '' : 's');
+    const marksHtml = summary.configured
+        ? `<span class="quiz-stat quiz-stat-ok"><i class="fas fa-check-circle"></i> ${summary.total} total${summary.perQuestion != null ? ' · ' + summary.perQuestion + ' per question' : ''} · ${attemptsLabel}</span>`
+        : `<span class="quiz-stat quiz-stat-warn"><i class="fas fa-exclamation-triangle"></i> Grading not configured — use Configure Grading</span>`;
+    bar.innerHTML = `
+        <span class="quiz-stat"><i class="fas fa-list-ol"></i> ${qcount} question${qcount === 1 ? '' : 's'}</span>
+        ${marksHtml}
+    `;
+    const subtitle = document.getElementById('quiz-editor-subtitle');
+    if (subtitle) subtitle.textContent = title || '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Loaded - Initializing with Four-Direction Drag & Drop...');
+    setLoadingState(true);
+    
+    loadInitialData();
+    setupModals();
+    setupMenu();
+    setupContentLoading();
+    updateStats();
+    loadFirstSubtopic();
+    setupFormSubmission();
+    trackEditorChanges();
+    openMenu();
+    initializeDragAndDrop();
+    setupGlobalEventListeners();
+});
+
+function loadInitialData() {
+    const topicsElem = document.getElementById('topics-data');
+    if (topicsElem && topicsElem.textContent && topicsElem.textContent !== '[]') {
+        try {
+            currentTopicsData = JSON.parse(topicsElem.textContent);
+            console.log('Loaded topics:', currentTopicsData.length);
+        } catch(e) { 
+            console.error('Error parsing topics:', e);
+            currentTopicsData = [];
+        }
+    }
+    
+    const contentElem = document.getElementById('subtopic-content-data');
+    if (contentElem && contentElem.textContent && contentElem.textContent !== '{}') {
+        try {
+            const parsed = JSON.parse(contentElem.textContent);
+            subtopicContents = {};
+            for (const [key, value] of Object.entries(parsed)) {
+                if (typeof value === 'object' && value !== null) {
+                    subtopicContents[key] = {
+                        text: value.text || '',
+                        itemid: value.itemid || 0
+                    };
+                } else {
+                    subtopicContents[key] = {
+                        text: value || '',
+                        itemid: 0
+                    };
+                }
+            }
+            console.log('Loaded content for:', Object.keys(subtopicContents).length, 'pages');
+        } catch(e) {
+            console.error('Error parsing content:', e);
+            subtopicContents = {};
+        }
+    }
+    
+    const quizElem = document.getElementById('quiz-data');
+    if (quizElem && quizElem.textContent && quizElem.textContent !== '{}') {
+        try {
+            quizContents = JSON.parse(quizElem.textContent);
+            console.log('Loaded quiz content for:', Object.keys(quizContents).length, 'quizzes');
+        } catch(e) {
+            console.error('Error parsing quiz content:', e);
+            quizContents = {};
+        }
+    }
+    seedQuizContentsFromTopics();
+    applyDefaultConfigToAllQuizzes();
+    updateQuizMenuBadges();
+}
+
+/* ============================================================
+   MODAL SETUP
+   ============================================================ */
+function setupModals() {
+    renameModal = document.getElementById('renameModal');
+    if (renameModal) {
+        const closeBtn = renameModal.querySelector('.rename-modal-close');
+        if (closeBtn) closeBtn.onclick = () => renameModal.style.display = 'none';
+        const cancelBtn = document.getElementById('renameCancelBtn');
+        if (cancelBtn) cancelBtn.onclick = () => renameModal.style.display = 'none';
+        const confirmBtn = document.getElementById('renameConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                const newName = document.getElementById('newNameInput').value.trim();
+                if (renameType === 'quiz') {
+                    const parsed = parseQuizMarksInputs();
+                    if (!parsed.ok) {
+                        showToast(parsed.error);
+                        return;
+                    }
+                    persistQuizMarks(renameOldName, parsed.total, parsed.attempts);
+                }
+                if (!newName) {
+                    showToast('Name cannot be empty');
+                    return;
+                }
+                if (newName !== renameOldName) {
+                    performRename(renameType, renameElement, renameOldName, newName);
+                } else if (renameType === 'quiz') {
+                    markDirty();
+                    showToast('Quiz marks saved');
+                }
+                renameModal.style.display = 'none';
+            };
+        }
+        ['quizTotalMarksInput', 'quizMaxAttemptsInput'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', updateQuizMarksPreview);
+            document.getElementById(id)?.addEventListener('change', updateQuizMarksPreview);
+        });
+    }
+
+    document.getElementById('quiz-config-grading-btn')?.addEventListener('click', () => {
+        if (!currentQuizTitle) {
+            showToast('Select a quiz first');
+            return;
+        }
+        let quizItem = null;
+        document.querySelectorAll('.menu-subtopic-item[data-type="quiz"]').forEach(item => {
+            if (item.getAttribute('data-quiz-title') === currentQuizTitle) {
+                quizItem = item;
+            }
+        });
+        showRenameModal('quiz', quizItem, currentQuizTitle);
+    });
+    
+    deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        const closeBtn = deleteModal.querySelector('.delete-modal-close');
+        if (closeBtn) closeBtn.onclick = () => deleteModal.style.display = 'none';
+        const cancelBtn = document.getElementById('deleteCancelBtn');
+        if (cancelBtn) cancelBtn.onclick = () => deleteModal.style.display = 'none';
+        const confirmBtn = document.getElementById('deleteConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                if (deletePendingItem) {
+                    performDelete(deletePendingType, deletePendingElement, deletePendingItem);
+                }
+                deleteModal.style.display = 'none';
+                deletePendingItem = null;
+                deletePendingType = null;
+                deletePendingElement = null;
+            };
+        }
+    }
+    
+    window.onclick = function(event) {
+        if (event.target === renameModal) renameModal.style.display = 'none';
+        if (event.target === deleteModal) deleteModal.style.display = 'none';
+    };
+}
+function setLoadingState(loading) {
+    const overlay = document.getElementById('editor-loading-overlay');
+    const editorSection = document.getElementById('haccgen-editor-section');
+
+    isContentLoading = loading;
+
+    if (overlay) {
+        overlay.style.display = loading ? 'flex' : 'none';
+    }
+
+    if (editorSection) {
+        editorSection.style.pointerEvents = loading ? 'none' : 'auto';
+        editorSection.style.opacity = loading ? '0.6' : '1';
+    }
+}
+/* ============================================================
+   DRAG & DROP FUNCTIONALITY (Four-Direction Arrow via SortableJS)
+   ============================================================ */
+function initializeDragAndDrop() {
+    const topicsContainer = document.getElementById('menu-topics-list');
+    if (!topicsContainer) return;
+    
+    if (sortableTopics) sortableTopics.destroy();
+    sortableTopics = new Sortable(topicsContainer, {
+        animation: 150,
+        handle: '.move-topic, .menu-topic-header',
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        onEnd: function() {
+            updateTopicOrderFromDOM();
+            markDirty();
+            updateStats();
+            showToast('Topic order updated');
+        }
+    });
+    
+    initializeSubtopicSortables();
+}
+
+function initializeSubtopicSortables() {
+    const topicItems = document.querySelectorAll('.menu-topic-item');
+    sortableSubtopicInstances.clear();
+    
+    topicItems.forEach(topicItem => {
+        const subtopicsContainer = topicItem.querySelector('.menu-subtopics-list');
+        if (!subtopicsContainer) return;
+        
+        const topicId = topicItem.getAttribute('data-topic-id') || 
+                       topicItem.querySelector('.menu-topic-title')?.textContent;
+        
+        const sortable = new Sortable(subtopicsContainer, {
+            animation: 150,
+            handle: '.move-subtopic, .move-quiz, .menu-subtopic-item',
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            group: {
+                name: 'subtopics',
+                pull: false,
+                revertClone: false,
+                put: false
+            },
+            onEnd: function(evt) {
+                const fromTopic = evt.from.closest('.menu-topic-item');
+                const toTopic = evt.to.closest('.menu-topic-item');
+                
+                if (fromTopic !== toTopic) {
+                    showToast('Cannot move items between different topics');
+                    evt.item.parentNode.insertBefore(evt.item, evt.oldIndex < evt.newIndex ? evt.item.nextSibling : evt.item);
+                    return;
+                }
+                
+                updateSubtopicOrderInTopic(toTopic);
+                markDirty();
+                updateStats();
+                showToast('Order updated');
+            }
+        });
+        
+        sortableSubtopicInstances.set(topicId, sortable);
+    });
+}
+
+function updateTopicOrderFromDOM() {
+    const topicElements = document.querySelectorAll('.menu-topic-item');
+    const newOrder = [];
+    
+    topicElements.forEach(topicElem => {
+        const topicTitle = topicElem.querySelector('.menu-topic-title')?.textContent;
+        const existingTopic = currentTopicsData.find(t => t.title === topicTitle);
+        if (existingTopic) {
+            newOrder.push(existingTopic);
+        }
+    });
+    
+    if (newOrder.length === currentTopicsData.length) {
+        currentTopicsData = newOrder;
+    }
+}
+
+function updateSubtopicOrderInTopic(topicElement) {
+    const topicTitle = topicElement.querySelector('.menu-topic-title')?.textContent;
+    const topic = currentTopicsData.find(t => t.title === topicTitle);
+    if (!topic) return;
+    
+    const subtopicElements = topicElement.querySelectorAll('.menu-subtopic-item');
+    const newSubtopics = [];
+    let lastQuiz = null;
+    
+    subtopicElements.forEach(elem => {
+        const type = elem.getAttribute('data-type');
+        if (type === 'subtopic') {
+            const title = elem.getAttribute('data-subtopic-title');
+            const existing = topic.subtopics?.find(
+                (s) => !isQuizSubtopicItem(s) && s.title === title
+            );
+            if (existing) {
+                newSubtopics.push(existing);
+            }
+        } else if (type === 'quiz') {
+            const title = elem.getAttribute('data-quiz-title');
+            let existing = findQuizInTopic(topic, title);
+            if (!existing && quizContents[title]) {
+                existing = {
+                    type: 'quiz',
+                    quiz_title: title,
+                    instructions: quizContents[title].instructions || '',
+                    questions: quizContents[title].questions || [],
+                };
+            }
+            if (existing) {
+                const quizItem = isQuizSubtopicItem(existing) ? existing : {
+                    type: 'quiz',
+                    quiz_title: existing.quiz_title,
+                    title: existing.quiz_title,
+                    instructions: existing.instructions || '',
+                    questions: existing.questions || [],
+                };
+                newSubtopics.push(quizItem);
+                lastQuiz = quizItem;
+            }
+        }
+    });
+    
+    topic.subtopics = newSubtopics;
+    setTopicQuizData(topic, lastQuiz);
+}
+
+/* ============================================================
+   ADD PAGE / ADD QUIZ / ADD SECTION
+   ============================================================ */
+function closeAddMenus() {
+    document.querySelectorAll('.menu-add-wrap.open').forEach(wrap => {
+        wrap.classList.remove('open');
+        const trigger = wrap.querySelector('.menu-add-item');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+}
+
+function allUsedTitles() {
+    const used = new Set();
+    (currentTopicsData || []).forEach(topic => {
+        if (topic.title) used.add(topic.title);
+        (topic.subtopics || []).forEach(sub => {
+            if (sub.quiz_title) used.add(sub.quiz_title);
+            if (sub.title) used.add(sub.title);
+        });
+        getTopicQuizList(topic).forEach(quiz => {
+            if (quiz.quiz_title) used.add(quiz.quiz_title);
+        });
+    });
+    Object.keys(subtopicContents || {}).forEach(key => used.add(key));
+    Object.keys(quizContents || {}).forEach(key => used.add(key));
+    document.querySelectorAll('[data-subtopic-title], [data-quiz-title]').forEach(el => {
+        const title = el.getAttribute('data-subtopic-title') || el.getAttribute('data-quiz-title');
+        if (title) used.add(title);
+    });
+    return used;
+}
+
+function uniqueTitle(base) {
+    const used = allUsedTitles();
+    let name = base;
+    let n = 1;
+    while (used.has(name)) {
+        n += 1;
+        name = `${base} ${n}`;
+    }
+    return name;
+}
+
+function findTopicFromElement(topicElement) {
+    if (!topicElement) return null;
+    const topicTitle = topicElement.querySelector('.menu-topic-title')?.textContent?.trim()
+        || topicElement.getAttribute('data-topic-title');
+    if (!topicTitle) return null;
+    return currentTopicsData.find(t => t.title === topicTitle) || null;
+}
+
+function ensureTopicListVisible(topicElement) {
+    const list = topicElement?.querySelector('.menu-subtopics-list');
+    if (list) list.classList.remove('collapsed');
+    return list;
+}
+
+function selectOutlineItem(item) {
+    if (!item) return;
+    const type = item.getAttribute('data-type');
+    document.querySelectorAll('.menu-subtopic-item.active').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+
+    if (type === 'quiz') {
+        const quizTitle = item.getAttribute('data-quiz-title');
+        if (!quizTitle) return;
+        currentQuizTitle = quizTitle;
+        currentSubtopicTitle = null;
+        loadQuizContent(quizTitle);
+        document.getElementById('content-title').innerHTML = '<i class="fas fa-question-circle"></i> ' + escapeHtml(quizTitle);
+        document.getElementById('content-body').style.display = 'none';
+        document.getElementById('quiz-display').classList.remove('d-none');
+        fitStep4Editor();
+        return;
+    }
+
+    const title = item.getAttribute('data-subtopic-title');
+    if (!title) return;
+    currentSubtopicTitle = title;
+    currentQuizTitle = null;
+    whenEditorReady(() => loadPageContent(title));
+    document.getElementById('content-title').innerHTML = '<i class="fas fa-file-alt"></i> ' + escapeHtml(title);
+    document.getElementById('quiz-display').classList.add('d-none');
+    document.getElementById('content-body').style.display = '';
+    fitStep4Editor();
+}
+
+function addPageToTopic(topicElement, options) {
+    if (currentSubtopicTitle) saveCurrentContent();
+    if (currentQuizTitle) saveCurrentQuizEdits();
+
+    const topic = findTopicFromElement(topicElement);
+    if (!topic) {
+        showToast('Could not add page');
+        return;
+    }
+
+    const title = uniqueTitle('New Page');
+    topic.subtopics = topic.subtopics || [];
+    topic.subtopics.push({
+        type: 'page',
+        title,
+        content: { text: '', itemid: 0 }
+    });
+    subtopicContents[title] = { text: '', itemid: 0 };
+
+    const list = ensureTopicListVisible(topicElement);
+    if (!list) return;
+
+    const el = document.createElement('div');
+    el.className = 'menu-subtopic-item';
+    el.setAttribute('data-subtopic-id', 'page_' + Date.now());
+    el.setAttribute('data-subtopic-title', title);
+    el.setAttribute('data-type', 'subtopic');
+    el.setAttribute('data-original-title', title);
+    el.innerHTML = `
+        <i class="fas fa-file-alt"></i>
+        <span class="menu-subtopic-title">${escapeHtml(title)}</span>
+        <div class="menu-subtopic-actions">
+            <span class="move-four-direction move-subtopic" title="Move Page (Drag within topic)"><i class="fas fa-arrows-up-down-left-right"></i></span>
+            <span class="menu-rename-subtopic" title="Rename Page"><i class="fas fa-edit"></i></span>
+            <span class="menu-delete-subtopic" title="Delete"><i class="fas fa-trash-alt"></i></span>
+        </div>`;
+    list.appendChild(el);
+
+    initializeDragAndDrop();
+    updateStats();
+    markDirty();
+    selectOutlineItem(el);
+    if (!options || options.toast !== false) {
+        showToast(`Page "${title}" added`);
+    }
+}
+
+function addQuizToTopic(topicElement) {
+    if (currentSubtopicTitle) saveCurrentContent();
+    if (currentQuizTitle) saveCurrentQuizEdits();
+
+    const topic = findTopicFromElement(topicElement);
+    if (!topic) {
+        showToast('Could not add quiz');
+        return;
+    }
+
+    const title = uniqueTitle('New Quiz');
+    const quizObj = {
+        type: 'quiz',
+        quiz_title: title,
+        title,
+        instructions: '',
+        questions: []
+    };
+    topic.subtopics = topic.subtopics || [];
+    topic.subtopics.push(quizObj);
+    const existingWithQuestions = getTopicQuizList(topic).find(q => (q.questions || []).length);
+    if (!existingWithQuestions) {
+        setTopicQuizData(topic, quizObj);
+    } else {
+        topic.quiz_included = 1;
+    }
+    quizContents[title] = {
+        quiz_title: title,
+        instructions: '',
+        questions: []
+    };
+    ensureQuizDefaults(title);
+
+    const list = ensureTopicListVisible(topicElement);
+    if (!list) return;
+
+    const el = document.createElement('div');
+    el.className = 'menu-subtopic-item menu-quiz-item';
+    el.setAttribute('data-quiz-title', title);
+    el.setAttribute('data-type', 'quiz');
+    el.setAttribute('data-quiz-id', 'quiz_' + Date.now());
+    el.setAttribute('data-original-title', title);
+    el.innerHTML = buildQuizMenuItemHtml(title);
+    list.appendChild(el);
+
+    initializeDragAndDrop();
+    updateStats();
+    updateQuizMenuBadges();
+    markDirty();
+    selectOutlineItem(el);
+    showToast(`Quiz "${title}" added`);
+}
+
+function buildTopicMenuHtml(title) {
+    return `
+        <div class="menu-topic-header">
+            <i class="fas fa-folder-open"></i>
+            <span class="menu-topic-title">${escapeHtml(title)}</span>
+            <div class="menu-topic-actions">
+                <div class="menu-add-wrap">
+                    <span class="menu-add-item" title="Add page or quiz" role="button" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-plus"></i>
+                    </span>
+                    <div class="menu-add-dropdown" role="menu">
+                        <button type="button" class="menu-add-page" role="menuitem">
+                            <i class="fas fa-file-alt"></i> Add page
+                        </button>
+                        <button type="button" class="menu-add-quiz" role="menuitem">
+                            <i class="fas fa-question-circle"></i> Add quiz
+                        </button>
+                    </div>
+                </div>
+                <span class="move-four-direction move-topic" title="Move Topic (Drag to reposition)"><i class="fas fa-arrows-up-down-left-right"></i></span>
+                <span class="menu-rename-topic" title="Rename Topic"><i class="fas fa-edit"></i></span>
+                <span class="menu-delete-topic" title="Delete Topic"><i class="fas fa-trash-alt"></i></span>
+            </div>
+        </div>
+        <div class="menu-subtopics-list"></div>`;
+}
+
+function addSection() {
+    if (currentSubtopicTitle) saveCurrentContent();
+    if (currentQuizTitle) saveCurrentQuizEdits();
+
+    const list = document.getElementById('menu-topics-list');
+    if (!list) {
+        showToast('Could not add section');
+        return;
+    }
+
+    const title = uniqueTitle('New Section');
+    const topic = {
+        id: 'topic_' + Date.now(),
+        title,
+        subtopics: [],
+        quiz_included: 0
+    };
+    currentTopicsData.push(topic);
+
+    const el = document.createElement('div');
+    el.className = 'menu-topic-item';
+    el.setAttribute('data-topic-id', topic.id);
+    el.setAttribute('data-topic-title', title);
+    el.setAttribute('data-original-title', title);
+    el.innerHTML = buildTopicMenuHtml(title);
+    list.appendChild(el);
+
+    initializeDragAndDrop();
+    updateStats();
+    markDirty();
+    addPageToTopic(el, { toast: false });
+    showToast(`Section "${title}" added`);
+}
+
+function setupGlobalEventListeners() {
+    const topicsList = document.getElementById('menu-topics-list');
+    if (topicsList) {
+        topicsList.addEventListener('mousedown', function(e) {
+            if (e.target.closest('.menu-add-wrap, .menu-rename-topic, .menu-delete-topic, .menu-rename-subtopic, .menu-rename-quiz, .menu-delete-subtopic')) {
+                e.stopPropagation();
+            }
+        });
+        topicsList.addEventListener('click', function(e) {
+            if (e.target.closest('.menu-add-page')) {
+                e.stopPropagation();
+                const topicItem = e.target.closest('.menu-topic-item');
+                closeAddMenus();
+                addPageToTopic(topicItem);
+                return;
+            }
+            if (e.target.closest('.menu-add-quiz')) {
+                e.stopPropagation();
+                const topicItem = e.target.closest('.menu-topic-item');
+                closeAddMenus();
+                addQuizToTopic(topicItem);
+                return;
+            }
+            if (e.target.closest('.menu-add-item')) {
+                e.stopPropagation();
+                const wrap = e.target.closest('.menu-add-wrap');
+                const willOpen = wrap && !wrap.classList.contains('open');
+                closeAddMenus();
+                if (wrap && willOpen) {
+                    wrap.classList.add('open');
+                    const trigger = wrap.querySelector('.menu-add-item');
+                    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+                }
+                return;
+            }
+            if (e.target.closest('.menu-delete-topic')) {
+                e.stopPropagation();
+                const topicItem = e.target.closest('.menu-topic-item');
+                const topicTitle = topicItem.querySelector('.menu-topic-title')?.textContent;
+                showDeleteConfirm('topic', topicItem, topicTitle);
+            } else if (e.target.closest('.menu-delete-subtopic')) {
+                e.stopPropagation();
+                const subtopicItem = e.target.closest('.menu-subtopic-item');
+                const isQuiz = subtopicItem.getAttribute('data-type') === 'quiz';
+                const title = isQuiz ? 
+                    subtopicItem.getAttribute('data-quiz-title') : 
+                    subtopicItem.getAttribute('data-subtopic-title');
+                showDeleteConfirm(isQuiz ? 'quiz' : 'subtopic', subtopicItem, title);
+            } else if (e.target.closest('.menu-rename-topic')) {
+                e.stopPropagation();
+                const topicItem = e.target.closest('.menu-topic-item');
+                const title = topicItem.querySelector('.menu-topic-title')?.textContent;
+                showRenameModal('topic', topicItem, title);
+            } else if (e.target.closest('.menu-rename-subtopic')) {
+                e.stopPropagation();
+                const item = e.target.closest('.menu-subtopic-item[data-type="subtopic"]');
+                const title = item.getAttribute('data-subtopic-title');
+                showRenameModal('subtopic', item, title);
+            } else if (e.target.closest('.menu-rename-quiz')) {
+                e.stopPropagation();
+                const item = e.target.closest('.menu-subtopic-item[data-type="quiz"]');
+                const title = item.getAttribute('data-quiz-title');
+                showRenameModal('quiz', item, title);
+            } else if (e.target.closest('.menu-toggle-icon')) {
+                e.stopPropagation();
+                const topicDiv = e.target.closest('.menu-topic-item');
+                const subtopicsList = topicDiv.querySelector('.menu-subtopics-list');
+                const toggleIcon = e.target.closest('.menu-toggle-icon');
+                if (subtopicsList) {
+                    subtopicsList.classList.toggle('collapsed');
+                    toggleIcon.textContent = subtopicsList.classList.contains('collapsed') ? '+' : '−';
+                }
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.menu-add-wrap')) {
+            closeAddMenus();
+        }
+    });
+
+    document.getElementById('add-section-btn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAddMenus();
+        addSection();
+    });
+    
+    const addQuizBtn = document.getElementById('add-new-quiz-btn');
+    if (addQuizBtn) {
+        addQuizBtn.addEventListener('click', () => {
+            if (currentQuizTitle) {
+                if (!quizContents[currentQuizTitle]) {
+                    quizContents[currentQuizTitle] = { quiz_title: currentQuizTitle, instructions: '', questions: [] };
+                }
+                addQuizQuestion(currentQuizTitle);
+            } else {
+                alert('Please select a quiz first');
+            }
+        });
+    }
+
+    document.getElementById('save-quiz-btn')?.addEventListener('click', () => {
+        if (!currentQuizTitle) {
+            showToast('Select a quiz first');
+            return;
+        }
+        saveCurrentQuizEdits();
+        markDirty();
+        updateQuizMenuBadges();
+        renderQuizStatsBar(currentQuizTitle);
+        showToast('Quiz saved');
+    });
+}
+
+/* ============================================================
+   DELETE FUNCTIONALITY
+   ============================================================ */
+function showDeleteConfirm(type, element, name) {
+    deletePendingType = type;
+    deletePendingElement = element;
+    deletePendingItem = name;
+    
+    const messageEl = document.getElementById('deleteMessage');
+    if (messageEl) {
+        if (type === 'topic') {
+            messageEl.textContent = `Delete topic "${name}" and all its content? This cannot be undone.`;
+        } else if (type === 'subtopic') {
+            messageEl.textContent = `Delete page "${name}"? This cannot be undone.`;
+        } else if (type === 'quiz') {
+            messageEl.textContent = `Delete quiz "${name}"? All questions will be lost. This cannot be undone.`;
+        }
+    }
+    
+    if (deleteModal) deleteModal.style.display = 'block';
+}
+
+function performDelete(type, element, name) {
+    if (type === 'topic') {
+        deleteTopic(element, name);
+    } else if (type === 'subtopic') {
+        deleteSubtopic(element, name);
+    } else if (type === 'quiz') {
+        deleteQuiz(element, name);
+    }
+}
+
+function deleteTopic(topicElement, topicTitle) {
+    const topicIndex = currentTopicsData.findIndex(t => t.title === topicTitle);
+    if (topicIndex !== -1) {
+        const topic = currentTopicsData[topicIndex];
+        if (topic.subtopics) {
+            topic.subtopics.forEach(sub => {
+                if (isQuizSubtopicItem(sub)) {
+                    if (quizContents[sub.quiz_title]) {
+                        delete quizContents[sub.quiz_title];
+                    }
+                } else if (subtopicContents[sub.title]) {
+                    delete subtopicContents[sub.title];
+                }
+            });
+        }
+        getTopicQuizList(topic).forEach(quiz => {
+            if (quiz.quiz_title && quizContents[quiz.quiz_title]) {
+                delete quizContents[quiz.quiz_title];
+            }
+        });
+        currentTopicsData.splice(topicIndex, 1);
+    }
+    
+    topicElement.remove();
+    
+    const activeItem = document.querySelector('.menu-subtopic-item.active');
+    if (!activeItem || !document.querySelector('.menu-topic-item')) {
+        document.getElementById('content-title').innerHTML = '<i class="fas fa-edit"></i> No content available.';
+        document.getElementById('content-body').style.display = 'none';
+        document.getElementById('quiz-display').classList.add('d-none');
+        currentSubtopicTitle = null;
+        currentQuizTitle = null;
+    }
+    
+    initializeDragAndDrop();
+    updateStats();
+    markDirty();
+    showToast(`Topic "${topicTitle}" deleted`);
+}
+
+function deleteSubtopic(subtopicElement, subtopicTitle) {
+    const parentTopic = subtopicElement.closest('.menu-topic-item');
+    const topicTitle = parentTopic?.querySelector('.menu-topic-title')?.textContent;
+    const topicIndex = currentTopicsData.findIndex(t => t.title === topicTitle);
+    
+    if (topicIndex !== -1) {
+        const topic = currentTopicsData[topicIndex];
+        const subtopicIndex = topic.subtopics?.findIndex(s => s.title === subtopicTitle);
+        if (subtopicIndex !== -1) {
+            topic.subtopics.splice(subtopicIndex, 1);
+            if (subtopicContents[subtopicTitle]) delete subtopicContents[subtopicTitle];
+        }
+    }
+    
+    subtopicElement.remove();
+    
+    if (currentSubtopicTitle === subtopicTitle) {
+        document.getElementById('content-title').innerHTML = '<i class="fas fa-edit"></i> No content available.';
+        document.getElementById('content-body').style.display = 'none';
+        document.getElementById('quiz-display').classList.add('d-none');
+        currentSubtopicTitle = null;
+    }
+    
+    initializeDragAndDrop();
+    updateStats();
+    markDirty();
+    showToast(`Page "${subtopicTitle}" deleted`);
+}
+
+function deleteQuiz(quizElement, quizTitle) {
+    const parentTopic = quizElement.closest('.menu-topic-item');
+    const topicTitle = parentTopic?.querySelector('.menu-topic-title')?.textContent;
+    const topicIndex = currentTopicsData.findIndex(t => t.title === topicTitle);
+    
+    if (topicIndex !== -1) {
+        const topic = currentTopicsData[topicIndex];
+        const subtopicIndex = topic.subtopics?.findIndex(
+            (s) => isQuizSubtopicItem(s) && s.quiz_title === quizTitle
+        );
+        if (subtopicIndex !== -1) {
+            topic.subtopics.splice(subtopicIndex, 1);
+        }
+        const topicQuiz = getTopicQuizList(topic).find((q) => q.quiz_title === quizTitle);
+        if (topicQuiz) {
+            setTopicQuizData(topic, null);
+        }
+        if (quizContents[quizTitle]) {
+            delete quizContents[quizTitle];
+        }
+    }
+    
+    quizElement.remove();
+    
+    if (currentQuizTitle === quizTitle) {
+        document.getElementById('content-title').innerHTML = '<i class="fas fa-edit"></i> No content available.';
+        document.getElementById('content-body').style.display = 'none';
+        document.getElementById('quiz-display').classList.add('d-none');
+        currentQuizTitle = null;
+    }
+    
+    initializeDragAndDrop();
+    updateStats();
+    markDirty();
+    showToast(`Quiz "${quizTitle}" deleted`);
+}
+
+/* ============================================================
+   RENAME FUNCTIONALITY
+   ============================================================ */
+function showRenameModal(type, element, oldName) {
+    renameType = type;
+    renameElement = element;
+    renameOldName = oldName;
+    const modalTitle = document.getElementById('renameModalTitle');
+    const nameInput = document.getElementById('newNameInput');
+    const marksFields = document.getElementById('quiz-marks-fields');
+    const modalContent = document.querySelector('#renameModal .rename-modal-content');
+    const confirmBtn = document.getElementById('renameConfirmBtn');
+    if (type === 'topic') modalTitle.textContent = 'Rename Topic';
+    else if (type === 'subtopic') modalTitle.textContent = 'Rename Page';
+    else if (type === 'quiz') modalTitle.textContent = 'Edit Quiz';
+    if (confirmBtn) confirmBtn.textContent = type === 'quiz' ? 'Save' : 'Rename';
+    nameInput.value = oldName;
+    if (marksFields) marksFields.style.display = type === 'quiz' ? '' : 'none';
+    if (modalContent) modalContent.classList.toggle('rename-modal-quiz', type === 'quiz');
+    if (type === 'quiz') fillQuizMarksInputs(oldName);
+    renameModal.style.display = 'block';
+    nameInput.focus();
+    nameInput.select();
+}
+
+function performRename(type, element, oldName, newName) {
+    if (type === 'topic') {
+        renameTopic(element, oldName, newName);
+    } else if (type === 'subtopic') {
+        renameSubtopic(element, oldName, newName);
+    } else if (type === 'quiz') {
+        renameQuiz(element, oldName, newName);
+    }
+    markDirty();
+    showToast(`Renamed to "${newName}"`);
+    updateStats();
+}
+
+function renameTopic(topicElement, oldName, newName) {
+    const titleSpan = topicElement.querySelector('.menu-topic-title');
+    if (titleSpan) titleSpan.textContent = newName;
+    topicElement.setAttribute('data-topic-title', newName);
+    topicElement.setAttribute('data-original-title', newName);
+    
+    const topicIndex = currentTopicsData.findIndex(t => t.title === oldName);
+    if (topicIndex !== -1) {
+        currentTopicsData[topicIndex].title = newName;
+    }
+}
+
+function renameSubtopic(subtopicElement, oldName, newName) {
+    const titleSpan = subtopicElement.querySelector('.menu-subtopic-title');
+    if (titleSpan) titleSpan.textContent = newName;
+    subtopicElement.setAttribute('data-subtopic-title', newName);
+    subtopicElement.setAttribute('data-original-title', newName);
+    
+    for (const topic of currentTopicsData) {
+        if (topic.subtopics) {
+            const idx = topic.subtopics.findIndex(s => s.title === oldName);
+            if (idx !== -1) {
+                topic.subtopics[idx].title = newName;
+                break;
+            }
+        }
+    }
+    
+    if (subtopicContents[oldName]) {
+        subtopicContents[newName] = subtopicContents[oldName];
+        delete subtopicContents[oldName];
+    }
+    
+    if (currentSubtopicTitle === oldName) {
+        currentSubtopicTitle = newName;
+        document.getElementById('content-title').innerHTML = '<i class="fas fa-file-alt"></i> ' + escapeHtml(newName);
+    }
+}
+
+function renameQuiz(quizElement, oldName, newName) {
+    const titleSpan = quizElement.querySelector('.menu-subtopic-title');
+    if (titleSpan) titleSpan.textContent = newName;
+    quizElement.setAttribute('data-quiz-title', newName);
+    quizElement.setAttribute('data-original-title', newName);
+    
+    for (const topic of currentTopicsData) {
+        const subIdx = topic.subtopics?.findIndex(
+            (s) => isQuizSubtopicItem(s) && s.quiz_title === oldName
+        );
+        if (subIdx !== -1) {
+            topic.subtopics[subIdx].quiz_title = newName;
+            topic.subtopics[subIdx].title = newName;
+            setTopicQuizData(topic, topic.subtopics[subIdx]);
+            break;
+        }
+        const topicQuiz = getTopicQuizList(topic).find((q) => q.quiz_title === oldName);
+        if (topicQuiz) {
+            topicQuiz.quiz_title = newName;
+            setTopicQuizData(topic, topicQuiz);
+            break;
+        }
+    }
+    
+    if (quizContents[oldName]) {
+        quizContents[newName] = quizContents[oldName];
+        if (quizContents[newName]) quizContents[newName].quiz_title = newName;
+        delete quizContents[oldName];
+    }
+    
+    if (currentQuizTitle === oldName) {
+        currentQuizTitle = newName;
+        document.getElementById('content-title').innerHTML = '<i class="fas fa-question-circle"></i> ' + escapeHtml(newName);
+        loadQuizContent(newName);
+    }
+    updateQuizMenuBadges();
+}
+
+/* ============================================================
+   EDITOR FUNCTIONS
+   ============================================================ */
+function getActiveEditor(id = 'id_contenteditor') {
+    if (window.require) {
+        try {
+            const mgr = require('editor_tiny/editor');
+            const inst = mgr.getInstanceForElementId(id);
+            if (inst) return { type: 'tiny6', inst };
+        } catch(e) {}
+    }
+    if (window.tinyMCE && tinyMCE.get(id)) {
+        return { type: 'tinymce', inst: tinyMCE.get(id) };
+    }
+    if (window.Y && window.Y.M && window.Y.M.editor_atto && window.Y.M.editor_atto.Editor) {
+        try {
+            const inst = Y.M.editor_atto.Editor.getEditor(id);
+            if (inst) return { type: 'atto', inst };
+        } catch(e) {}
+    }
+    const textarea = document.getElementById(id);
+    if (textarea) return { type: 'textarea', inst: textarea };
+    return { type: 'textarea', inst: null };
+}
+
+function getEditorContent(id = 'id_contenteditor') {
+    const ed = getActiveEditor(id);
+    if (!ed.inst) return '';
+    switch (ed.type) {
+        case 'tiny6':
+        case 'tinymce': return ed.inst.getContent({ format: 'html' });
+        case 'atto': return ed.inst.getHTML();
+        default: return ed.inst.value;
+    }
+}
+
+function setEditorContent(html, id = 'id_contenteditor') {
+    const ed = getActiveEditor(id);
+    if (!ed.inst) return;
+    switch (ed.type) {
+        case 'tiny6':
+        case 'tinymce': ed.inst.setContent(html); break;
+        case 'atto': ed.inst.setHTML(html); ed.inst.fire('change'); break;
+        default: ed.inst.value = html;
+    }
+}
+
+function whenEditorReady(cb, id = 'id_contenteditor', tries = 0) {
+    const ed = getActiveEditor(id);
+    if (ed.inst || tries > 40) { cb(); return; }
+    setTimeout(() => whenEditorReady(cb, id, ++tries), 150);
+}
+
+function setItemId(id) {
+    const h = document.getElementById('contenteditor_itemid');
+    if (h) h.value = id;
+    const h2 = document.getElementById('id_contenteditor_itemid');
+    if (h2) h2.value = id;
+}
+
+function getItemId() {
+    const h = document.getElementById('contenteditor_itemid');
+    return h ? Number(h.value) : 0;
+}
+
+async function promoteHtmlForSave(html, itemid) {
+    const text = String(html || '');
+    if (!/draftfile\.php|tokenpluginfile\.php/i.test(text)) {
+        return text;
+    }
+    const courseid = document.querySelector('#step4-form input[name="id"]')?.value
+        || document.querySelector('input[name="id"]')?.value
+        || '';
+    const sesskey = (window.M && M.cfg && M.cfg.sesskey)
+        || document.querySelector('input[name="sesskey"]')?.value
+        || '';
+    const wwwroot = (window.M && M.cfg && M.cfg.wwwroot) ? M.cfg.wwwroot : '';
+    if (!courseid || !sesskey || !wwwroot) {
+        return text;
+    }
+    try {
+        const body = new URLSearchParams();
+        body.set('id', String(courseid));
+        body.set('sesskey', String(sesskey));
+        body.set('html', text);
+        body.set('itemid', String(itemid || getItemId() || 0));
+        const resp = await fetch(wwwroot + '/local/haccgen/promote_html.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+            body,
+            credentials: 'same-origin',
+        });
+        if (!resp.ok) {
+            return text;
+        }
+        const data = await resp.json();
+        return (data && typeof data.html === 'string' && data.html) ? data.html : text;
+    } catch (e) {
+        return text;
+    }
+}
+
+async function promoteAllContentsForSave() {
+    if (currentSubtopicTitle && !isSaving) {
+        saveCurrentContent();
+    }
+    const titles = Object.keys(subtopicContents || {});
+    for (const title of titles) {
+        const obj = subtopicContents[title];
+        if (typeof obj === 'object' && obj !== null && typeof obj.text === 'string') {
+            obj.text = await promoteHtmlForSave(obj.text, obj.itemid);
+        }
+    }
+    if (currentSubtopicTitle && subtopicContents[currentSubtopicTitle]) {
+        const current = subtopicContents[currentSubtopicTitle];
+        if (typeof current === 'object' && current.text) {
+            setEditorContent(current.text);
+        }
+    }
+}
+
+function saveCurrentContent() {
+    if (isSaving) return;
+    if (!currentSubtopicTitle) return;
+    const content = getEditorContent();
+    subtopicContents[currentSubtopicTitle] = {
+        text: content,
+        itemid: getItemId()
+    };
+}
+
+function saveCurrentQuizEdits() {
+    if (isSaving) return;
+    if (!currentQuizTitle || !quizContents[currentQuizTitle]) return;
+    const quizData = quizContents[currentQuizTitle];
+    document.querySelectorAll('.quiz-question').forEach(card => {
+        const index = card.getAttribute('data-index');
+        const qIn = card.querySelector('.question-input');
+        if (!qIn) return;
+        const exIn = card.querySelector('.explanation-input');
+        const opts = card.querySelectorAll('.option-input');
+        const sel = card.querySelector('.correct-radio:checked');
+        const question = qIn.value.trim();
+        const options = Array.from(opts).map(i => i.value.trim());
+        const correctletter = sel ? String.fromCharCode(65 + parseInt(sel.value)) : '';
+        const explanation = exIn ? exIn.value.trim() : '';
+        if (question && options.length && correctletter) {
+            const original = quizData.questions[index] || {};
+            quizData.questions[index] = {
+                question_id: original.question_id || `q${parseInt(index)+1}`,
+                type: original.type || 'multiple_choice',
+                difficulty: original.difficulty || 'easy',
+                question,
+                options,
+                correct_answer: correctletter,
+                explanation
+            };
+        }
+    });
+}
+
+/* ============================================================
+   CONTENT LOADING FUNCTIONS
+   ============================================================ */
+function setupContentLoading() {
+    const topicsList = document.getElementById('menu-topics-list');
+    if (!topicsList) return;
+
+    topicsList.addEventListener('click', function(e) {
+        const subtopicItem = e.target.closest('.menu-subtopic-item[data-type="subtopic"]');
+        if (subtopicItem && !e.target.closest('.menu-topic-actions') && !e.target.closest('.menu-delete-subtopic') && !e.target.closest('.menu-rename-subtopic')) {
+            e.stopPropagation();
+            const title = subtopicItem.getAttribute('data-subtopic-title');
+            if (title) {
+                if (currentSubtopicTitle) saveCurrentContent();
+                currentSubtopicTitle = title;
+                currentQuizTitle = null;
+                whenEditorReady(() => loadPageContent(title));
+                document.querySelectorAll('.menu-subtopic-item.active').forEach(i => i.classList.remove('active'));
+                subtopicItem.classList.add('active');
+                document.getElementById('content-title').innerHTML = '<i class="fas fa-file-alt"></i> ' + escapeHtml(title);
+                document.getElementById('quiz-display').classList.add('d-none');
+                document.getElementById('content-body').style.display = '';
+            }
+            return;
+        }
+        
+        const quizItem = e.target.closest('.menu-subtopic-item[data-type="quiz"]');
+        if (quizItem && !e.target.closest('.menu-topic-actions') && !e.target.closest('.menu-delete-subtopic') && !e.target.closest('.menu-rename-quiz')) {
+            e.stopPropagation();
+            const quizTitle = quizItem.getAttribute('data-quiz-title');
+            if (quizTitle) {
+                if (currentSubtopicTitle) saveCurrentContent();
+                currentQuizTitle = quizTitle;
+                currentSubtopicTitle = null;
+                loadQuizContent(quizTitle);
+                document.querySelectorAll('.menu-subtopic-item.active').forEach(i => i.classList.remove('active'));
+                quizItem.classList.add('active');
+                document.getElementById('content-title').innerHTML = '<i class="fas fa-question-circle"></i> ' + escapeHtml(quizTitle);
+                document.getElementById('content-body').style.display = 'none';
+                document.getElementById('quiz-display').classList.remove('d-none');
+                fitStep4Editor();
+            }
+            return;
+        }
+        
+        const toggleIcon = e.target.closest('.menu-toggle-icon');
+        if (toggleIcon) {
+            e.stopPropagation();
+            const topicDiv = toggleIcon.closest('.menu-topic-item');
+            const subtopicsList = topicDiv.querySelector('.menu-subtopics-list');
+            if (subtopicsList) {
+                subtopicsList.classList.toggle('collapsed');
+                toggleIcon.textContent = subtopicsList.classList.contains('collapsed') ? '+' : '−';
+            }
+        }
+    });
+}
+
+function loadPageContent(title) {
+    const obj = subtopicContents[title];
+    let content = '';
+    if (typeof obj === 'object' && obj !== null) {
+        content = obj.text || '';
+        if (obj.itemid) setItemId(obj.itemid);
+    } else {
+        content = obj || '';
+    }
+    if (!content) content = '<p><em>No content available. Start editing above.</em></p>';
+    setEditorContent(content);
+}
+
+function loadQuizContent(title) {
+    const quizData = quizContents[title];
+    const container = document.getElementById('quiz-content');
+    container.innerHTML = '';
+    currentQuizTitle = title;
+
+    renderQuizStatsBar(title);
+    if (!quizData || !quizData.questions || !quizData.questions.length) {
+        container.innerHTML = '<p><em>No questions yet. Use Add Question to create one.</em></p>';
+        return;
+    }
+
+    quizData.questions.forEach((q, index) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = 'quiz-question mb-4 p-3 border rounded';
+        qDiv.setAttribute('data-index', index);
+        qDiv.innerHTML = `
+            <p><strong>Q${index + 1}:</strong> <span class="question-text">${escapeHtml(q.question)}</span></p>
+            <ul class="quiz-options">${q.options.map(opt => `<li>${escapeHtml(opt)}</li>`).join('')}</ul>
+            <p><em>Answer:</em> <span class="answer-text">${escapeHtml(q.correct_answer || q.answer || '')}</span></p>
+            <p><em>Explanation:</em> <span class="explanation-text">${escapeHtml(q.explanation || '')}</span></p>
+            <button type="button" class="btn btn-sm btn-outline-primary edit-question-btn">Edit</button>
+            <button type="button" class="btn btn-sm btn-outline-danger ms-2 delete-question-btn">Delete</button>
+            <button type="button" class="btn btn-sm btn-success save-question-btn d-none">Save</button>
+            <button type="button" class="btn btn-sm btn-secondary cancel-question-btn d-none ms-2">Cancel</button>
+        `;
+        container.appendChild(qDiv);
+    });
+
+    attachQuizEventListeners(title);
+}
+
+function attachQuizEventListeners(quizTitle) {
+    document.querySelectorAll('.edit-question-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const wrapper = this.closest('.quiz-question');
+            const index = wrapper.getAttribute('data-index');
+            const data = quizContents[quizTitle].questions[index];
+            const correctletter = (data.correct_answer || data.answer || '').toUpperCase().trim();
+            const correctindex = /^[A-Z]$/.test(correctletter) ? correctletter.charCodeAt(0) - 65 : -1;
+
+            wrapper.querySelector('.question-text').outerHTML = `<input type="text" class="form-control mb-2 question-input" value="${escapeHtml(data.question)}">`;
+            wrapper.querySelector('.quiz-options').outerHTML = `
+                <div class="options-group">
+                    ${data.options.map((opt, i) => `
+                        <div class="form-check mb-2 d-flex align-items-center">
+                            <input class="form-check-input me-2 correct-radio" type="radio" name="correct-${index}" value="${i}" ${i===correctindex?'checked':''}>
+                            <label class="form-check-label me-2">${String.fromCharCode(65+i)}.</label>
+                            <input type="text" class="form-control option-input" data-opt-index="${i}" value="${escapeHtml(opt)}">
+                        </div>
+                    `).join('')}
+                </div>`;
+            wrapper.querySelector('.explanation-text').outerHTML = `<textarea class="form-control mb-2 explanation-input">${escapeHtml(data.explanation || '')}</textarea>`;
+
+            this.classList.add('d-none');
+            wrapper.querySelector('.save-question-btn').classList.remove('d-none');
+            wrapper.querySelector('.cancel-question-btn').classList.remove('d-none');
+        });
+    });
+
+    document.querySelectorAll('.save-question-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const w = this.closest('.quiz-question');
+            const index = w.getAttribute('data-index');
+            const qIn = w.querySelector('.question-input');
+            const exIn = w.querySelector('.explanation-input');
+            const opts = w.querySelectorAll('.option-input');
+            const sel = w.querySelector('.correct-radio:checked')?.value;
+            const question = qIn.value.trim();
+            const options = Array.from(opts).map(i => i.value.trim());
+            if (!question) return alert('Question cannot be empty.');
+            if (options.some(opt => !opt)) return alert('All options required.');
+            if (sel === undefined) return alert('Select correct answer.');
+            const correctletter = String.fromCharCode(65 + parseInt(sel));
+            const original = quizContents[quizTitle].questions[index];
+            quizContents[quizTitle].questions[index] = {
+                question_id: original.question_id || 'q' + (parseInt(index)+1),
+                type: original.type || 'multiple_choice',
+                difficulty: original.difficulty || 'easy',
+                question, options,
+                correct_answer: correctletter,
+                explanation: exIn.value.trim()
+            };
+            loadQuizContent(quizTitle);
+            showToast('Question updated');
+        });
+    });
+
+    document.querySelectorAll('.cancel-question-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            loadQuizContent(quizTitle);
+        });
+    });
+
+    document.querySelectorAll('.delete-question-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!confirm('Delete this question?')) return;
+            const w = this.closest('.quiz-question');
+            const index = parseInt(w.getAttribute('data-index'));
+            quizContents[quizTitle].questions.splice(index, 1);
+            quizContents[quizTitle].questions.forEach((q, i) => { q.question_id = `q${i+1}`; });
+            loadQuizContent(quizTitle);
+            updateQuizMenuBadges();
+            showToast('Question deleted');
+        });
+    });
+}
+
+function addQuizQuestion(quizTitle) {
+    if (!quizContents[quizTitle]) {
+        quizContents[quizTitle] = { quiz_title: quizTitle, questions: [] };
+    }
+    const questions = quizContents[quizTitle].questions;
+    const newIndex = questions.length;
+    questions.push({
+        question_id: `q${newIndex+1}`,
+        type: 'multiple_choice',
+        difficulty: 'easy',
+        question: '',
+        options: ['', '', '', ''],
+        correct_answer: '',
+        explanation: ''
+    });
+    loadQuizContent(quizTitle);
+    updateQuizMenuBadges();
+    setTimeout(() => {
+        const lastCard = document.querySelector(`.quiz-question[data-index="${newIndex}"]`);
+        if (lastCard) lastCard.querySelector('.edit-question-btn')?.click();
+    }, 100);
+    showToast('New question added');
+}
+
+function loadFirstSubtopic() {
+    const firstItem = document.querySelector('.menu-subtopic-item[data-type="subtopic"], .menu-subtopic-item[data-type="quiz"]');
+    if (firstItem) {
+        const type = firstItem.getAttribute('data-type');
+        if (type === 'subtopic') {
+            const title = firstItem.getAttribute('data-subtopic-title');
+            if (title) {
+                currentSubtopicTitle = title;
+                whenEditorReady(() => loadPageContent(title));
+                firstItem.classList.add('active');
+                document.getElementById('content-title').innerHTML = '<i class="fas fa-file-alt"></i> ' + escapeHtml(title);
+                document.getElementById('quiz-display').classList.add('d-none');
+                document.getElementById('content-body').style.display = '';
+            }
+        } else if (type === 'quiz') {
+            const quizTitle = firstItem.getAttribute('data-quiz-title');
+            if (quizTitle) {
+                currentQuizTitle = quizTitle;
+                loadQuizContent(quizTitle);
+                firstItem.classList.add('active');
+                document.getElementById('content-title').innerHTML = '<i class="fas fa-question-circle"></i> ' + escapeHtml(quizTitle);
+                document.getElementById('content-body').style.display = 'none';
+                document.getElementById('quiz-display').classList.remove('d-none');
+                fitStep4Editor();
+            }
+        }
+    } else {
+        document.getElementById('content-title').innerHTML = '<i class="fas fa-edit"></i> No content available.';
+    }
+    setTimeout(() => {
+    setLoadingState(false);
+}, 5000);
+}
+document.addEventListener('click', function(e) {
+    if (isContentLoading) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}, true);
+/* ============================================================
+   FORM SUBMISSION
+   ============================================================ */
+function setupFormSubmission() {
+    const form = document.getElementById('step4-form');
+    if (!form) return;
+
+    const saveBtn = document.getElementById('save-create-btn');
+    const draftBtn = document.getElementById('savedraft-btn');
+    const saveBtnText = saveBtn ? saveBtn.innerHTML : '';
+    let saveGeneration = 0;
+
+    const resetSaveUi = () => {
+        if (saveBtn) {
+            saveBtn.innerHTML = saveBtnText;
+            saveBtn.disabled = false;
+        }
+        if (draftBtn) draftBtn.disabled = false;
+        isSubmitting = false;
+        isSaving = false;
+    };
+
+    document.getElementById('step4-cancel-btn')?.addEventListener('click', () => {
+        saveGeneration += 1;
+        resetSaveUi();
+    });
+
+    form.addEventListener('submit', async function(e) {
+        if (isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+
+        e.preventDefault();
+
+        const generation = ++saveGeneration;
+        const submitter = e.submitter;
+        if (saveBtn) {
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+        }
+        if (draftBtn) draftBtn.disabled = true;
+
+        try {
+            if (currentSubtopicTitle) saveCurrentContent();
+            if (currentQuizTitle) saveCurrentQuizEdits();
+
+            isSubmitting = true;
+            isSaving = true;
+
+            const payload = await buildPayload();
+            if (generation !== saveGeneration) {
+                return;
+            }
+            const jsonPayload = JSON.stringify(payload);
+            
+            setPayloadHidden(jsonPayload);
+            document.getElementById('topicsjson').value = JSON.stringify(subtopicContents);
+            document.getElementById('quizjson').value = JSON.stringify(quizContents);
+
+            if (submitter && submitter.name) {
+                const existing = form.querySelector('#step4-submitter-hidden');
+                if (existing) existing.remove();
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = submitter.name;
+                hidden.value = submitter.value || '1';
+                hidden.id = 'step4-submitter-hidden';
+                form.appendChild(hidden);
+            }
+
+            const dirtyBeforeSubmit = isDirty;
+            let leftPage = false;
+            const markLeft = () => { leftPage = true; };
+            window.addEventListener('pagehide', markLeft);
+            isDirty = false;
+            form.submit();
+            setTimeout(() => {
+                window.removeEventListener('pagehide', markLeft);
+                if (leftPage || generation !== saveGeneration) {
+                    return;
+                }
+                isDirty = dirtyBeforeSubmit;
+                resetSaveUi();
+            }, 0);
+
+        } catch (error) {
+            if (generation !== saveGeneration) {
+                return;
+            }
+            console.error('Save error:', error);
+            alert(error.message || 'Failed to save. Please try again.');
+            resetSaveUi();
+        }
+    });
+}
+
+async function buildPayload() {
+    await new Promise(resolve => whenEditorReady(resolve));
+    
+    if (currentSubtopicTitle && !isSaving) saveCurrentContent();
+    if (currentQuizTitle && !isSaving) saveCurrentQuizEdits();
+    await promoteAllContentsForSave();
+    
+    for (const qtitle in quizContents) {
+        if (!quizContents[qtitle]?.questions) continue;
+        quizContents[qtitle].questions = quizContents[qtitle].questions.map((q, idx) => ({
+            question_id: q.question_id || `q${idx+1}`,
+            type: q.type || 'multiple_choice',
+            difficulty: q.difficulty || 'easy',
+            question: (q.question || '').trim(),
+            options: Array.isArray(q.options) ? q.options.map(o => (o || '').trim()) : [],
+            correct_answer: (q.correct_answer || q.answer || '').trim(),
+            explanation: (q.explanation || '').trim()
+        }));
+    }
+
+    const topics = [];
+    const menuItems = document.querySelectorAll('.menu-topic-item');
+    
+    menuItems.forEach(menuItem => {
+        const titleElem = menuItem.querySelector('.menu-topic-title');
+        const title = titleElem ? titleElem.textContent.trim() : 'Untitled Topic';
+        
+        const subtopics = [];
+        menuItem.querySelectorAll('.menu-subtopic-item').forEach(item => {
+            const itemType = item.getAttribute('data-type');
+            if (itemType === 'subtopic') {
+                const st = item.getAttribute('data-subtopic-title');
+                if (!st) return;
+                const obj = subtopicContents[st] || { text: '<p><em>No content.</em></p>', itemid: 0 };
+                subtopics.push({
+                    type: 'page',
+                    title: st,
+                    content: {
+                        text: (typeof obj === 'object' && 'text' in obj) ? obj.text : obj,
+                        itemid: (typeof obj === 'object' && 'itemid' in obj) ? Number(obj.itemid) : 0
+                    }
+                });
+            } else if (itemType === 'quiz') {
+                const qtitle = item.getAttribute('data-quiz-title');
+                const qdata = quizContents[qtitle] || {
+                    quiz_title: qtitle,
+                    instructions: '',
+                    questions: []
+                };
+                if (Array.isArray(qdata.questions)) {
+                    subtopics.push(Object.assign({ type: 'quiz' }, packQuizRecord(qtitle, qdata)));
+                }
+            }
+        });
+        
+        topics.push({ title, subtopics });
+    });
+    
+    return {
+        meta: {
+            courseid: Number(document.querySelector('input[name="id"]').value),
+            step: 4,
+            version: 1,
+            coursesummary: document.getElementById('coursesummary-meta')?.value || 'no'
+        },
+        topics
+    };
+}
+
+function setPayloadHidden(jsonStr, chunkSize = 200000) {
+    const form = document.getElementById('step4-form');
+    if (!form) return;
+    [...form.querySelectorAll('input[name^="payload_"]')].forEach(n => n.remove());
+    const payloadField = document.getElementById('payload');
+    const partsField = document.getElementById('payloadparts');
+
+    if (jsonStr.length <= chunkSize) {
+        if (payloadField) payloadField.value = jsonStr;
+        if (partsField) partsField.value = '0';
+    } else {
+        if (payloadField) payloadField.value = '';
+        const num = Math.ceil(jsonStr.length / chunkSize);
+        for (let i = 0; i < num; i++) {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = `payload_${i+1}`;
+            hidden.value = jsonStr.slice(i * chunkSize, (i+1) * chunkSize);
+            form.appendChild(hidden);
+        }
+        if (partsField) partsField.value = String(num);
+    }
+}
+
+/* ============================================================
+   UTILITY FUNCTIONS
+   ============================================================ */
+function setupMenu() {
+    const sideMenu = document.getElementById('haccgen-side-menu');
+    const hamburgerBtn = document.getElementById('hamburger-toggle');
+    const closeBtn = document.getElementById('menu-close-btn');
+    const overlay = document.getElementById('menu-overlay');
+    if (hamburgerBtn) hamburgerBtn.style.display = 'flex';
+    if (hamburgerBtn) {
+        hamburgerBtn.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            isMenuOpen ? closeMenu() : openMenu();
+        });
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            closeMenu();
+        });
+    }
+    if (overlay) {
+        overlay.addEventListener('click', function() { closeMenu(); });
+    }
+}
+
+function openMenu() {
+    const sideMenu = document.getElementById('haccgen-side-menu');
+    const overlay = document.getElementById('menu-overlay');
+    const hamburgerBtn = document.getElementById('hamburger-toggle');
+
+    if (sideMenu) sideMenu.classList.add('open');
+    if (overlay) overlay.classList.remove('active');
+
+    // HIDE hamburger button when menu is OPEN
+    if (hamburgerBtn) {
+        hamburgerBtn.classList.add('hidden');
+    }
+
+    isMenuOpen = true;
+}
+
+function closeMenu() {
+    const sideMenu = document.getElementById('haccgen-side-menu');
+    const overlay = document.getElementById('menu-overlay');
+    const hamburgerBtn = document.getElementById('hamburger-toggle');
+
+    if (sideMenu) sideMenu.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+
+    // SHOW hamburger button when menu is CLOSED
+    if (hamburgerBtn) {
+        hamburgerBtn.classList.remove('hidden');
+    }
+
+    isMenuOpen = false;
+}
+
+function trackEditorChanges() {
+    setTimeout(() => {
+        const editor = getActiveEditor();
+        if (editor.inst) {
+            if (editor.type === 'tiny6' || editor.type === 'tinymce') {
+                editor.inst.on('change', () => { markDirty(); if (currentSubtopicTitle && !isSaving) saveCurrentContent(); });
+                editor.inst.on('keyup', () => { markDirty(); if (currentSubtopicTitle && !isSaving) saveCurrentContent(); });
+            } else if (editor.type === 'atto' && editor.inst.on) {
+                editor.inst.on('change', () => { markDirty(); if (currentSubtopicTitle && !isSaving) saveCurrentContent(); });
+            }
+        }
+    }, 1000);
+}
+
+function updateStats() {
+    const totalTopics = currentTopicsData.length;
+    let totalPages = 0, totalQuizzes = 0;
+    currentTopicsData.forEach(t => {
+        totalPages += countTopicPages(t);
+        totalQuizzes += countTopicQuizzes(t);
+    });
+    const topicsSpan = document.getElementById('total-topics-count');
+    const pagesSpan = document.getElementById('total-pages-count');
+    const quizzesSpan = document.getElementById('total-quizzes-count');
+    if (topicsSpan) topicsSpan.textContent = totalTopics;
+    if (pagesSpan) pagesSpan.textContent = totalPages;
+    if (quizzesSpan) quizzesSpan.textContent = totalQuizzes;
+    
+    const progressPercent = totalTopics > 0 ? Math.min(100, ((totalPages + totalQuizzes) / (totalTopics * 5)) * 100) : 0;
+    const progressFill = document.getElementById('progress-fill');
+    if (progressFill) progressFill.style.width = progressPercent + '%';
+}
+
+function markDirty() { isDirty = true; }
+
+function showToast(message) {
+    const existing = document.querySelectorAll('.crud-toast');
+    existing.forEach(toast => toast.remove());
+    const toast = document.createElement('div');
+    toast.className = 'crud-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+window.addEventListener('beforeunload', (e) => {
+    if (isDirty && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes.';
+    }
+});
+
+function fitStep4Editor() {}
+
+window.addEventListener('resize', function() {
+    const overlay = document.getElementById('menu-overlay');
+    if (window.innerWidth > 768 && overlay) overlay.classList.remove('active');
+});
+</script>
+
+<style>
+/* RESET & BASE */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 0; overflow-x: hidden; }
+.drawer.drawer-left, .drawer.drawer-right, #nav-drawer, .drawer-toggles, .block_navigation, .block_settings {
+    display: none !important;
+}
+.haccgen-layout { display: flex; width: 100%; position: relative; min-height: 0; align-items: stretch; }
+.hamburger-toggle-btn {
+    position: absolute;
+    top: -45px;
+    left: 20px;
+    z-index: 100;
+    background: #0069cc;
+    border: none;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    /* REMOVE these lines if they exist:
+    transition: transform 0.3s ease; 
+    */
+}
+.hamburger-toggle-btn:hover { background: #0052a3; transform: scale(1.02); }
+.hamburger-toggle-btn i { font-size: 12px; }
+
+.haccgen-side-menu {
+    width: 320px; background: #ffffff; color: #333333; flex-shrink: 0; transition: transform 0.3s ease-in-out;
+    display: flex; flex-direction: column; box-shadow: 2px 0 15px rgba(0,0,0,0.1); position: relative;
+    height: 100%; max-height: calc(100vh - 72px); min-height: 0; align-self: stretch; overflow: hidden; border-right: 1px solid #e0e0e0;
+}
+.haccgen-side-menu.open { transform: translateX(0); }
+.haccgen-side-menu:not(.open) { transform: translateX(-100%); position: fixed; left: 0; top: 0; height: 100%; z-index: 1000; }
+.menu-header { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-shrink: 0; }
+.menu-header-content { flex: 1; }
+.menu-header-content h4 { margin: 0 0 5px 0; font-size: 16px; color: #0069cc; }
+.menu-header-content small { font-size: 11px; opacity: 0.7; color: #666; }
+.menu-close-btn { background: #f0f0f0; border: none; color: #666; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+.menu-close-btn:hover { background: #e0e0e0; color: #333; }
+.menu-progress { padding: 12px 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; font-size: 12px; color: #555; }
+.progress-bar-custom { height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden; margin: 6px 0; }
+.progress-fill { height: 100%; background: #0069cc; border-radius: 2px; transition: width 0.3s ease; }
+.progress-stats { font-size: 11px; opacity: 0.8; color: #666; }
+.menu-content { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 10px 0; }
+.menu-content::-webkit-scrollbar { width: 4px; }
+.menu-content::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 2px; }
+.menu-content::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 2px; }
+.menu-footer { padding: 12px 20px; border-top: 1px solid #e0e0e0; font-size: 10px; text-align: center; flex-shrink: 0; color: #999; }
+.haccgen-editor-section { flex: 1; min-width: 0; background: #f5f5f5; overflow: visible; padding: 16px 16px 12px; display: flex; flex-direction: column; }
+.haccgen-editor-section > form { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.editor-container { width: 100%; max-width: none; margin: 0; flex: 1; display: flex; flex-direction: column; }
+.editor-header { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #0069cc; flex-shrink: 0; }
+#content-title { margin: 0; font-size: 20px; font-weight: 600; color: #333; }
+#content-title i { color: #0069cc; margin-right: 8px; }
+.editor-content-wrapper { border: 1px solid #ddd; border-radius: 8px; padding: 0; background: #fff; margin: 0; overflow: visible; }
+.editor-content-wrapper .tox-tinymce,
+.editor-content-wrapper .editor_atto_wrap,
+.editor-content-wrapper .form-control { width: 100% !important; max-width: none !important; }
+.quiz-preview-wrapper { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 12px; }
+.quiz-preview-wrapper h6 { margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+.quiz-question { background: #f9f9f9; border-radius: 8px; }
+.menu-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #0069cc; padding: 0 15px; margin-bottom: 8px; }
+.menu-topic-item { margin-bottom: 8px; }
+.menu-topic-header { display: flex; align-items: center; gap: 8px; padding: 8px 15px; background: #f8f9fa; cursor: grab; font-size: 13px; border-radius: 6px; margin: 0 10px; }
+.menu-topic-header:active { cursor: grabbing; }
+.menu-topic-header:hover { background: #e9ecef; }
+.menu-topic-title { flex: 1; font-weight: 500; font-size: 13px; word-break: break-word; color: #333; }
+.menu-topic-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.menu-add-wrap { position: relative; display: inline-flex; }
+.menu-add-item { cursor: pointer; color: #0069cc; font-size: 12px; padding: 2px 6px; border-radius: 3px; transition: all 0.2s ease; display: inline-flex; align-items: center; }
+.menu-add-item:hover, .menu-add-wrap.open .menu-add-item { background: #e0e0e0; color: #0052a3; }
+.menu-add-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 30;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    min-width: 140px;
+    padding: 4px 0;
+}
+.menu-add-wrap.open .menu-add-dropdown { display: block; }
+.menu-add-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #333;
+    cursor: pointer;
+}
+.menu-add-dropdown button:hover { background: #f0f0f0; color: #0069cc; }
+.menu-add-section-bar {
+    position: relative;
+    flex: 0 0 auto;
+    height: 52px;
+    background: #fff;
+    z-index: 6;
+}
+.menu-add-section-btn {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px dashed #0069cc;
+    border-radius: 6px;
+    background: #f4f8fc;
+    color: #0069cc;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.menu-add-section-btn:hover { background: #e8f0fe; color: #0052a3; }
+.menu-quiz-item.quiz-marks-missing { background: #fffbeb; border-left: 3px solid #f59e0b; }
+.menu-subtopic-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.quiz-menu-meta { font-size: 10px; color: #6b7280; }
+.quiz-marks-badge { flex-shrink: 0; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; line-height: 1.6; }
+.quiz-marks-badge-ok { background: #dbeafe; color: #1d4ed8; }
+.quiz-marks-badge-warn { background: #fef3c7; color: #b45309; min-width: 20px; text-align: center; }
+.quiz-editor-toolbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid #e8eef5; margin-bottom: 12px; }
+.quiz-toolbar-left h6 { margin: 0; font-size: 16px; font-weight: 600; color: #1a3a5c; }
+.quiz-editor-subtitle { display: block; margin-top: 4px; font-size: 12px; color: #6b7280; }
+.quiz-toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.quiz-stats-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.quiz-stat { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 10px; border-radius: 999px; background: #f0f4f8; color: #374151; }
+.quiz-stat-ok { background: #e8f5e9; color: #1b5e20; }
+.quiz-stat-warn { background: #fff3e0; color: #e65100; }
+.rename-modal-content.rename-modal-quiz { width: 560px; max-width: calc(100vw - 32px); }
+.quiz-marks-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.quiz-marks-field label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+.quiz-marks-preview { color: #1d4ed8; background: #eff6ff; border-radius: 8px; padding: 8px 10px; }
+.quiz-marks-preview.is-error { color: #b45309; background: #fffbeb; }
+.edit-quiz-body-remark { margin-top: 14px; padding-top: 14px; border-top: 1px solid #eee; }
+.move-four-direction { cursor: grab; color: #0069cc; font-size: 14px; padding: 2px 6px; border-radius: 4px; transition: all 0.2s ease; display: inline-flex; align-items: center; }
+.move-four-direction:active { cursor: grabbing; }
+.move-four-direction:hover { background: #e0e0e0; color: #0052a3; }
+.menu-rename-topic, .menu-rename-subtopic, .menu-rename-quiz { cursor: pointer; color: #0069cc; font-size: 12px; padding: 2px 4px; border-radius: 3px; transition: all 0.2s ease; }
+.menu-rename-topic:hover, .menu-rename-subtopic:hover, .menu-rename-quiz:hover { background: #e0e0e0; color: #0052a3; }
+.menu-delete-topic, .menu-delete-subtopic { cursor: pointer; color: #dc3545; font-size: 12px; padding: 2px 4px; border-radius: 3px; transition: all 0.2s ease; }
+.menu-delete-topic:hover, .menu-delete-subtopic:hover { background: #e0e0e0; color: #c82333; }
+.menu-toggle-icon { font-size: 14px; cursor: pointer; color: #999; padding: 2px; }
+.menu-subtopics-list { padding-left: 30px; margin-top: 3px; }
+.menu-subtopics-list.collapsed { display: none; }
+.menu-subtopic-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; margin: 2px 10px; border-radius: 6px; cursor: grab; font-size: 12px; transition: all 0.2s ease; color: #555; position: relative; }
+.menu-subtopic-item:active { cursor: grabbing; }
+.menu-subtopic-item:hover { background: #f0f0f0; }
+.menu-subtopic-item.active { background: #e8f0fe; border-left: 3px solid #0069cc; color: #0069cc; font-weight: 500; }
+.menu-subtopic-title { flex: 1; word-break: break-word; }
+.menu-subtopic-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s ease; }
+.menu-subtopic-item:hover .menu-subtopic-actions { opacity: 1; }
+.menu-empty-message { padding: 20px; text-align: center; color: #999; font-size: 12px; }
+.sortable-ghost { opacity: 0.5; background: #e8f0fe; border: 2px dashed #0069cc; }
+.sortable-drag { opacity: 0.8; }
+.rename-modal { display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+.rename-modal-content { background-color: #fff; margin: 15% auto; width: 400px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); animation: modalSlideIn 0.3s ease; }
+@keyframes modalSlideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.rename-modal-header { padding: 15px 20px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+.rename-modal-header h3 { margin: 0; font-size: 18px; color: #333; }
+.rename-modal-close, .delete-modal-close { cursor: pointer; font-size: 24px; color: #999; transition: color 0.2s; }
+.rename-modal-close:hover, .delete-modal-close:hover { color: #333; }
+.rename-modal-body { padding: 20px; }
+.rename-modal-body label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+.rename-modal-body input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+.rename-modal-footer { padding: 15px 20px; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 10px; }
+.btn-danger { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; }
+.btn-danger:hover { background: #c82333; }
+.menu-overlay { position: fixed; top: 60px; left: 0; width: 100%; height: calc(100vh - 60px); background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+.menu-overlay.active { display: block; }
+.crud-toast { position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 10px 20px; border-radius: 8px; z-index: 1100; animation: slideInRight 0.3s ease; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.tox.tox-tinymce:not(.tox-fullscreen) { height: calc(100vh - 230px) !important; min-height: 420px !important; width: 100% !important; max-width: none !important; border-radius: 8px !important; }
+#quiz-display:not(.d-none) { max-height: calc(100vh - 230px); overflow: auto; }
+.tox .tox-edit-area__iframe { background: #fff !important; }
+.modern-btn { padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; font-size: 13px; transition: all 0.2s ease; }
+.modern-btn-primary { background: #0069cc; color: white; }
+.modern-btn-primary:hover { background: #0052a3; transform: translateY(-1px); }
+.modern-btn-secondary { background: #6c757d; color: white; }
+.modern-btn-secondary:hover { background: #5a6268; transform: translateY(-1px); }
+.button-group { flex: 0 0 auto; margin: 12px 0 0; padding: 12px 0 4px; position: sticky; bottom: 0; z-index: 5; background: #f5f5f5; }
+@media (max-width: 768px) {
+    .hamburger-toggle-btn { top: 65px; left: 15px; padding: 8px 14px; font-size: 12px; }
+    .hamburger-toggle-btn i { font-size: 14px; }
+    .haccgen-side-menu { width: 280px; }
+    .haccgen-editor-section { padding: 12px; }
+    .rename-modal-content { width: 90%; margin: 30% auto; }
+}
+body.haccgen-step4 {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+body.haccgen-step4 #page-wrapper,
+body.haccgen-step4 #page,
+body.haccgen-step4 #page.drawers,
+body.haccgen-step4 #topofscroll,
+body.haccgen-step4 .main-inner,
+body.haccgen-step4 #page-content,
+body.haccgen-step4 #region-main-box,
+body.haccgen-step4 #region-main,
+body.haccgen-step4 #region-main [role="main"] {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    max-width: none !important;
+    width: 100% !important;
+    overflow: visible;
+}
+body.haccgen-step4 #page-header,
+body.haccgen-step4 .page-header-headings { display: none !important; }
+body.haccgen-step4 .haccgen-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+}
+body.haccgen-step4 #page-footer,
+body.haccgen-step4 .footer-popover,
+body.haccgen-step4 .btn-footer-popover { display: none !important; }
+#page-content { padding: 0 !important; margin: 0 !important; }
+.region-main { padding: 0 !important; margin: 0 !important; }
+
+.editor-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.85);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: all;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #ddd;
+    border-top: 4px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+    margin-top: 12px;
+    font-weight: 600;
+}
+/* Hide the entire nav-tabs container */
+.secondary-navigation .navigation .nav-tabs {
+    display: none !important;
+}
+
+/* Or hide the entire navigation bar */
+.secondary-navigation .navigation {
+    display: none !important;
+}
+
+/* Or hide the complete secondary navigation */
+.secondary-navigation {
+    display: none !important;
+}
+.hamburger-toggle-btn.hidden {
+    display: none !important;
+}
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+</style>

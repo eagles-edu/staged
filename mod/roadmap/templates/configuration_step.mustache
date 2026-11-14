@@ -1,0 +1,115 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_roadmap/configuration_step
+
+    This template includes ajax functionality, so it cannot be shown in the template library.
+
+    Example context (json):
+    {
+        "id": "1",
+        "rollovertext": "Hover Text",
+        "stepicon": "icon-1",
+        "pagelink": "http://ncsu.edu",
+        "completionmodules": "1,2,3",
+        "configuration": "jsonData"
+    }
+}}
+<div data-stepid="{{ id }}" class="step-wrapper">
+    <div class="row bg-light">
+        <div class="step-controls">
+            <a data-action="step_collapse_control" onclick="return false;">{{# pix }} t/collapsed, moodle, Expand {{/ pix }}</a>
+            <a data-action="step_up_control" onclick="return false;">{{# pix }} t/up, core, Up {{/ pix }}</a>
+            <a data-action="step_down_control" onclick="return false;">{{# pix }} t/down, core, Down {{/ pix }}</a>
+            <a data-action="step_delete_control" onclick="return false;">{{# pix }} t/delete, core, Delete {{/ pix }}</a>
+        </div>
+        <div class="step-header-title">{{# rollovertext }} {{ rollovertext }} {{/ rollovertext }} {{^ rollovertext }} {{#str}} untitledstep , roadmap {{/str}} {{/ rollovertext }}</div>
+    </div>
+    <div class="hide step-container" aria-expanded="true" role="region">
+        <div class="mb-3 row fitem">
+            <div class="col-md-4 col-form-label d-flex pb-0 pe-md-0"><label for="step-{{ id }}-rollovertext">Rollover Text</label></div>
+            <div class="col-md-8 d-flex flex-wrap align-items-start felement"><input id="step-{{ id }}-rollovertext" class="step-rollovertext form-control roadmap-form-control-step" type="text" value="{{ rollovertext }}"></div>
+        </div>
+        <!-- Icon display and input -->
+        <div class="mb-3 row fitem">
+            <div class="col-md-4 col-form-label d-flex pb-0 pe-md-0">
+                <label>Step Icon</label>
+            </div>
+            <div class="d-flex flex-wrap align-items-start felement" style="flex-basis:min-content;">
+                <button type="button" id="step-{{ id }}-btn-icon-selector" class="btn_icon_selector btn btn-link p-0 ms-2" data-stepid="{{ id }}" title="Edit icon">
+                    {{# pix }} i/edit, core, Edit icon {{/ pix }}
+                </button>
+            </div>
+            <div class="col-md-7 d-flex flex-wrap align-items-start felement step-icon-display">
+                <div class="step-icon-preview me-2">
+                    {{# iconurl }}
+                    <img class="icon step-icon roadmap-form-control-step" data-iconfilename="{{ stepicon }}" src="{{ iconurl }}" alt="">
+                    {{/ iconurl }}
+                    {{^ iconurl }}
+                    <img class="icon step-icon roadmap-form-control-step" data-iconfilename="{{ stepicon }}" src="/pix/spacer.gif" alt="">
+                    {{/ iconurl }}
+                </div>
+                <input class="step-icon roadmap-form-control-step" name="step-{{ id }}-icon" type="hidden" value="{{ stepicon }}">
+            </div>
+        </div>
+        <div class="mb-3 row fitem step-activity-container">
+            <div class="col-md-4 col-form-label d-flex pb-0 pe-md-0">
+                <label>{{#str}} completionactivities, roadmap {{/str}}</label>
+            </div>
+            <div class="d-flex flex-wrap align-items-start felement" style="flex-basis:min-content;">
+                <button type="button" id="step-{{ id }}-btn-completion-selector" class="btn_completion_selector btn btn-link p-0 ms-2" data-stepid="{{ id }}" title="{{#str}} editcompletionrequirements, roadmap {{/str}}">
+                    {{# pix }} i/edit, core, {{#str}} editcompletionrequirements, roadmap {{/str}} {{/ pix }}
+                </button>
+            </div>
+            <div class="col-md-7 d-flex flex-wrap align-items-start felement">
+                <div class="step-completion-display flex-grow-1">
+                    <ul id="step-{{ id }}-completion-list" class="step-completion-list"></ul>
+                    <input id="step-{{ id }}-completion-modules" class="step-completion-modules form-control roadmap-form-control-step" data-stepid="{{ id }}" type="hidden" value="{{ completionmodules }}">
+                </div>
+            </div>
+        </div>
+        <div class="mb-3 row fitem">
+            <div class="col-md-4 col-form-label d-flex pb-0 pe-md-0">
+                <label>{{#str}} expectedcompleteon, roadmap {{/str}}</label>
+            </div>
+            <div class="col-md-7 d-flex flex-wrap align-items-start felement">
+                <div id="step-{{ id }}-expectedcomplete-readable" class="col-md-9">{{ completionexpectedreadable }}</div>
+                <input id="step-{{ id }}-expectedcomplete-datetime" class="expectedcomplete-datetime" data-stepid="{{ id }}" type="hidden" value="{{ completionexpecteddatetime }}">
+                <input id="step-{{ id }}-expectedcomplete-coursemoduleid" class="expectedcomplete-coursemoduleid" data-stepid="{{ id }}" type="hidden" value="{{ completionexpectedcmid }}">
+            </div>
+        </div>
+
+        <div id="step-{{ id }}-single-activity-link-container" class="mb-3 row fitem single-activity-link-container">
+            <div class="col-md-4 col-form-label">
+                <label>{{#str}} singleactivitylink, roadmap {{/str}}</label>
+            </div>
+            <div class="col-md-7 d-flex flex-wrap align-items-start felement">
+                <div class="form-check mb-2">
+                    <input type="checkbox" data-stepid="{{ id }}" id="step-{{ id }}-chk-single-activity-link" class="chk-single-activity-link roadmap-form-control-step form-check-input" value="1" {{#linksingleactivity}}checked{{/linksingleactivity}}>
+                    <label for="step-{{ id }}-chk-single-activity-link" class="form-check-label">{{#str}} singleactivitylinkhelp, roadmap {{/str}}</label>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3 row fitem link-to-page-container">
+            <div class="col-md-4 col-form-label">
+                <label for="step-{{ id }}-single-activity-link">{{#str}} linktopage, roadmap {{/str}}</label>
+            </div>
+            <div class="col-md-7 d-flex flex-wrap align-items-start felement"><input id="step-{{ id }}-single-activity-link" class="step-single-activity-link form-control roadmap-form-control-step" type="text" value="{{ pagelink }}"></div>
+        </div>
+        <input class="step-configuration" type="hidden" value="{{ configuration }}">
+    </div>
+</div>

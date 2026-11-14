@@ -1,0 +1,82 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_roadmap/configuration_activityselect
+
+    Example context (json):
+    {
+        "sections": [
+            {
+                "name": "Section 1",
+                "coursemodules": [
+                    {
+                        "id": "1",
+                        "completionexpecteddatetime": "1694476800",
+                        "completionexpectedreadable": "2025-09-12",
+                        "name": "Activity 1"
+                    },
+                    {
+                        "id": "2",
+                        "completionexpecteddatetime": "1694563200",
+                        "completionexpectedreadable": "2025-09-13",
+                        "name": "Activity 2"
+                    }
+                ]
+            },
+            {
+                "name": "Section 2",
+                "coursemodules": [
+                    {
+                        "id": "3",
+                        "completionexpecteddatetime": "1694649600",
+                        "completionexpectedreadable": "2025-09-14",
+                        "name": "Activity 3"
+                    }
+                ]
+            }
+        ]
+    }
+}}
+{{#str}} activityselectionhelp, mod_roadmap {{/str}}
+<div id="activity-select-window">
+    {{# sections }}
+        <div class="section-header">
+            {{ name }}
+        </div>
+        {{# coursemodules }}
+            <div class="activity">
+                <input type="checkbox"
+                       data-coursemoduleid="{{ id }}"
+                       data-completionexpecteddatetime="{{ completionexpecteddatetime }}"
+                       data-completionexpectedreadable="{{ completionexpectedreadable }}"
+                       data-name="{{ name }}">
+                {{ name }}
+            </div>
+        {{/coursemodules}}
+    {{/sections}}
+</div>
+{{#str}} expectedcompletionhelp, mod_roadmap {{/str}}
+<select id="select-expected-activity-completion" class="form-control custom-select">
+    <option value="0">{{#str}} noexpectedcompletion, mod_roadmap {{/str}}</option>
+    <option value="-1">{{#str}} customexpectedcompletion, mod_roadmap {{/str}}</option>
+</select>
+<div id="customExpectedDateContainer" class="c1 d-flex">
+    <div class="fdate_time_selector d-flex flex-wrap align-items-center">
+        {{{customdatefields}}}
+    </div>
+</div>
+<input type="hidden" id="step-id" name="step-id">

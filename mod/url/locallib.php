@@ -309,7 +309,7 @@ function url_display_embed($url, $cm, $course) {
         core_media_manager::OPTION_BLOCK => true
     );
 
-    if (in_array($mimetype, array('image/gif','image/jpeg','image/png'))) {  // It's an image
+    if (in_array($mimetype, array('image/gif','image/jpeg','image/png','image/webp','image/svg+xml'))) {  // It's an image
         $code = resourcelib_embed_image($fullurl, $title);
 
     } else if ($mediamanager->can_embed_url($moodleurl, $embedoptions)) {
@@ -353,7 +353,7 @@ function url_get_final_display_type($url) {
     // Binaries and other formats that are known to cause trouble for external links.
     static $download = ['application/zip', 'application/x-tar', 'application/g-zip',
                         'application/pdf', 'text/html', 'document/unknown'];
-    static $embed    = array('image/gif', 'image/jpeg', 'image/png', 'image/svg+xml',         // images
+    static $embed    = array('image/gif', 'image/jpeg', 'image/png', 'image/svg+xml', 'image/webp', // images
                              'application/x-shockwave-flash', 'video/x-flv', 'video/x-ms-wm', // video formats
                              'video/quicktime', 'video/mpeg', 'video/mp4',
                              'audio/mp3', 'audio/x-realaudio-plugin', 'x-realaudio-plugin',   // audio formats,

@@ -1,0 +1,76 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/facilitator/common/leaderboard
+
+    Leaderboard display showing top participants with their scores and rank changes.
+
+    Example context (json):
+    {
+        "leaders": [
+            {
+                "rank": 1,
+                "displayname": "Alice",
+                "avatarurl": "/user/pix.php/2/f2.jpg",
+                "score": 100,
+                "isup": 1
+            },
+            {
+                "rank": 2,
+                "displayname": "Bob",
+                "avatarurl": "/user/pix.php/3/f2.jpg",
+                "score": 80,
+                "isdown": 1
+            },
+            {
+                "rank": 3,
+                "displayname": "Charlie",
+                "avatarurl": "/user/pix.php/4/f2.jpg",
+                "score": 60
+            }
+        ],
+        "statusmessage": "Great job everyone! Get ready for the next question..."
+    }
+}}
+
+
+<div class="mod_kahoodle-leaderboard-container">
+    <div class="mod_kahoodle-leaderboard-list">
+        {{#leaders}}
+        <div class="mod_kahoodle-leaderboard-row">
+            <div class="mod_kahoodle-leaderboard-rank">{{{rank}}}</div>
+            <div class="mod_kahoodle-leaderboard-avatar">
+                <img src="{{avatarurl}}" alt="">
+            </div>
+            <div class="mod_kahoodle-leaderboard-name">{{{displayname}}}</div>
+            <div class="mod_kahoodle-leaderboard-score">{{{score}}}</div>
+            <div class="mod_kahoodle-leaderboard-change{{#isup}} mod_kahoodle-leaderboard-up{{/isup}}{{#isdown}} mod_kahoodle-leaderboard-down{{/isdown}}">
+                {{#isup}}
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m18 15-6-6-6 6"/>
+                </svg>
+                {{/isup}}
+                {{#isdown}}
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                </svg>
+                {{/isdown}}
+            </div>
+        </div>
+        {{/leaders}}
+    </div>
+</div>

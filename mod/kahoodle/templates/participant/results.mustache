@@ -1,0 +1,79 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/participant/results
+
+    Shown to participants during the results and leaders stages.
+
+    Context variables:
+    * sortorder - Current question number
+    * timeup - Whether time ran out
+    * iscorrect - Whether the answer was correct
+    * points - Points earned for this question
+    * rankstatus - Text describing rank position (e.g. "13 points behind John")
+
+    Example context (json):
+    {
+        "sortorder": 1,
+        "timeup": false,
+        "iscorrect": true,
+        "points": 847,
+        "rankstatus": "",
+        "avatarurl": "/user/pix.php/2/f1.jpg",
+        "displayname": "Alex Johnson"
+    }
+}}
+{{< mod_kahoodle/participant/common/base }}
+{{$ main_content }}
+{{> mod_kahoodle/participant/common/questionheader }}
+
+<div class="mod_kahoodle-participant-result-content">
+    {{#timeup}}
+    <div class="mod_kahoodle-participant-result-status">{{#str}}timeup, mod_kahoodle{{/str}}</div>
+    <div class="mod_kahoodle-participant-icon mod_kahoodle-result-timeout">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+    </div>
+    {{/timeup}}
+    {{^timeup}}
+    {{#iscorrect}}
+    <div class="mod_kahoodle-participant-result-status">{{#str}}correct, mod_kahoodle{{/str}}</div>
+    <div class="mod_kahoodle-participant-icon mod_kahoodle-result-correct">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    </div>
+    <div class="mod_kahoodle-participant-result-score">+{{points}}</div>
+    {{/iscorrect}}
+    {{^iscorrect}}
+    <div class="mod_kahoodle-participant-result-status">{{#str}}incorrect, mod_kahoodle{{/str}}</div>
+    <div class="mod_kahoodle-participant-icon mod_kahoodle-result-incorrect">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </div>
+    {{/iscorrect}}
+    {{/timeup}}
+    <div class="mod_kahoodle-participant-rank">{{{rankstatus}}}</div>
+</div>
+
+{{> mod_kahoodle/participant/common/participantinfo }}
+{{/ main_content }}
+{{/ mod_kahoodle/participant/common/base }}

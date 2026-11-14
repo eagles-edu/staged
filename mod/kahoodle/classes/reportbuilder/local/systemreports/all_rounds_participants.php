@@ -1,0 +1,234 @@
+<?php
+// This file is part of mod_kahoodle plugin
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+declare(strict_types=1);
+
+namespace mod_kahoodle\reportbuilder\local\systemreports;
+
+use core_reportbuilder\local\entities\user;
+use core_reportbuilder\local\helpers\database;
+use core_reportbuilder\local\report\action;
+use core_reportbuilder\system_report;
+use lang_string;
+use mod_kahoodle\constants;
+use mod_kahoodle\reportbuilder\local\entities\participant;
+use mod_kahoodle\reportbuilder\local\entities\round;
+use moodle_url;
+use pix_icon;
+
+/**
+ * All rounds participants list system report
+ *
+ * Shows participants from all completed rounds for a kahoodle activity.
+ *
+ * @package    mod_kahoodle
+ * @copyright  Marina Glancy
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class all_rounds_participants extends system_report {
+    /** @var int|null Cached kahoodle ID */
+    protected ?int $kahoodleid = null;
+
+    /** @var \stdClass|null Cached kahoodle record */
+    protected ?\stdClass $kahoodle = null;
+
+    /**
+     * Get the kahoodle ID for this report
+     *
+     * @return int
+     */
+    protected function get_kahoodleid(): int {
+        if ($this->kahoodleid === null) {
+            $this->kahoodleid = $this->get_parameter('kahoodleid', 0, PARAM_INT);
+        }
+        return $this->kahoodleid;
+    }
+
+    /**
+     * Get the kahoodle record for this report (plus cmid for context checking)
+     *
+     * @return \stdClass
+     */
+    protected function get_kahoodle(): \stdClass {
+        global $DB;
+        if ($this->kahoodle === null) {
+            $this->kahoodle = $DB->get_record_sql(
+                'SELECT k.*, cm.id AS cmid
+                FROM {kahoodle} k
+                JOIN {course_modules} cm ON k.id = cm.instance
+                JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+                WHERE k.id = :id',
+                ['id' => $this->get_kahoodleid(), 'modname' => 'kahoodle'],
+                MUST_EXIST
+            );
+        }
+        return $this->kahoodle;
+    }
+
+    /**
+     * Initialise report, we need to set the main table, load our entities and set columns/filters
+     */
+    protected function initialise(): void {
+        // Set up participant entity and get kahoodle alias.
+        $participantentity = new participant();
+        $kahoodlealias = $participantentity->get_table_alias('kahoodle');
+        $participantalias = $participantentity->get_table_alias('kahoodle_participants');
+
+        // Set up kahoodle as main table.
+        $this->set_main_table('kahoodle', $kahoodlealias);
+
+        // Set up round entity and join from kahoodle to rounds.
+        $roundentity = new round();
+        $roundalias = $roundentity->get_table_alias('kahoodle_rounds');
+        $roundsjoin = "JOIN {kahoodle_rounds} {$roundalias}
+            ON {$roundalias}.kahoodleid = {$kahoodlealias}.id";
+        $roundentity->add_join($roundsjoin);
+        $this->add_entity($roundentity);
+
+        // Set up participant entity with joins (rounds + participants).
+        $participantsjoin = "JOIN {kahoodle_participants} {$participantalias}
+            ON {$participantalias}.roundid = {$roundalias}.id";
+        $participantentity->add_join($roundsjoin);
+        $participantentity->add_join($participantsjoin);
+        $this->add_entity($participantentity);
+
+        // Set up user entity and join (not needed in anonymous mode).
+        $isanonymous = (int)$this->get_kahoodle()->identitymode === constants::IDENTITYMODE_ANONYMOUS;
+        if (!$isanonymous) {
+            $userentity = new user();
+            $userentity->set_table_alias('user', $participantentity->get_table_alias('user'));
+            $userentity->add_join($roundsjoin);
+            $userentity->add_join($participantsjoin);
+            $userentity->add_join($participantentity->get_user_join());
+            $this->add_entity($userentity);
+        }
+
+        // Filter by kahoodleid - only show completed rounds (revision or archived).
+        $this->add_base_condition_simple("{$kahoodlealias}.id", $this->get_kahoodleid());
+        $paramstagerevision = database::generate_param_name();
+        $paramstagearchived = database::generate_param_name();
+        $this->add_base_condition_sql(
+            "{$roundalias}.currentstage IN (:{$paramstagerevision}, :{$paramstagearchived})",
+            [
+                $paramstagerevision => constants::STAGE_REVISION,
+                $paramstagearchived => constants::STAGE_ARCHIVED,
+            ]
+        );
+
+        // Add base fields for potential actions.
+        $this->add_base_fields("{$participantalias}.id AS participantid, {$participantalias}.userid, {$roundalias}.id AS roundid");
+
+        // Add columns.
+        $this->add_columns();
+
+        // Add filters.
+        $this->add_filters();
+
+        // Add actions.
+        $this->add_actions();
+
+        // Set initial sort order by round name then score.
+        $this->set_initial_sort_column('participant:score', SORT_DESC);
+
+        // Set downloadable.
+        $this->set_downloadable(true, get_string('allroundsparticipants', 'mod_kahoodle'));
+    }
+
+    /**
+     * Validates access to view this report
+     *
+     * @return bool
+     */
+    protected function can_view(): bool {
+        $context = $this->get_context();
+        if ($context->contextlevel !== CONTEXT_MODULE || $context->instanceid !== $this->get_kahoodle()->cmid) {
+            // Context mismatch, deny access.
+            return false;
+        }
+        return has_capability('mod/kahoodle:viewresults', $context);
+    }
+
+    /**
+     * Adds the columns we want to display in the report
+     *
+     * @return void
+     */
+    protected function add_columns(): void {
+        $columns = [
+            'round:name',
+            'participant:participant',
+            'user:fullnamewithpicturelink',
+            'participant:rank',
+            'participant:score',
+            'participant:correctanswers',
+            'participant:questionsanswered',
+        ];
+        if ((int)$this->get_kahoodle()->identitymode === constants::IDENTITYMODE_ANONYMOUS) {
+            $columns = array_diff($columns, ['user:fullnamewithpicturelink']);
+        }
+        $this->add_columns_from_entities($columns);
+
+        // When plus is available, make round name a link to the per-round participants report.
+        if (component_class_callback('\\tool_kahoodleplus\\main', 'is_available', [])) {
+            $this->get_column('round:name')
+                ->set_callback(static function (?string $value, \stdClass $row): string {
+                    if (empty($row->id)) {
+                        return '';
+                    }
+                    $url = new moodle_url('/mod/kahoodle/results.php', [
+                        'roundid' => $row->id,
+                        'view' => 'participants',
+                    ]);
+                    return \html_writer::link($url, format_string($value ?? '', true));
+                });
+        }
+    }
+
+    /**
+     * Adds the filters we want to display in the report
+     *
+     * @return void
+     */
+    protected function add_filters(): void {
+        $filters = [
+            'round:name',
+            'participant:displayname',
+            'user:userselect',
+            'participant:rank',
+            'participant:score',
+        ];
+        if ((int)$this->get_kahoodle()->identitymode === constants::IDENTITYMODE_ANONYMOUS) {
+            $filters = array_diff($filters, ['user:userselect']);
+        }
+        $this->add_filters_from_entities($filters);
+    }
+
+    /**
+     * Adds the actions we want to display in the report
+     *
+     * @return void
+     */
+    protected function add_actions(): void {
+        // View answers action (requires tool_kahoodleplus).
+        $this->add_action((new action(
+            new moodle_url('/mod/kahoodle/results.php', ['view' => 'details', 'participantid' => ':participantid']),
+            new pix_icon('i/preview', ''),
+            [],
+            false,
+            new lang_string('viewanswers', 'mod_kahoodle')
+        ))->add_callback(fn() => component_class_callback('\\tool_kahoodleplus\\main', 'is_available', [])));
+    }
+}

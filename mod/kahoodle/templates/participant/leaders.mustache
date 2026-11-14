@@ -1,0 +1,34 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/participant/leaders
+
+    Displayed for the participants during the leaders stage.
+    The difference with the results stage is that there is also the rank information here.
+
+    Example context (json):
+    {
+        "sortorder": 1,
+        "timeup": false,
+        "iscorrect": true,
+        "points": 847,
+        "rankstatus": "You are in 14th place, 884 points behind John",
+        "avatarurl": "/user/pix.php/2/f1.jpg",
+        "displayname": "Alex Johnson"
+    }
+}}
+{{> mod_kahoodle/participant/results}}

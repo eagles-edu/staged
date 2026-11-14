@@ -1,0 +1,176 @@
+<?php
+// This file is part of mod_kahoodle plugin
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Upgrade steps for Kahoodle
+ *
+ * Documentation: {@link https://moodledev.io/docs/guides/upgrade}
+ *
+ * @package    mod_kahoodle
+ * @category   upgrade
+ * @copyright  Marina Glancy
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/**
+ * Execute the plugin upgrade steps from the given old version.
+ *
+ * @param int $oldversion
+ * @return bool
+ */
+function xmldb_kahoodle_upgrade($oldversion) {
+    global $DB;
+    $dbman = $DB->get_manager();
+
+    if ($oldversion < 2026011901) {
+        // Rename field defaultmaxpoints on table kahoodle to maxpoints.
+        $table = new xmldb_table('kahoodle');
+        $field = new xmldb_field(
+            'defaultmaxpoints',
+            XMLDB_TYPE_INTEGER,
+            '10',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '1000',
+            'questionresultsduration'
+        );
+
+        // Launch rename field defaultmaxpoints.
+        $dbman->rename_field($table, $field, 'maxpoints');
+
+        // Rename field defaultminpoints on table kahoodle to minpoints.
+        $table = new xmldb_table('kahoodle');
+        $field = new xmldb_field('defaultminpoints', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '500', 'maxpoints');
+
+        // Launch rename field defaultminpoints.
+        $dbman->rename_field($table, $field, 'minpoints');
+
+        // Kahoodle savepoint reached.
+        upgrade_mod_savepoint(true, 2026011901, 'kahoodle');
+    }
+
+    if ($oldversion < 2026012801) {
+        // Define field lobbyduration to be dropped from kahoodle_rounds.
+        $table = new xmldb_table('kahoodle_rounds');
+        $field = new xmldb_field('lobbyduration');
+
+        // Conditionally launch drop field lobbyduration.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Kahoodle savepoint reached.
+        upgrade_mod_savepoint(true, 2026012801, 'kahoodle');
+    }
+
+    if ($oldversion < 2026020400) {
+        // Define field islast to be added to kahoodle_question_versions.
+        $table = new xmldb_table('kahoodle_question_versions');
+        $field = new xmldb_field('islast', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'timemodified');
+
+        // Conditionally launch add field islast.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Populate islast for existing questions - set to 1 for the highest version of each question.
+        $sql = "UPDATE {kahoodle_question_versions}
+                   SET islast = 1
+                 WHERE id IN (
+                       SELECT maxid FROM (
+                           SELECT MAX(id) AS maxid
+                             FROM {kahoodle_question_versions}
+                            GROUP BY questionid
+                       ) subquery
+                 )";
+        $DB->execute($sql);
+
+        // Kahoodle savepoint reached.
+        upgrade_mod_savepoint(true, 2026020400, 'kahoodle');
+    }
+
+    if ($oldversion < 2026020500) {
+        // Define field identitymode to be added to kahoodle.
+        $table = new xmldb_table('kahoodle');
+        $field = new xmldb_field('identitymode', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'questionformat');
+
+        // Conditionally launch add field identitymode.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Kahoodle savepoint reached.
+        upgrade_mod_savepoint(true, 2026020500, 'kahoodle');
+    }
+
+    if ($oldversion < 2026020700) {
+        $table = new xmldb_table('kahoodle_participants');
+
+        // Make userid field nullable (drop dependent indexes first, re-add after).
+        $useridindex = new xmldb_index('userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
+        $compositeindex = new xmldb_index('roundid_userid', XMLDB_INDEX_UNIQUE, ['roundid', 'userid']);
+        if ($dbman->index_exists($table, $compositeindex)) {
+            $dbman->drop_index($table, $compositeindex);
+        }
+        if ($dbman->index_exists($table, $useridindex)) {
+            $dbman->drop_index($table, $useridindex);
+        }
+        $field = new xmldb_field('userid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'roundid');
+        $dbman->change_field_notnull($table, $field);
+        if (!$dbman->index_exists($table, $useridindex)) {
+            $dbman->add_index($table, $useridindex);
+        }
+        if (!$dbman->index_exists($table, $compositeindex)) {
+            $dbman->add_index($table, $compositeindex);
+        }
+
+        // Add participantcode field.
+        $field = new xmldb_field('participantcode', XMLDB_TYPE_CHAR, '32', null, null, null, null, 'userid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Add unique index on (roundid, participantcode).
+        $index = new xmldb_index('roundid_participantcode', XMLDB_INDEX_UNIQUE, ['roundid', 'participantcode']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Kahoodle savepoint reached.
+        upgrade_mod_savepoint(true, 2026020700, 'kahoodle');
+    }
+
+    if ($oldversion < 2026021700) {
+        // Remove unused statistics fields from kahoodle_round_questions.
+        $table = new xmldb_table('kahoodle_round_questions');
+
+        $field = new xmldb_field('totalresponses');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        $field = new xmldb_field('answerdistribution');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Kahoodle savepoint reached.
+        upgrade_mod_savepoint(true, 2026021700, 'kahoodle');
+    }
+
+    return true;
+}

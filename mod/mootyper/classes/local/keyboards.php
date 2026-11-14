@@ -1,0 +1,218 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Keyboard utilities for MooTyper.
+ *
+ * 3/19/2020 Moved these functions from locallib.php to here.
+ *
+ * @package    mod_mootyper
+ * @copyright  AL Rachels (drachels@drachels.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+namespace mod_mootyper\local;
+defined('MOODLE_INTERNAL') || die(); // phpcs:ignore
+/**
+ * Utility class for MooTyper keyboards.
+ *
+ * @package    mod_mootyper
+ * @copyright  AL Rachels (drachels@drachels.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class keyboards {
+    /**
+     * Check that a layout name is safe to use as a filename fragment.
+     *
+     * @param string $layoutname
+     * @return bool
+     */
+    public static function is_valid_layout_name(string $layoutname): bool {
+        if ($layoutname === '' || $layoutname !== trim($layoutname) || $layoutname === '.' || $layoutname === '..') {
+            return false;
+        }
+        return preg_match('/[\/\\\\:\x00-\x1F\x7F]/', $layoutname) === 0;
+    }
+
+    /**
+     * Canonicalize layout names that have historical filename variants.
+     *
+     * @param string $layoutname
+     * @return string
+     */
+    private static function normalize_layout_name(string $layoutname): string {
+        $aliases = [
+            'Korean(KNV7)' => 'Korean(KRV7)',
+            'Korean(KNR7)' => 'Korean(KRV7)',
+            'EspañolLatinAmerica(V5)' => 'EspanolLatinAmerica(V5)',
+            'EspañolLatinAmericaWKeypad(V6)' => 'EspanolLatinAmericaWKeypad(V6)',
+        ];
+        return $aliases[$layoutname] ?? $layoutname;
+    }
+
+    /**
+     * Checks if a layout given by name is installed.
+     *
+     * @param string $layoutname
+     * @return bool true if layout with name $layoutname is installed
+     * @throws \dml_exception
+     */
+    public static function is_layout_installed(string $layoutname = ''): bool {
+        global $DB;
+        $layoutname = self::normalize_layout_name($layoutname);
+        $params = ['name' => $layoutname];
+        $layouts = $DB->get_records('mootyper_layouts', $params);
+        if (empty($layouts)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Gets the id of a layout given by name.
+     *
+     * @param string $layoutname
+     * @return string id of the layout if installed, els 0 if layout was not found
+     * @throws \dml_exception
+     */
+    public static function get_id_of_layout_by_layoutname(string $layoutname = ''): string {
+        global $DB;
+        $layoutname = self::normalize_layout_name($layoutname);
+        if (!self::is_layout_installed($layoutname)) {
+            return 0;
+        } else {
+            $params = ['name' => $layoutname];
+            $layouts = $DB->get_records('mootyper_layouts', $params);
+            foreach ($layouts as $layout) {
+                $layoutid = $layout->id;
+            }
+            return $layoutid;
+        }
+    }
+
+    /**
+     * Get a list of MooTyper keyboards.
+     * @return array
+     */
+    public static function get_keyboard_layouts_db() {
+        global $DB;
+        $lss = [];
+        if ($layouts = $DB->get_records('mootyper_layouts')) {
+            foreach ($layouts as $ex) {
+                $lss[$ex->id] = $ex->name;
+            }
+        }
+        // Sort the array alphabetically by name, and keep the id associated with the name.
+        asort($lss);
+        return $lss;
+    }
+
+    /**
+     * Get a fallback layout when requested layout is missing or has missing files.
+     * Searches for a layout that has both .php and .js files present.
+     * @return object|false first available complete layout or false if none exist
+     */
+    private static function get_fallback_layout() {
+        global $CFG, $DB;
+        $layouts = $DB->get_records('mootyper_layouts', [], 'id', 'id, name');
+        $pathtodir = $CFG->dirroot . '/mod/mootyper/layouts';
+
+        // Try to find a layout with existing files.
+        foreach ($layouts as $layout) {
+            $normalizedname = self::normalize_layout_name($layout->name);
+            if (!self::is_valid_layout_name($normalizedname)) {
+                continue;
+            }
+            $phpfile = $pathtodir . '/' . $normalizedname . '.php';
+            $jsfile = $pathtodir . '/' . $normalizedname . '.js';
+            if (file_exists($phpfile) && file_exists($jsfile)) {
+                $layout->name = $normalizedname;
+                return $layout;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the MooTyper keyboard definition to use.
+     * @param int $lid
+     */
+    public static function get_instance_layout_file($lid) {
+        global $CFG, $DB;
+        $dbrec = $DB->get_record('mootyper_layouts', ['id' => $lid]);
+        $pathtodir = $CFG->dirroot . '/mod/mootyper/layouts';
+
+        if ($dbrec) {
+            $dbrec->name = self::normalize_layout_name($dbrec->name);
+            if (!self::is_valid_layout_name($dbrec->name)) {
+                $dbrec = false;
+            }
+        }
+
+        // 20260413 If layout record not found or file is missing, use fallback to prevent crash
+        if (!$dbrec) {
+            $dbrec = self::get_fallback_layout();
+            if (!$dbrec) {
+                return "$CFG->dirroot/mod/mootyper/layouts/English(USV6).php";
+            }
+        } else {
+            // Record exists, but verify the file exists.
+            $layoutfile = $pathtodir . '/' . $dbrec->name . '.php';
+            if (!file_exists($layoutfile)) {
+                $dbrec = self::get_fallback_layout();
+                if (!$dbrec) {
+                    return "$CFG->dirroot/mod/mootyper/layouts/English(USV6).php";
+                }
+            }
+        }
+        return "$CFG->dirroot/mod/mootyper/layouts/$dbrec->name.php";
+    }
+
+    /**
+     * Get the MooTyper keyboard keystroke checker to use.
+     * @param int $lid
+     */
+    public static function get_instance_layout_js_file($lid) {
+        global $CFG, $DB;
+        $dbrec = $DB->get_record('mootyper_layouts', ['id' => $lid]);
+        $pathtodir = $CFG->dirroot . '/mod/mootyper/layouts';
+
+        if ($dbrec) {
+            $dbrec->name = self::normalize_layout_name($dbrec->name);
+            if (!self::is_valid_layout_name($dbrec->name)) {
+                $dbrec = false;
+            }
+        }
+
+        // 20260413 If layout record not found or file is missing, use fallback to prevent crash
+        if (!$dbrec) {
+            $dbrec = self::get_fallback_layout();
+            if (!$dbrec) {
+                return "$CFG->wwwroot/mod/mootyper/layouts/English(USV6).js";
+            }
+        } else {
+            // Record exists, but verify the file exists.
+            $layoutfile = $pathtodir . '/' . $dbrec->name . '.js';
+            if (!file_exists($layoutfile)) {
+                $dbrec = self::get_fallback_layout();
+                if (!$dbrec) {
+                    return "$CFG->wwwroot/mod/mootyper/layouts/English(USV6).js";
+                }
+            }
+        }
+        return "$CFG->wwwroot/mod/mootyper/layouts/$dbrec->name.js";
+    }
+}

@@ -1,0 +1,83 @@
+/**
+ * Styles for mod_gradelist.
+ *
+ * @package    mod_gradelist
+ * @copyright  2026 Brian Pool
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+.mod-gradelist-report {
+    margin-top: 1rem;
+}
+
+.mod-gradelist-toggle {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.mod-gradelist-toggle-icon {
+    margin-right: 0.6rem;
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.mod-gradelist-group-body {
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.mod-gradelist-table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.mod-gradelist-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+/* Grade group button colour coding */
+.mod-gradelist-group[data-groupkey="F"] .mod-gradelist-toggle {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.mod-gradelist-group[data-groupkey="D"] .mod-gradelist-toggle {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #856404;
+}
+
+.mod-gradelist-group[data-groupkey="C"] .mod-gradelist-toggle {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+.mod-gradelist-group[data-groupkey="B"] .mod-gradelist-toggle {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.mod-gradelist-group[data-groupkey="A"] .mod-gradelist-toggle {
+    background-color: #cce5ff;
+    border-color: #b8daff;
+    color: #004085;
+}
+
+.mod-gradelist-group[data-groupkey="nograde"] .mod-gradelist-toggle {
+    background-color: #e2e3e5;
+    border-color: #d6d8db;
+    color: #383d41;
+}

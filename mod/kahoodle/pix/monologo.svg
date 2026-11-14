@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 90 90" fill="none">
+  <!-- Outer rounded rectangle (outline) -->
+  <rect x="10" y="10" width="70" height="70" rx="14" stroke="#212529" stroke-width="3"/>
+
+  <!-- Four tiles (outlines) -->
+  <rect x="19" y="19" width="22" height="22" rx="4" fill="#212529" stroke="#212529" stroke-width="3"/>
+  <rect x="49" y="19" width="22" height="22" rx="4" stroke="#212529" stroke-width="3"/>
+  <rect x="19" y="49" width="22" height="22" rx="4" stroke="#212529" stroke-width="3"/>
+  <rect x="49" y="49" width="22" height="22" rx="4" stroke="#212529" stroke-width="3"/>
+</svg>

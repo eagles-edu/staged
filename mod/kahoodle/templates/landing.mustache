@@ -1,0 +1,186 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/landing
+
+    Landing page template for Kahoodle activity.
+
+    Context variables required for this template:
+    * showcontrolpreparation - bool - Show the control panel for preparation stage
+    * hasquestions - bool - Whether the activity has questions
+    * startgamebuttondisabled - bool - Whether the start button should be disabled
+    * starturl - string - URL for the start action
+    * managequestionsurl - string - URL for manage questions page
+    * showsectionheaders - bool - Show section headers (when user has both facilitate and participate capabilities)
+    * showfacilitatorcontrols - bool - Show facilitator controls when game is in progress
+    * finishurl - string - URL for the finish action
+    * autoarchivenotice - string - Notice about automatic archiving time
+    * showparticipantcontrols - bool - Show participant controls when user is playing
+    * leaveurl - string - URL for leave action
+    * showjoinoption - bool - Show join as participant option
+    * joinformhtml - string - Rendered join form HTML
+    * showwaitingtostart - bool - Show waiting message for participants
+    * showfinished - bool - Show finished section
+    * haspastparticipations - bool - Whether the user has past participations
+    * pastscoreopener - string - Intro sentence shown when join form and past scores are both visible
+    * pastparticipations - array - List of past participation objects, each with scoretext
+    * resultsurl - string - URL for results page
+    * newroundhelpicon - object - Help icon data for prepare new round button
+
+    Example context (json):
+    {
+        "showcontrolpreparation": true,
+        "hasquestions": true,
+        "startgamebuttondisabled": false,
+        "starturl": "/mod/kahoodle/view.php?id=1&action=start&sesskey=abc123",
+        "managequestionsurl": "/mod/kahoodle/questions.php?id=1"
+    }
+}}
+<div class="mod-kahoodle-landing">
+    {{#realtimewarning}}
+    <div class="alert alert-danger" role="alert">{{realtimewarning}}</div>
+    {{/realtimewarning}}
+
+    {{#fallbackinfo}}
+    <div class="alert alert-info" role="alert">{{fallbackinfo}}</div>
+    {{/fallbackinfo}}
+
+    {{#showcontrolpreparation}}
+    <div class="card mb-3">
+        <div class="card-body">
+            {{#hasquestions}}
+            <p class="card-text">{{#str}}landing_preparation_hasquestions, mod_kahoodle{{/str}}</p>
+            {{/hasquestions}}
+            {{^hasquestions}}
+            <p class="card-text">{{#str}}landing_preparation_noquestions, mod_kahoodle{{/str}}</p>
+            {{/hasquestions}}
+            {{#managequestionsurl}}
+            <a href="{{managequestionsurl}}" class="btn btn-secondary me-2">
+                {{#str}}managequestions, mod_kahoodle{{/str}}
+            </a>
+            {{/managequestionsurl}}
+            {{^startgamebuttondisabled}}
+            <a href="{{starturl}}" class="btn btn-primary">
+                {{#str}}allowjoining, mod_kahoodle{{/str}}
+            </a>
+            {{/startgamebuttondisabled}}
+            {{#startgamebuttondisabled}}
+            <button type="button" class="btn btn-primary" disabled>
+                {{#str}}allowjoining, mod_kahoodle{{/str}}
+            </button>
+            {{/startgamebuttondisabled}}
+        </div>
+    </div>
+    {{/showcontrolpreparation}}
+
+    {{#showfacilitatorcontrols}}
+    <div class="card mb-3">
+        {{#showsectionheaders}}
+        <div class="card-header">
+            <h5 class="mb-0">{{#str}}facilitator_controls, mod_kahoodle{{/str}}</h5>
+        </div>
+        {{/showsectionheaders}}
+        <div class="card-body">
+            <p class="card-text">{{#str}}landing_facilitator_message, mod_kahoodle{{/str}}</p>
+            <button type="button" class="btn btn-primary me-2" data-action="resume-game">
+                {{#str}}resume_facilitating, mod_kahoodle{{/str}}
+            </button>
+            <button type="button" class="btn btn-danger" data-action="finish-game" data-finishurl="{{finishurl}}">
+                {{#str}}end_round_for_everyone, mod_kahoodle{{/str}}
+            </button>
+            {{#autoarchivenotice}}
+            <p class="text-muted mt-2 mb-0"><small>{{autoarchivenotice}}</small></p>
+            {{/autoarchivenotice}}
+        </div>
+    </div>
+    {{/showfacilitatorcontrols}}
+
+    {{#showparticipantcontrols}}
+    <div class="card mb-3">
+        {{#showsectionheaders}}
+        <div class="card-header">
+            <h5 class="mb-0">{{#str}}participant_controls, mod_kahoodle{{/str}}</h5>
+        </div>
+        {{/showsectionheaders}}
+        <div class="card-body">
+            <p class="card-text">{{#str}}landing_participant_message, mod_kahoodle{{/str}}</p>
+            <button type="button" class="btn btn-primary me-2" data-action="resume-participant">
+                {{#str}}resume_playing, mod_kahoodle{{/str}}
+            </button>
+            {{#leaveurl}}
+            <a href="{{leaveurl}}" class="btn btn-outline-secondary">
+                {{#str}}join_as_facilitator, mod_kahoodle{{/str}}
+            </a>
+            {{/leaveurl}}
+        </div>
+    </div>
+    {{/showparticipantcontrols}}
+
+    {{#showjoinoption}}
+    <div class="card mb-3">
+        {{#showsectionheaders}}
+        <div class="card-header">
+            <h5 class="mb-0">{{#str}}join_as_participant, mod_kahoodle{{/str}}</h5>
+        </div>
+        {{/showsectionheaders}}
+        <div class="card-body">
+            {{{joinformhtml}}}
+        </div>
+    </div>
+    {{/showjoinoption}}
+
+    {{#showwaitingtostart}}
+    <div class="card mb-3">
+        <div class="card-body">
+            <p class="card-text">{{#str}}landing_waiting_message, mod_kahoodle{{/str}}</p>
+            <p class="card-text">{{#str}}landing_waiting_hint, mod_kahoodle{{/str}}</p>
+        </div>
+    </div>
+    {{/showwaitingtostart}}
+
+    {{#showfinished}}
+    <div class="card mb-3">
+        <div class="card-body">
+            <p class="card-text">{{#str}}landing_finished_message, mod_kahoodle{{/str}}</p>
+            {{#resultsurl}}
+            <a href="{{resultsurl}}" class="btn btn-primary me-2">
+                {{#str}}viewresults, mod_kahoodle{{/str}}
+            </a>
+            {{/resultsurl}}
+            {{#newroundurl}}
+            <a href="{{newroundurl}}" class="btn btn-secondary">
+                {{#str}}preparenewround, mod_kahoodle{{/str}}
+            </a>
+            {{#newroundhelpicon}}{{> core/help_icon }}{{/newroundhelpicon}}
+            {{/newroundurl}}
+        </div>
+    </div>
+    {{/showfinished}}
+
+    {{#haspastparticipations}}
+    <div class="card mb-3">
+        <div class="card-body">
+            {{#pastscoreopener}}
+            <p class="card-text">{{pastscoreopener}}</p>
+            {{/pastscoreopener}}
+            {{#pastparticipations}}
+            <p class="card-text">{{scoretext}}</p>
+            {{/pastparticipations}}
+        </div>
+    </div>
+    {{/haspastparticipations}}
+</div>

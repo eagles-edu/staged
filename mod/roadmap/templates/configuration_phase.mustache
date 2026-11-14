@@ -1,0 +1,70 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_roadmap/configuration_phase
+
+    This template includes ajax functionality, so it cannot be shown in the template library.
+
+    Example context (json):
+    {
+        "id": "1",
+        "index": "0",
+        "title": "Phase Title",
+        "configuration": "jsonData",
+        "cycles": [{
+            "title": "Cycle Title",
+            "pagelink": "http://ncsu.edu",
+            "subtitle": "Cycle Subtitle",
+            "steps": [{
+                "id": "1",
+                "rollovertext": "Hover Text",
+                "stepicon": "icon-1",
+                "pagelink": "http://ncsu.edu",
+                "completionmodules": "1,2,3",
+                "configuration": "jsonData"
+            }],
+            "learningobjectives": "1, 2, 3"
+        }]
+    }
+}}
+<div data-phaseid="{{ id }}" data-phaseindex="{{ index }}" data-phasecolor="{{ color }}" class="phase-wrapper">
+    <div class="row bg-light">
+        <div class="phase-controls">
+            <a data-action="phase_collapse_control" href="" onclick="return false;">{{# pix }} t/collapsed, moodle, Expand {{/ pix }}</a>
+            <a data-action="phase_up_control" href="" onclick="return false;">{{# pix }} t/up, core, Up {{/ pix }}</a>
+            <a data-action="phase_down_control" href="" onclick="return false;">{{# pix }} t/down, core, Down {{/ pix }}</a>
+            <a data-action="phase_delete_control" href="" onclick="return false;">{{# pix }} t/delete, core, Delete {{/ pix }}</a>
+        </div>
+        <div class="phase-header-title">{{# title }} {{ title }} {{/ title }} {{^ title }} Untitled Phase {{/ title }}</div>
+    </div>
+    <div class="phase-container hide" aria-expanded="false" role="region">
+        <div class="mb-3 row fitem">
+            <div class="col-md-1 col-form-label d-flex pb-0 pe-md-0">Title</div>
+            <div class="col-md-11 d-flex flex-wrap align-items-start felement"><input class="phase-title form-control" type="text" value="{{ title }}"></div>
+        </div>
+        <div class="cycle-container-controls">
+            <strong>Cycles</strong>
+            <a data-action="add_phase_cycle" href="#" onclick="return false;"><i class="fa-solid fa-plus"></i> Add</a>
+            <a data-action="collapse_all_cycles" href="#" onclick="return false;"><i class="fa-solid fa-angles-up"></i> Collapse</a>
+            <a data-action="expand_all_cycles" href="#" onclick="return false;"><i class="fa-solid fa-angles-down"></i> Expand</a>
+        </div>
+        <div class="phase-cycles-container">
+            {{> mod_roadmap/configuration_cycles }}
+        </div>
+        <input class="phase-configuration" type="hidden" value="{{ configuration }}">
+    </div>
+</div>

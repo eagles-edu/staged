@@ -1,0 +1,208 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Database upgrade steps.
+ *
+ * @package   plagiarism_pchkorg
+ * @category  plagiarism
+ * @copyright PlagiarismCheck.org, https://plagiarismcheck.org/
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../classes/permissions/capability.class.php');
+require_once(__DIR__ . '/../classes/roles.php');
+require_once(__DIR__ . '/../classes/group_submission.php');
+
+use plagiarism_pchkorg\classes\permissions\capability;
+
+/**
+
+ * Apply database upgrades for this plugin.
+
+ */
+
+/**
+ * Xmldb plagiarism pchkorg upgrade.
+ */
+function xmldb_plagiarism_pchkorg_upgrade($oldversion) {
+    global $DB;
+
+    $dbman = $DB->get_manager();
+
+    if ($oldversion < 2021072801) {
+        $table = new xmldb_table('plagiarism_pchkorg_files');
+
+        $field1 = new xmldb_field('signature', XMLDB_TYPE_CHAR, '40', null, null, null, null, null);
+        $field1->setComment('Signature');
+
+        $field2 = new xmldb_field('attempt', XMLDB_TYPE_INTEGER, '5', null, null, null, 0, null);
+        $field2->setComment('Sending attempts');
+
+        $field3 = new xmldb_field('itemid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, null);
+        $field3->setComment('ID of file');
+
+        if (!$dbman->field_exists($table, $field1)) {
+            $dbman->add_field($table, $field1);
+        }
+
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+
+        if (!$dbman->field_exists($table, $field3)) {
+            $dbman->add_field($table, $field3);
+        }
+
+        upgrade_plugin_savepoint(true, 2021072801, 'plagiarism', 'pchkorg');
+    }
+
+    if ($oldversion < 2023060713) {
+        $table = new xmldb_table('plagiarism_pchkorg_files');
+
+        $field1 = new xmldb_field('scoreai', XMLDB_TYPE_NUMBER, '4,2', XMLDB_UNSIGNED, null, null, null, null);
+        $field1->setComment('AI score');
+
+        if (!$dbman->field_exists($table, $field1)) {
+            $dbman->add_field($table, $field1);
+        }
+    }
+
+    if ($oldversion < 2024072918) {
+        // Define table plagiarism_pchkorg_users to be created.
+        $table = new xmldb_table('plagiarism_pchkorg_users');
+
+        // Adding fields to table plagiarism_pchkorg_users.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('email', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table plagiarism_pchkorg_users.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('plagiarism_pchkorg_users_email', XMLDB_KEY_UNIQUE, ['email']);
+
+        // Conditionally launch create table for plagiarism_pchkorg_users.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2024072918, 'plagiarism', 'pchkorg');
+    }
+
+    if ($oldversion < 2024102818) {
+        $configs = get_config('plagiarism');
+
+        foreach ($configs as $field => $value) {
+            if (strpos($field, 'pchkorg') === 0) {
+                if ($field === 'pchkorg_use') {
+                    $DB->delete_records('config_plugins', ['name' => $field, 'plugin' => 'plagiarism']);
+
+                    $field = 'enabled';
+                }
+
+                set_config($field, $value, 'plagiarism_pchkorg');
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2024102818, 'plagiarism', 'pchkorg');
+    }
+
+    if ($oldversion < 2025022717) {
+        $table = new xmldb_table('plagiarism_pchkorg_files');
+
+        $field = new xmldb_field('message');
+        $field->set_attributes(XMLDB_TYPE_CHAR, '130', null, null, null, null, null, null);
+        $field->setComment('Message with error');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2025022717, 'plagiarism', 'pchkorg');
+    }
+
+    if ($oldversion < 2026082601) {
+        // Managing ignored templates moved from moodle/course:manageactivities
+        // to a capability of this plugin's own. The archetype defaults in
+        // db/access.php carry the stock roles across, but a site's custom
+        // teaching roles may be built on any archetype or none, so nothing
+        // there reaches them. Grant it to the ones this plugin already knows
+        // by name, so a TA who could manage templates yesterday still can.
+        //
+        // This runs before Moodle has registered the capability: db/access.php
+        // is read in upgrade_component_updated(), after this function returns.
+        // assign_capability() refuses to write a role_capabilities row for a
+        // capability missing from the capabilities table, so register the
+        // plugin's definitions here first. update_capabilities() is idempotent
+        // and core running it again a moment later changes nothing.
+        update_capabilities('plagiarism_pchkorg');
+
+        // Only existing roles are touched, and only this capability. A site
+        // that wants a different answer overrides it in the usual place;
+        // nothing here runs a second time to undo that.
+        plagiarism_pchkorg_roles::grant_to_custom_teachers(capability::MANAGE_IGNORE_TEMPLATES);
+
+        upgrade_plugin_savepoint(true, 2026082601, 'plagiarism', 'pchkorg');
+    }
+
+    if ($oldversion < 2026100700) {
+        // Files of group assignment submissions never resolved before this
+        // release, so they ran out of attempts and were left failed without
+        // ever being sent. Queue them again now that they can be.
+        plagiarism_pchkorg_group_submission::requeue_unresolved();
+
+        upgrade_plugin_savepoint(true, 2026100700, 'plagiarism', 'pchkorg');
+    }
+
+    if ($oldversion < 2026101900) {
+        // The custom teaching roles became a site setting. Store the list the
+        // code used to hard-code, so the site keeps recognising the same roles
+        // and from here on owns the list. A site that already has a value
+        // keeps it.
+        plagiarism_pchkorg_roles::store_default_setting();
+
+        upgrade_plugin_savepoint(true, 2026101900, 'plagiarism', 'pchkorg');
+    }
+
+    if ($oldversion < 2026102800) {
+        $table = new xmldb_table('plagiarism_pchkorg_files');
+
+        // An AI score of 100 did not fit number(4,2), and the write aborted the
+        // whole update_reports run on every later attempt.
+        $field = new xmldb_field('scoreai', XMLDB_TYPE_NUMBER, '5, 2', null, null, null, null, 'score');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->change_field_precision($table, $field);
+        }
+
+        // The update_reports task polls least recently polled first, so texts that never
+        // resolve cannot hold every slot. Existing rows start at 0, so the
+        // first runs after the upgrade work through the backlog newest first.
+        $field = new xmldb_field('polled_at', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'message');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $index = new xmldb_index('state_polled', XMLDB_INDEX_NOTUNIQUE, ['state', 'polled_at']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        upgrade_plugin_savepoint(true, 2026102800, 'plagiarism', 'pchkorg');
+    }
+
+    return true;
+}

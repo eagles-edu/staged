@@ -1,0 +1,429 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * This file is used to edit exercise content. Called from exercises.php.
+ *
+ * @package    mod_mootyper
+ * @copyright  2011 Jaka Luthar (jaka.luthar@gmail.com)
+ * @copyright  2016 onwards AL Rachels (drachels@drachels.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+use mod_mootyper\event\exercise_edited;
+use mod_mootyper\event\invalid_access_attempt;
+
+// Changed to this format 20190301.
+require(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
+require_once($CFG->dirroot . '/repository/lib.php');
+
+global $DB, $OUTPUT, $PAGE, $USER;
+
+$id = required_param('id', PARAM_INT); // Course module ID.
+$ex = required_param('ex', PARAM_INT); // Exercise ID to edit.
+$lsnnamepo = '';
+$lessonpo = '';
+
+$cm = get_coursemodule_from_id('mootyper', $id, 0, false, IGNORE_MISSING);
+if (!$cm) {
+    throw new moodle_exception('invalidcoursemodule', 'error', '', null);
+}
+$course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+
+// This context->id will be used for the path to file storage.
+/** @var context $context */
+$context = context_module::instance($cm->id);
+if (!($context instanceof context_module)) {
+    throw new moodle_exception('invalidcoursemodule', 'error', '', null);
+}
+$mootyper = $DB->get_record('mootyper', ['id' => $cm->instance], '*', MUST_EXIST);
+
+require_login($course, true, $cm);
+
+// 20200706 Added to prevent student direct URL access attempts.
+if (!(has_capability('mod/mootyper:aftersetup', $context))) {
+    // Trigger invalid_access_attempt with redirect to course page.
+    $params = [
+        'objectid' => $id,
+        'context' => $context,
+        'other' => [
+            'file' => 'eedit.php',
+        ],
+    ];
+    $event = invalid_access_attempt::create($params);
+    $event->trigger();
+    redirect('../../course/view.php?id=' . $course->id, get_string('invalidaccessexp', 'mootyper'));
+}
+
+$exercise = $DB->get_record('mootyper_exercises', ['id' => $ex], '*', MUST_EXIST);
+$rcrd = $exercise;
+$lessonname = $DB->get_record('mootyper_lessons', ['id' => $exercise->lesson], '*', MUST_EXIST);
+$actuallesson = $lessonname;
+
+// Apply the lesson's edit policy, not just the capability on the supplied module.
+$caneditlesson = is_siteadmin()
+    || (int)$actuallesson->editable === 0
+    || ((int)$actuallesson->editable === 1 && (int)$actuallesson->courseid === (int)$course->id)
+    || ((int)$actuallesson->editable === 2 && (int)$actuallesson->authorid === (int)$USER->id);
+if (!$caneditlesson) {
+    throw new moodle_exception('nopermissions', 'error', '', null);
+}
+
+// Check to see if Confirm button is clicked and returning 'Confirm' to trigger update record.
+$param1 = optional_param('button', '', PARAM_TEXT);
+
+if (isset($param1) && get_string('fconfirm', 'mootyper') == $param1) {
+    require_sesskey();
+    // 20210325 Added as part of capability to edit lesson and exercise names.
+    $newlessonname = optional_param('lesson_name', '', PARAM_RAW);
+    $newexercisename = optional_param('exercise_name', '', PARAM_RAW);
+    $newtext = optional_param('texttotype', '', PARAM_RAW);
+
+    // Handle dictation audio data from editor.
+    $newdictationeditor = optional_param_array('dictationdata_editor', [], PARAM_RAW);
+    $newdictation = $newdictationeditor['text'] ?? optional_param('dictationdata', '', PARAM_RAW);
+    $newdictationformat = isset($newdictationeditor['format']) ? (int)$newdictationeditor['format'] : FORMAT_HTML;
+    if (empty($newdictationformat)) {
+        $newdictationformat = FORMAT_HTML;
+    }
+    $newdictationitemid = isset($newdictationeditor['itemid']) ? (int)$newdictationeditor['itemid'] : 0;
+
+    $rcrd = $DB->get_record('mootyper_exercises', ['id' => $ex], '*', MUST_EXIST);
+
+    // Tiny editor can wrap plain typing content in HTML (for example <p>...</p>).
+    // Convert those wrappers back to plain text so MooTyper compares keystrokes correctly.
+    $preparedtext = $newtext;
+    // Decode entities first so escaped ruby markup can be preserved correctly.
+    $preparedtext = html_entity_decode($preparedtext, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    if (preg_match('/^\s*<(p|div|span|br|h[1-6]|ul|ol|li)\b/i', $preparedtext) || strpos($preparedtext, '</') !== false) {
+        $preparedtext = preg_replace('/<br\s*\/?>/i', "\n", $preparedtext);
+        $preparedtext = preg_replace('/<\/p>/i', "\n", $preparedtext);
+        $preparedtext = strip_tags($preparedtext, '<ruby><rt><rp><rb>');
+        // Non-breaking spaces from editor HTML should behave like regular spaces when typing.
+        $preparedtext = str_replace("\xC2\xA0", ' ', $preparedtext);
+    }
+    // MooTyper stores visible line breaks as literal \n sequences.
+    $preparedtext = preg_replace('/\R/u', '\\n', $preparedtext);
+
+    $updr = new stdClass();
+    $updr->id = $rcrd->id;
+    $updr->texttotype = $preparedtext;
+    // 20210327 Added as part of new capability to edit lesson and exercise names.
+    $updr->exercisename = str_replace("\r\n", '\n', $newexercisename);
+    $lessonname->id = $rcrd->lesson;
+    $lessonname->lessonname = str_replace("\r\n", '\n', $newlessonname);
+
+    $updr->lesson = $rcrd->lesson;
+    $updr->snumber = $rcrd->snumber;
+    // Save dictation audio data.
+    $updr->dictationdata = $newdictation;
+    $updr->dictationdataformat = $newdictationformat;
+    $DB->update_record('mootyper_exercises', $updr);
+
+    // Move files from draft to the exercise filearea and rewrite pluginfile URLs.
+    if ($newdictationitemid > 0) {
+        $dictationeditoroptions = [
+            'context' => $context,
+            'enable_filemanagement' => true,
+            'autosave' => true,
+            'maxfiles' => 1,
+            'subdirs' => false,
+            'maxbytes' => $CFG->userquota,
+        ];
+        $editorpostdata = new stdClass();
+        $editorpostdata->dictationdata_editor = [
+            'text' => $updr->dictationdata,
+            'format' => $updr->dictationdataformat,
+            'itemid' => $newdictationitemid,
+        ];
+
+        $editorpostdata = file_postupdate_standard_editor(
+            $editorpostdata,
+            'dictationdata',
+            $dictationeditoroptions,
+            $context,
+            'mod_mootyper',
+            'dictationdata',
+            $updr->id
+        );
+
+        $updr->dictationdata = $editorpostdata->dictationdata;
+        $updr->dictationdataformat = $editorpostdata->dictationdataformat;
+        $DB->update_record('mootyper_exercises', $updr);
+    }
+    // 20210327 Added as part of new capability to edit lesson and exercise names.
+    $DB->update_record('mootyper_lessons', $lessonname);
+
+    // Trigger module exercise_edited event.
+    $params = [
+        'objectid' => $course->id,
+        'context' => $context,
+        'other' => [
+            'lesson' => $updr->lesson,
+            'exercise' => $updr->exercisename,
+        ],
+    ];
+    $event = exercise_edited::create($params);
+    $event->trigger();
+
+    $webdir = $CFG->wwwroot . '/mod/mootyper/exercises.php?id=' . $id . '&lesson=' . $rcrd->lesson;
+    echo '<script type="text/javascript">window.location="' . $webdir . '";</script>';
+}
+
+// Get all the default configuration settings for MooTyper.
+$moocfg = get_config('mod_mootyper');
+
+// Check to see if configuration for MooTyper defaulteditalign is set.
+if (isset($moocfg->defaulteditalign)) {
+    // Current MooTyper edittalign is set so use it.
+    $editalign = optional_param('editalign', $moocfg->defaulteditalign, PARAM_INT);
+    $align = $editalign;
+} else {
+    // Current MooTyper edittalign is NOT set so set it to left.
+    $editalign = optional_param('editalign', 0, PARAM_INT);
+    $align = $editalign;
+}
+
+$PAGE->set_url('/mod/mootyper/eedit.php', ['id' => $course->id, 'ex' => $ex]);
+$PAGE->set_title(get_string('etitle', 'mootyper'));
+$PAGE->set_heading(get_string('eheading', 'mootyper'));
+$PAGE->set_cacheable(false);
+echo $OUTPUT->header();
+$exercisetoedit = $DB->get_record(
+    'mootyper_exercises',
+    ['id' => $ex],
+    'id, texttotype, exercisename, lesson, snumber, dictationdata, dictationdataformat',
+    MUST_EXIST
+);
+if (empty($exercisetoedit->dictationdataformat)) {
+    $exercisetoedit->dictationdataformat = FORMAT_HTML;
+}
+
+?>
+
+<script type="text/javascript">
+function isLetter(str) {
+    // var pattern = /[a-z,ก-๛,а-я,א-ת,ㄱ-ㅣ,äáàâãčćçëéèêđïîíöôóõüúùûµšžº¡ñ]/i;
+    var pattern = /[!-ﻼ]/i;
+    return str.length === 1 && str.match(pattern);
+}
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+var ok = true;
+
+function clClick() {
+    var exercise_text = document.getElementById("texttotype").value;
+    var allowed_chars = ['\\', '~', '!', '@', '#', '$', '%', '^', '&', '(', ')',
+                         '*', '_', '+', ':', ';', '"', '{', '}', '>', '<', '?', '\'',
+                         '-', '/', '=', '.', ',', ' ', '|', '¡', '`', 'ç', 'ñ', 'º',
+                         '¿', 'ª', '·', '\n', '\r', '\r\n', '\n\r', ']', '[', '¬',
+                         '´', '`', '§', '°', '€', '¦', '¢', '£', '₢', '¹', '²', '³',
+                         '¨', 'Ё', '№', 'ё', 'ë', 'ù', 'µ', 'ï','÷', '×', 'ł', 'Ł', 'ß',
+                         '¤', '«', '»', '₪', '־', 'װ', 'ױ', 'ײ', 'ˇ', '½'];
+    var shown_text = "";
+    ok = true;
+    for(var i=0; i<exercise_text.length; i++) {
+        if((exercise_text[i] != '\n' && exercise_text[i] != '\r\n'
+                                     && exercise_text[i] != '\n\r'
+                                     && exercise_text[i] != '\r')
+                                     && !isLetter(exercise_text[i])
+                                     && !isNumber(exercise_text[i])
+                                     && allowed_chars.indexOf(exercise_text[i]) == -1) {
+            shown_text += '<span style="color: red;">'+exercise_text[i]+'</span>';
+            ok = false;
+            /*var text = (i-3)+'-'+exercise_text[i-3]+"\n";
+            text += (i-2)+'-'+exercise_text[i-2]+"\n";
+            text += (i-1)+'-'+exercise_text[i-1]+"\n";
+            text += i+'-'+exercise_text[i]+"\n";
+            text += (i+1)+'-'+exercise_text[i+1]+"\n";
+            text += (i+2)+'-'+exercise_text[i+2];
+            alert(text);*/
+        }
+        else
+            shown_text += exercise_text[i];
+    }
+    if(!ok) {
+        document.getElementById('text_holder_span').innerHTML = shown_text;
+        return false;
+    }
+    else 
+        return true;
+}
+
+</script>
+<?php // phpcs:ignore
+// 20200625 Get the current MooTyper keyboard background default color for our page background here.
+$color3 = mootyper_clean_color((string)$mootyper->keybdbgc);
+echo '<div align="center" style="font-size:1em;
+     font-weight:bold;background: ' . $color3 . ';
+     border:2px solid black;
+     -webkit-border-radius:16px;
+     -moz-border-radius:16px;border-radius:16px;">';
+
+echo '<form method="POST">';
+echo '<input type="hidden" name="sesskey" value="' . sesskey() . '">';
+
+// 20210327 Add a text area for editing the name of the lesson.
+echo '<label>' . get_string('lsnname', 'mootyper')
+    . ' = <input type="text" name="lesson_name" value="'
+    . str_replace('\n', "&#10;", s($lessonname->lessonname))
+    . '"</label><br />';
+
+// 20210327 Add a text area for editing the name of the exercise.
+echo '<label>' . get_string('exercise_name', 'mootyper')
+    . ' = <input type="text" name="exercise_name" value="'
+    . str_replace('\n', "&#10;", s($exercisetoedit->exercisename))
+    . '"</label><br />';
+
+// Get our alignment strings and add a selector for text alignment.
+$aligns = [
+    get_string('defaulttextalign_left', 'mod_mootyper'),
+    get_string('defaulttextalign_center', 'mod_mootyper'),
+    get_string('defaulttextalign_right', 'mod_mootyper'),
+];
+
+echo '<span id="editalign" class="">' . get_string('defaulttextalign', 'mootyper') . ': ';
+echo '<select onchange="this.form.submit()" name="editalign">';
+
+// This will loop through ALL three alignments and show current alignment setting.
+foreach ($aligns as $akey => $aval) {
+    // The first if is executed ONLY when, when defaulttextalign matches one of the alignments
+    // and it will then show that alignment in the selector.
+    if ($akey == $editalign) {
+        echo '<option value="' . $akey . '" selected="true">' . $aval . '</option>';
+        $align = $aval;
+    } else {
+        // This part of the if is reached the most and its when an alignment
+        // is is not the one selected.
+        echo '<option value="' . $akey . '">' . $aval . '</option>';
+    }
+}
+
+echo '</select></span>';
+// Create a link back to where we came from in case we want to cancel.
+$url = $CFG->wwwroot . '/mod/mootyper/exercises.php?id=' . $id . '&lesson=' . $rcrd->lesson;
+
+// Add a text area for editing the text of the exercise.
+echo '<span id="text_holder_span" class=""></span><br>'
+    . get_string('fexercise', 'mootyper')
+    . ':<br>'
+    . '<textarea name="texttotype" id="texttotype" rows="3" cols="60" style="text-align:'
+    . $align . '">'
+    . str_replace('\n', "&#10;", s($exercisetoedit->texttotype))
+    . '</textarea>';
+// Keep texttotype as plain text (no Tiny editor) so typed characters such as
+// <, >, and explicit line breaks are preserved exactly as authored.
+
+// Prepare a draft-backed editor value so Tiny uploader gets a valid itemid.
+$dictationeditoroptions = [
+    'context' => $context,
+    'enable_filemanagement' => true,
+    'autosave' => true,
+    'maxfiles' => 1,
+    'subdirs' => false,
+    'maxbytes' => $CFG->userquota,
+];
+
+$exercisetoedit = file_prepare_standard_editor(
+    $exercisetoedit,
+    'dictationdata',
+    $dictationeditoroptions,
+    $context,
+    'mod_mootyper',
+    'dictationdata',
+    $exercisetoedit->id
+);
+
+$dictationdraftitemid = (int)$exercisetoedit->dictationdata_editor['itemid'];
+$fpbase = new stdClass();
+$fpbase->accepted_types = ['video', 'audio'];
+$fpbase->return_types = (FILE_INTERNAL | FILE_EXTERNAL);
+$fpbase->context = $context;
+$fpbase->env = 'editor';
+
+$mediaoptions = initialise_filepicker($fpbase);
+$mediaoptions->context = $context;
+$mediaoptions->client_id = uniqid();
+$mediaoptions->maxbytes = $dictationeditoroptions['maxbytes'];
+$mediaoptions->areamaxbytes = $dictationeditoroptions['maxbytes'];
+$mediaoptions->env = 'editor';
+$mediaoptions->itemid = $dictationdraftitemid;
+
+$fpoptions = ['media' => $mediaoptions];
+
+// Add a text area for adding, editing, or deleting the dictation audio of an exercise.
+echo '<br><span id="audio_holder_span" class=""></span><br>'
+    . get_string('dictationdatalabel', 'mootyper')
+    . ':<br><small>' . get_string('dictationdatalabelhelp', 'mootyper') . '</small><br>'
+    . '<textarea name="dictationdata_editor[text]" id="dictationdata" rows="3" cols="60" style="text-align:'
+    . $align . '">'
+    . s($exercisetoedit->dictationdata_editor['text'] ?? '')
+    . '</textarea>'
+    . '<input type="hidden" name="dictationdata_editor[format]" value="'
+    . (int)($exercisetoedit->dictationdata_editor['format'] ?? FORMAT_HTML)
+    . '">'
+    . '<input type="hidden" name="dictationdata_editor[itemid]" value="'
+    . $dictationdraftitemid
+    . '">';
+
+// Initialize editor for dictation audio content - get fresh editor instance.
+$editor2 = editors_get_preferred_editor(FORMAT_HTML);
+$editor2->use_editor(
+    'dictationdata',
+    $dictationeditoroptions,
+    $fpoptions
+);
+
+// 20220723 Add some details so we know more about this lesson and it's exercises.
+$lessonauthor = $DB->get_record("user", ['id' => $actuallesson->authorid], 'id,firstname,lastname', IGNORE_MISSING);
+$coursename = $DB->get_record("course", ['id' => $actuallesson->courseid], 'id,fullname', IGNORE_MISSING);
+// Add a number 0, 1, or 2 to get the correct string to use.
+$visible = get_string('vaccess' . $actuallesson->visible, 'mootyper');
+$editable = get_string('eaccess' . $actuallesson->editable, 'mootyper');
+$authorfirstname = $lessonauthor->firstname ?? '?';
+$authorlastname = $lessonauthor->lastname ?? '?';
+echo '<br>' . get_string('authorid', 'mootyper') . ': ' . $actuallesson->authorid . ', '
+           . $authorfirstname . ' ' . $authorlastname . '<br>';
+echo get_string('visibility', 'mootyper') . ': ' . $visible . ', ';
+echo get_string('editable', 'mootyper') . ': ' . $editable . '<br>';
+// 20220729 Added check for missing courseid and and name that would indicate the lesson came with MooTyper.
+if (empty($actuallesson->courseid) || empty($coursename) || empty($coursename->fullname)) {
+    echo get_string('lessonincluded', 'mootyper');
+} else {
+    echo get_string('createdin', 'mootyper') . $actuallesson->courseid . ', ' . $coursename->fullname;
+}
+
+echo '</select></span><br>';
+
+// Add a confirm and cancel button.
+echo '<input class="btn btn-primary"
+    style="border-radius: 8px"
+    name="button"
+    onClick="return clClick()"
+    type="submit" value="'
+    . get_string('fconfirm', 'mootyper')
+    . '"> <a href="'
+    . $url
+    . '" class="btn btn-secondary"  style="border-radius: 8px">'
+    . get_string('cancel', 'mootyper')
+    . '</a>' . '</form>';
+
+echo '</div>';
+
+echo $OUTPUT->footer();

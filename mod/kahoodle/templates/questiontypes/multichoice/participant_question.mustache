@@ -1,0 +1,120 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/questiontypes/multichoice/participant_question
+
+    Shown to participants for multiple choice questions during the question stage.
+
+    Example context (json):
+    {
+        "sortorder": 3,
+        "answered": false,
+        "avatarurl": "/user/pix.php/2/f1.jpg",
+        "displayname": "Alex Johnson",
+        "totalscore": 150,
+        "typedata": {
+            "manyoptions": true,
+            "options": [
+                {
+                    "optionnumber": 1,
+                    "letter": "A"
+                },
+                {
+                    "optionnumber": 2,
+                    "letter": "B"
+                },
+                {
+                    "optionnumber": 3,
+                    "letter": "C"
+                },
+                {
+                    "optionnumber": 4,
+                    "letter": "D"
+                },
+                {
+                    "optionnumber": 5,
+                    "letter": "E"
+                },
+                {
+                    "optionnumber": 6,
+                    "letter": "F"
+                },
+                {
+                    "optionnumber": 7,
+                    "letter": "G"
+                },
+                {
+                    "optionnumber": 8,
+                    "letter": "H"
+                }
+            ]
+        }
+    }
+}}
+{{< mod_kahoodle/participant/common/base }}
+{{$ main_content }}
+{{> mod_kahoodle/participant/common/questionheader }}
+
+<div class="mod_kahoodle-participant-question-content" data-questiontype="multichoice">
+    {{^answered}}
+
+    {{! Question type specific content - answer options }}
+    {{#typedata}}
+    <div class="mod_kahoodle-options{{#manyoptions}} mod_kahoodle-options-many{{/manyoptions}}">
+        <div class="mod_kahoodle-options-grid{{#manyoptions}} mod_kahoodle-options-grid-compact{{/manyoptions}}">
+            {{#options}}
+            <div class="mod_kahoodle-option mod_kahoodle-option{{optionnumber}}" data-option="{{optionnumber}}">
+                <div class="mod_kahoodle-option-icon">
+                    <span class="mod_kahoodle-icon-letter">{{{letter}}}</span>
+                </div>
+            </div>
+            {{/options}}
+        </div>
+    </div>
+    {{/typedata}}
+
+    {{/answered}}
+
+    {{#answered}}
+    {{> mod_kahoodle/participant/common/waiting_after_answer }}
+    {{/answered}}
+</div>
+
+{{> mod_kahoodle/participant/common/participantinfo }}
+{{/ main_content }}
+{{/ mod_kahoodle/participant/common/base }}
+
+{{#js}}
+require(['core/pubsub', 'mod_kahoodle/events'], function(PubSub, KahoodleEvents) {
+    document.querySelectorAll('.mod_kahoodle-option[data-option]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (this.classList.contains('mod_kahoodle-option-disabled')) {
+                // Already answered.
+                return;
+            }
+            // Visual feedback - disable all options.
+            document.querySelectorAll('.mod_kahoodle-option').forEach(function(opt) {
+                opt.classList.add('mod_kahoodle-option-disabled');
+            });
+            this.classList.add('mod_kahoodle-option-selected');
+            // Dispatch event for participant.js to catch.
+            PubSub.publish(KahoodleEvents.ANSWER, String(this.dataset.option));
+        });
+    });
+});
+{{/js}}

@@ -1,0 +1,34 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/participant/common/waiting_after_answer
+
+    Shown to participants after they have answered a question while waiting for results.
+    Displays a random encouraging message and waiting animation.
+
+    Example context (json):
+    {
+        "waitingmessage": "Quick answer!",
+        "waitingimage": "/mod/kahoodle/pix/waiting/5.svg"
+    }
+}}
+<div class="mod_kahoodle-participant-result-status">{{{waitingmessage}}}</div>
+<div class="mod_kahoodle-participant-icon mod_kahoodle-result-waiting">
+    <div class="mod_kahoodle-waiting-icon"
+        style="-webkit-mask-image: url('{{waitingimage}}'); mask-image: url('{{waitingimage}}');"></div>
+</div>
+<div class="mod_kahoodle-participant-rank">{{#str}}waitingforresults, mod_kahoodle{{/str}}</div>

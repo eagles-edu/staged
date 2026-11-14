@@ -1,0 +1,80 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_roadmap/configuration_phase
+
+    This template includes ajax functionality, so it cannot be shown in the template library.
+
+    Example context (json):
+    {
+        "id": "1",
+        "index": "0",
+        "title": "Cycle Title",
+        "subtitle": "Cycle Sub Title",
+        "pagelink": "http://ncsu.edu",
+    	"steps": [{
+    		"id": "1",
+    		"rollovertext": "Hover Text",
+    		"stepicon": "icon-1",
+    		"pagelink": "http://ncsu.edu",
+    		"completionmodules": "1,2,3",
+    		"configuration": "jsonData"
+    	}],
+        "configuration": "jsonData"
+    }
+}}
+<div data-cycleid="{{ id }}" data-cycleindex="{{ index }}" class="cycle-wrapper">
+    <div class="row bg-light">
+        <div class="cycle-controls">
+            <a data-action="cycle_collapse_control" href="" onclick="return false;">{{# pix }} t/collapsed, moodle, Expand {{/ pix }}</a>
+            <a data-action="cycle_up_control" href="" onclick="return false;">{{# pix }} t/up, core, Up {{/ pix }}</a>
+            <a data-action="cycle_down_control" href="" onclick="return false;">{{# pix }} t/down, core, Down {{/ pix }}</a>
+            <a data-action="cycle_delete_control" href="" onclick="return false;">{{# pix }} t/delete, core, Delete {{/ pix }}</a>
+        </div>
+        <div class="cycle-header-title">{{# title }} {{ title }} {{/ title }} {{^ title }} Untitled Cycle {{/ title }}</div>
+    </div>
+    <div class="hide cycle-container">
+        <div class="mb-3 row fitem">
+            <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">Cycle Title</div>
+            <div class="col-md-9 d-flex flex-wrap align-items-start felement"><input class="cycle-title form-control" type="text" value="{{ title }}"></div>
+        </div>
+        <div class="mb-3 row fitem">
+            <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">Cycle Subtitle</div>
+            <div class="col-md-9 d-flex flex-wrap align-items-start felement"><input class="cycle-subtitle form-control" type="text" value="{{ subtitle }}"></div>
+        </div>
+        <div class="mb-3 row fitem">
+            <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">Link to Page</div>
+            <div class="col-md-9 d-flex flex-wrap align-items-start felement"><input class="cycle-pagelink form-control" type="text" value="{{ pagelink }}"></div>
+        </div>
+        <div class="mb-3 row fitem">
+            <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">Applicable learning objectives<br>(check all that apply):</div>
+            <div class="col-md-9 d-flex flex-wrap align-items-start felement">
+                <ul class="chk-learning-objectives"></ul>
+            </div>
+        </div>
+        <div class="step-container-controls">
+            <strong>Steps</strong>
+            <a href="#" data-action="add_cycle_step" onclick="return false;"><i class="fa-solid fa-plus"></i> Add</a>
+            <a href="#" data-action="collapse_all_steps" onclick="return false;"><i class="fa-solid fa-angles-up"></i> Collapse</a>
+            <a href="#" data-action="expand_all_steps" onclick="return false;"><i class="fa-solid fa-angles-down"></i> Expand</a>
+        </div>
+        <div class="cycle-steps-container">
+            {{> mod_roadmap/configuration_steps }}
+        </div>
+        <input class="cycle-configuration" type="hidden" value="{{ configuration }}">
+    </div>
+</div>

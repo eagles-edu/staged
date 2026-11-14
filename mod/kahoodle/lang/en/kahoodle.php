@@ -1,0 +1,280 @@
+<?php
+// This file is part of mod_kahoodle plugin
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * English language pack for Kahoodle
+ *
+ * @package    mod_kahoodle
+ * @category   string
+ * @copyright  Marina Glancy
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+
+$string['accesscode'] = 'Access code';
+$string['addquestion'] = 'Add question';
+$string['addquestiontype'] = 'Add question: {$a}';
+$string['allavatars'] = 'Avatars';
+$string['allavatars_desc'] = 'Avatars that will be used for the Kahoodle participants';
+$string['allowjoining'] = 'Allow participants to join';
+$string['allowrepeat'] = 'Allow repeat participation';
+$string['allowrepeat_help'] = 'If enabled, users can participate in multiple rounds of this activity.';
+$string['allroundsparticipants'] = 'All rounds: Participants';
+$string['allroundsstatistics'] = 'All rounds: Statistics';
+$string['andxmore'] = 'and {$a} more';
+$string['chooseavatar'] = 'Choose your avatar';
+$string['close'] = 'Close';
+$string['correct'] = 'Correct!';
+$string['correctanswers'] = 'Correct answers';
+$string['correctresponses'] = 'Correct responses';
+$string['defaultvalue'] = 'Default: {$a}';
+$string['deletequestion'] = 'Delete question';
+$string['deletequestionconfirm'] = 'Are you sure you want to delete this question?';
+$string['duplicatequestion'] = 'Duplicate question';
+$string['duplicatequestiontoround'] = 'This round has already started and new questions cannot be created in it. The question will be duplicated into the last round that is still in preparation. Do you want to continue?';
+$string['editavatar'] = 'Edit avatar';
+$string['editquestion'] = 'Edit question';
+$string['editroundname'] = 'Edit round name';
+$string['editroundname_label'] = 'New name for round {$a}';
+$string['end_round_for_everyone'] = 'End round for everyone';
+$string['entity_participant'] = 'Participant';
+$string['entity_question'] = 'Question';
+$string['entity_questionversion'] = 'Question version';
+$string['entity_response'] = 'Response';
+$string['entity_round'] = 'Round';
+$string['entity_roundquestion'] = 'Round question';
+$string['error_cannotchangeavatar'] = 'You cannot change your avatar at this time.';
+$string['error_connectionlost'] = 'The connection to the server was lost. Try refreshing the page to reconnect.';
+$string['error_connectionlost_title'] = 'Connection lost';
+$string['error_guest_no_access'] = 'You need to log in to participate in this activity.';
+$string['error_invalidavatarcandidate'] = 'Invalid avatar selection.';
+$string['error_maxpoints_less_than_minpoints'] = 'Maximum points must be greater than or equal to minimum points.';
+$string['error_no_capabilities'] = 'You do not have permission to participate in this activity.';
+$string['error_nonnegative'] = 'Value must be zero or positive.';
+$string['error_questiontext_h3_required'] = 'Question text must contain a heading in an &lt;h3&gt; tag.';
+$string['error_questiontext_invalidchars'] = 'Question text contains invalid characters.';
+$string['error_realtime_disabled'] = 'This activity is not available at the moment. Please try again later.';
+$string['error_realtime_disabled_teacher'] = 'The "Real time events" plugin is not available. It must be enabled and configured before starting a game.';
+$string['errorgeneral'] = '{$a}';
+$string['eventparticipantjoined'] = 'Participant joined';
+$string['eventparticipantleft'] = 'Participant left';
+$string['eventquestioncreated'] = 'Question created';
+$string['eventquestionremoved'] = 'Question removed';
+$string['eventquestionupdated'] = 'Question updated';
+$string['eventresponsesubmitted'] = 'Response submitted';
+$string['eventroundcreated'] = 'Round created';
+$string['eventroundupdated'] = 'Round updated';
+$string['facilitator_controls'] = 'Facilitator controls';
+$string['finishgame'] = 'Finish activity';
+$string['finishgame_confirm'] = 'Are you sure you want to finish the activity? This will end the round for all participants.';
+$string['getready'] = 'Get ready!';
+$string['identitycaption_alias'] = 'Your nickname is shown during the game. Your teacher can see your real identity in the results.';
+$string['identitycaption_anonymous'] = 'This activity is fully anonymous. Your identity is not recorded.';
+$string['identitymode'] = 'Participant identity';
+$string['identitymode_alias'] = 'Required alias';
+$string['identitymode_anonymous'] = 'Fully anonymous';
+$string['identitymode_help'] = 'Controls how participants are identified during the game and in reports.
+
+* **Real name** - Participants always appear with their actual name and profile picture.
+* **Optional alias** - Participants may choose a custom display name and avatar. Their actual name and profile picture are used by default.
+* **Required alias** - Participants must enter a display name (not pre-filled) and are assigned a random avatar they may change. Teachers can still see the real identity in reports.
+* **Fully anonymous** - Participants are completely anonymous. No user identity is recorded or shown in reports.
+
+To allow guests to play the game, set identity mode to "Fully anonymous", allow guests in the "Real time events" plugin, allow guest access to the activity, and enable the **mod/kahoodle:participateguest** capability.';
+$string['identitymode_optional'] = 'Optional alias';
+$string['identitymode_realname'] = 'Real name';
+$string['incorrect'] = 'Incorrect';
+$string['invalidstage'] = 'Invalid activity stage';
+$string['join'] = 'Join';
+$string['join_as_facilitator'] = 'Join as facilitator';
+$string['join_as_participant'] = 'Join as participant';
+$string['joinas'] = 'Join as';
+$string['joiningas'] = 'You are joining as';
+$string['joinqrcode'] = 'Join with QR code';
+$string['kahoodle:addinstance'] = 'Add a new Kahoodle';
+$string['kahoodle:facilitate'] = 'Facilitate a round of Kahoodle, display the main screen';
+$string['kahoodle:manage_questions'] = 'Manage questions in Kahoodle';
+$string['kahoodle:participate'] = 'Participate in a Kahoodle activity';
+$string['kahoodle:participateguest'] = 'Participate in Kahoodle activity as a guest (technically a write capability)';
+$string['kahoodle:view'] = 'View Kahoodle';
+$string['kahoodle:viewresults'] = 'View Kahoodle results for all participants';
+$string['kahoodlesettings'] = 'Kahoodle settings';
+$string['landing_autoarchive_notice'] = 'This round will be automatically ended in {$a}.';
+$string['landing_facilitator_message'] = 'You are facilitating this activity. Open the facilitator view to control the game or end the round.';
+$string['landing_finished_message'] = 'The activity has finished.';
+$string['landing_participant_message'] = 'The game is on!';
+$string['landing_past_score'] = 'You scored {$a->score} points on {$a->date}.';
+$string['landing_past_scores_joinintro'] = 'You have already played this activity.';
+$string['landing_preparation_hasquestions'] = 'You can continue managing questions or allow participants to join when you are ready.';
+$string['landing_preparation_noquestions'] = 'Participants cannot join yet. Add questions to this activity first, then you can open it for participants.';
+$string['landing_waiting_hint'] = 'If you expect the activity to start soon, refresh this page to check for updates.';
+$string['landing_waiting_message'] = 'The activity has not started yet. Please wait for the facilitator to begin.';
+$string['leaderboard'] = 'Leaderboard';
+$string['lobbyduration'] = 'Lobby duration';
+$string['lobbyduration_help'] = 'How long participants have to join the lobby before the round starts.';
+$string['managequestions'] = 'Manage questions';
+$string['maxpoints'] = 'Maximum points';
+$string['maxpoints_help'] = 'Maximum points awarded for the fastest correct answer.';
+$string['minpoints'] = 'Minimum points';
+$string['minpoints_help'] = 'Minimum points awarded for the slowest correct answer.';
+$string['modulename'] = 'Kahoodle';
+$string['modulenameplural'] = 'Kahoodles';
+$string['morethantwo'] = '{$a->one} and {$a->count} others';
+$string['multichoice_answers'] = 'Answer options';
+$string['multichoice_answers_help'] = 'Options for the answers, one per line. Prefix the correct answer with an asterisk (*). Exactly one answer must be marked as correct.';
+$string['multichoice_cannotchangecorrectanswer'] = 'The position of the correct answer cannot be changed because responses have already been submitted. Consider duplicating this question and editing the copy.';
+$string['multichoice_cannotchangeoptioncount'] = 'The number of answer options cannot be changed because responses have already been submitted. Consider duplicating this question and editing the copy.';
+$string['multichoice_needonecorrectoption'] = 'One and only one answer option can be marked as correct in multiple choice question. To mark an option as correct prefix its name with an asterisk (*).';
+$string['multichoice_needtwooptions'] = 'You must specify between 2 and 8 answer options for a multiple choice question';
+$string['noanswer'] = 'No answer';
+$string['noeditableround'] = 'No editable round available. The last round has already been started.';
+$string['participant'] = 'Participant';
+$string['participant_controls'] = 'Participant controls';
+$string['participantanswers'] = 'Participant answers';
+$string['participantdisplayname'] = 'Display name';
+$string['participantdisplayname_form'] = 'Choose your name';
+$string['participants'] = 'Participants';
+$string['participantsjoined'] = '{$a} participants joined';
+$string['pause'] = 'Pause';
+$string['playback'] = 'Playback';
+$string['playbackall'] = 'Play all';
+$string['pluginadministration'] = 'Kahoodle administration';
+$string['pluginname'] = 'Kahoodle';
+$string['preparenewround'] = 'Prepare new round';
+$string['preparenewround_help'] = 'If you plan to repeat the activity, click "Prepare new round". This will change the message for the students from "The activity has finished" to "The activity has not started yet". You will also be able to modify the questions for the next round without affecting the previous rounds.';
+$string['previewquestion'] = 'Preview question';
+$string['privacy:avatars'] = 'Avatars';
+$string['privacy:metadata:core_files'] = 'Avatar images stored for participants.';
+$string['privacy:metadata:kahoodle_participants'] = 'Records of users who participated in Kahoodle rounds.';
+$string['privacy:metadata:kahoodle_participants:avatar'] = 'The file name of the avatar image of the participant.';
+$string['privacy:metadata:kahoodle_participants:displayname'] = 'The display name chosen by the participant.';
+$string['privacy:metadata:kahoodle_participants:finalrank'] = 'The final rank of the participant in the round.';
+$string['privacy:metadata:kahoodle_participants:participantcode'] = 'In the fully anonymous mode, a code that identifies the participant during the session instead of the user ID.';
+$string['privacy:metadata:kahoodle_participants:timecreated'] = 'The time the participant joined the round.';
+$string['privacy:metadata:kahoodle_participants:totalscore'] = 'The total score earned by the participant.';
+$string['privacy:metadata:kahoodle_participants:userid'] = 'The ID of the user who participated.';
+$string['privacy:metadata:kahoodle_responses'] = 'Responses submitted by participants to questions.';
+$string['privacy:metadata:kahoodle_responses:iscorrect'] = 'Whether the response was correct.';
+$string['privacy:metadata:kahoodle_responses:points'] = 'Points earned for this response.';
+$string['privacy:metadata:kahoodle_responses:response'] = 'The answer submitted by the participant.';
+$string['privacy:metadata:kahoodle_responses:responsetime'] = 'Time taken to answer in seconds.';
+$string['privacy:metadata:kahoodle_responses:timecreated'] = 'The time the response was submitted.';
+$string['question'] = 'Question';
+$string['questionbehavior'] = 'Question behavior';
+$string['questioncounter'] = '{$a->current} of {$a->total}';
+$string['questionduration'] = 'Question duration, seconds';
+$string['questionduration_help'] = 'Time given to participants to answer each question.';
+$string['questionformat'] = 'Question format';
+$string['questionformat_help'] = 'Choose how questions are created. Plain text with image provides consistent display with a simple text input and optional image. Rich text allows full editor control but requires teachers to manage layout.';
+$string['questionformat_plain'] = 'Plain text with image';
+$string['questionformat_richtext'] = 'Rich text';
+$string['questionhasresponses'] = 'This question already has responses from participants. Some changes may not be allowed.';
+$string['questionimage'] = 'Question image';
+$string['questionnotfound'] = 'Question not found in editable round';
+$string['questionpreviewduration'] = 'Question preview duration, seconds';
+$string['questionpreviewduration_help'] = 'Time to preview the question before participants can answer.';
+$string['questionresultsduration'] = 'Question results duration, seconds';
+$string['questionresultsduration_help'] = 'Time to display the results after each question.';
+$string['questions'] = 'Questions';
+$string['questions_roundnoteditable'] = 'This round has already started. You can only make small changes but you can not add or delete questions.';
+$string['questionsanswered'] = 'Questions answered';
+$string['questiontext'] = 'Question text';
+$string['questiontype'] = 'Question type';
+$string['questiontype_multichoice'] = 'Multiple choice';
+$string['rank'] = 'Rank';
+$string['rankheader_completionnotmet'] = 'Next time!';
+$string['rankheader_medal'] = 'Congratulations!';
+$string['rankheader_other1'] = 'Well done!';
+$string['rankheader_other2'] = 'Good job!';
+$string['rankheader_other3'] = 'Nice work!';
+$string['rankheader_zeroscore'] = 'Keep trying!';
+$string['rankmotivation1'] = 'Keep going, you\'ll get points soon!';
+$string['rankmotivation2'] = 'Don\'t give up, try the next question!';
+$string['rankmotivation3'] = 'You\'re doing great, stay focused!';
+$string['rankmotivation4'] = 'Every point counts, keep trying!';
+$string['rankmotivation5'] = 'Stay motivated, your score will improve!';
+$string['rankrevisionzeroscore1'] = 'Thanks for playing! Every quiz is a learning opportunity.';
+$string['rankrevisionzeroscore2'] = 'Keep practicing and you\'ll improve next time!';
+$string['rankrevisionzeroscore3'] = 'Great effort! Try again to beat your score.';
+$string['rankrevisionzeroscore4'] = 'Learning takes time. Come back and try again!';
+$string['rankrevisionzeroscore5'] = 'You participated - that\'s what counts!';
+$string['rankstatus_completionnotmet'] = 'You needed {$a} more points to complete this activity.';
+$string['rankstatus_finished'] = 'You finished in {$a} place!';
+$string['rankstatus_finished_tied'] = 'You finished in {$a->rank} place tied with {$a->names}!';
+$string['rankstatus_inplace'] = 'You are in {$a} place.';
+$string['rankstatus_inplace_behind'] = 'You are in {$a->rank} place, {$a->points} points behind {$a->names}.';
+$string['rankstatus_inplace_tied'] = 'You are in {$a->rank} place tied with {$a->names}.';
+$string['rankstatus_inplace_tied_behind'] = 'You are in {$a->rank} place tied with {$a->tiednames}, {$a->points} points behind {$a->behindnames}.';
+$string['refresh'] = 'Refresh';
+$string['response'] = 'Response';
+$string['responsetime'] = 'Response time';
+$string['results'] = 'Results';
+$string['results_averagescore'] = 'Average score';
+$string['results_completed'] = 'Completed activity';
+$string['results_date'] = 'Date';
+$string['results_duration'] = 'Duration';
+$string['results_lobbyopened'] = 'Lobby opened';
+$string['results_maxscore'] = 'Max score';
+$string['results_participants'] = 'Participants';
+$string['results_status'] = 'Status';
+$string['results_status_completed'] = 'Completed';
+$string['results_status_inprogress'] = 'In progress';
+$string['results_status_preparation'] = 'Preparation';
+$string['results_status_revision'] = 'Revision';
+$string['results_viewparticipants'] = 'View participants';
+$string['results_viewstatistics'] = 'View statistics';
+$string['resume'] = 'Resume';
+$string['resume_facilitating'] = 'Resume facilitating';
+$string['resume_playing'] = 'Resume playing';
+$string['round'] = 'Round';
+$string['roundname'] = 'Round {$a}';
+$string['score'] = 'Score';
+$string['selectround'] = 'Select round';
+$string['showmore'] = 'Show more';
+$string['sortorder'] = 'Order';
+$string['sortorderx'] = 'Question {$a}';
+$string['startingsoonpleasewait'] = 'Starting soon, please wait';
+$string['startsin'] = 'Starts in';
+$string['statistics'] = 'Statistics';
+$string['status_leaders_stage'] = 'Great job everyone! Get ready for the next question...';
+$string['status_revision_stage'] = 'Thanks for participating!';
+$string['suspenserevisionheader'] = 'Drumroll, please!';
+$string['timeup'] = 'Time\'s up!';
+$string['timing'] = 'Timing';
+$string['topwinners'] = 'Top winners';
+$string['totalparticipants'] = 'Total participants';
+$string['totalresponses'] = 'Total responses';
+$string['twonames'] = '{$a->one} and {$a->two}';
+$string['version'] = 'Version';
+$string['viewanswers'] = 'View answers';
+$string['viewresults'] = 'View results';
+$string['waitingforresults'] = 'Waiting for results...';
+$string['waitingmessage1'] = 'Quick answer!';
+$string['waitingmessage10'] = 'Ready for results?';
+$string['waitingmessage11'] = 'Nailed it?';
+$string['waitingmessage12'] = 'Feeling confident?';
+$string['waitingmessage13'] = 'Good choice?';
+$string['waitingmessage14'] = 'Time to find out!';
+$string['waitingmessage15'] = 'Suspense!';
+$string['waitingmessage2'] = 'Was it right?';
+$string['waitingmessage3'] = 'Let\'s see...';
+$string['waitingmessage4'] = 'Fingers crossed!';
+$string['waitingmessage5'] = 'Locked in!';
+$string['waitingmessage6'] = 'You\'re in!';
+$string['waitingmessage7'] = 'Nice one!';
+$string['waitingmessage8'] = 'Hold tight!';
+$string['waitingmessage9'] = 'Almost there!';

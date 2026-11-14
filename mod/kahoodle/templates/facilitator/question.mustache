@@ -1,0 +1,86 @@
+{{!
+    This file is part of mod_kahoodle plugin
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_kahoodle/facilitator/question
+
+    Question progress display during a quiz round.
+
+    Context variables required for this template:
+    * quiztitle - The title of the quiz/kahoodle activity
+    * sortorder - Current question number
+    * totalquestions - Total number of questions in the round
+    * questiontext - The question text to display
+    * hasimage - Boolean indicating if question has an image
+    * imageurl - URL of the question image (optional)
+    * imagelandscape - Boolean indicating if image is landscape orientation
+    * imagealt - Alt text for the question image
+    * questiontype - Question type identifier (e.g., "multichoice")
+    * typeismultichoice - Boolean true if questiontype is "multichoice" (added by JS)
+    * typedata - Object containing type-specific data (decoded from JSON by JS)
+    * cancontrol - Boolean indicating if user can control the quiz (teacher)
+    * isedit - Boolean indicating if it is rendered for teachers when they edit the questions
+    * backgroundurl - URL for background image (optional)
+
+    For multichoice questions, typedata contains:
+    * options - Array of answer options
+    * optioncount - Number of options (2-8)
+    * manyoptions - Boolean indicating if there are more than 4 options
+
+    Example context (json):
+    {
+        "quiztitle": "Geography & World Facts Quiz",
+        "sortorder": 36,
+        "totalquestions": 42,
+        "questiontext": "How long would it take to walk around the world's perimeter?",
+        "hasimage": true,
+        "imageurl": "https://example.com/globe.jpg",
+        "imagelandscape": true,
+        "imagealt": "Earth globe",
+        "questiontype": "multichoice",
+        "typeismultichoice": true,
+        "typedata": {
+        }
+    }
+}}
+<div class="mod_kahoodle-overlay" {{#backgroundurl}}style="background-image: url('{{backgroundurl}}');"{{/backgroundurl}}>
+
+    {{> mod_kahoodle/facilitator/common/questionheader }}
+
+    {{! Main content: Question, image, and options }}
+    <main class="mod_kahoodle-main" data-stage="question" data-questiontype="{{questiontype}}">
+
+        {{! Question text }}
+        <div class="mod_kahoodle-question">
+            {{{questiontext}}}
+        </div>
+
+        {{! Question image }}
+        {{#hasimage}}
+        <div class="mod_kahoodle-image-container">
+            <img src="{{imageurl}}" alt="{{imagealt}}" class="mod_kahoodle-image{{#imagelandscape}} mod_kahoodle-image-landscape{{/imagelandscape}}">
+        </div>
+        {{/hasimage}}
+
+        {{! Question type specific content }}
+        {{$ question_type_contents }}
+        {{/ question_type_contents }}
+
+    </main>
+
+    {{> mod_kahoodle/facilitator/common/footer }}
+
+</div>
