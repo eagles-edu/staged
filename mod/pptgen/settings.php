@@ -36,10 +36,10 @@ if ($ADMIN->fulltree) {
         'local_pptgen/aiprovider',
         get_string('aiprovider', $component),
         get_string('aiprovider_desc', $component),
-        'gemini',
+        'openai',
         [
             'gemini' => 'Google Gemini',
-            'openai' => 'OpenAI (GPT-4)',
+            'openai' => 'OpenAI (GPT)',
             'custom' => 'Custom API (DeepSeek/Llama)',
         ]
     ));
@@ -78,7 +78,7 @@ if ($ADMIN->fulltree) {
         'local_pptgen/openaimodel',
         get_string('openaimodel', $component),
         get_string('openaimodel_desc', $component),
-        'gpt-4-turbo',
+        'gpt-6-luna',
         PARAM_TEXT
     ));
 

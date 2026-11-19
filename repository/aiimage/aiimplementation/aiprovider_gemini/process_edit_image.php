@@ -1,0 +1,130 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace aiprovider_gemini;
+
+use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
+use GuzzleHttp\Psr7\Uri;
+
+/**
+ * Class process_edit_image
+ *
+ * @package    repository_aiimage
+ * @copyright  2025 Justin Hunt <justin@poodll.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class process_edit_image extends process_generate_image {
+    /**
+     * Create the request object to send to the API.
+     *
+     * @param string $userid The user id making the request.
+     * @return RequestInterface
+     */
+    #[\Override]
+    protected function create_request_object(string $userid): RequestInterface {
+        /** @var \stored_file $storedfile */
+        $storedfile = $this->action->get_storedfile();
+
+        $requestobj = [
+            'contents' => [
+                [
+                    'parts' => [
+                        [
+                            'text' => $this->action->get_configuration('prompttext'),
+                        ],
+                        [
+                            'inline_data' => [
+                                'mime_type' => $storedfile->get_mimetype(),
+                                'data' => base64_encode($storedfile->get_content()),
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return new Request(
+            method: 'POST',
+            uri: '',
+            body: json_encode($requestobj),
+            headers: [
+                'Content-Type' => 'application/json',
+            ],
+        );
+    }
+
+    /**
+     * Handle a successful API response.
+     *
+     * @param ResponseInterface $response The response from the API.
+     * @return array The processed response data.
+     */
+    #[\Override]
+    protected function handle_api_success(ResponseInterface $response): array {
+        /** @var \stored_file $storedfile */
+        $storedfile = $this->action->get_storedfile();
+        $responsebody = $response->getBody();
+        $bodyobj = json_decode($responsebody);
+
+        $candidates = $bodyobj->candidates;
+
+        // I have only one image.
+        foreach ($candidates[0]->content->parts as $part) {
+            if (isset($part->inlineData->data)) {
+                $generatedimage = $part->inlineData->data;
+
+                // Return in the expected format.
+                return [
+                    'success' => true,
+                    'imagebase64' => $generatedimage,
+                    'sourceurl' => (string) \moodle_url::make_draftfile_url(
+                        $storedfile->get_itemid(),
+                        $storedfile->get_filepath(),
+                        $storedfile->get_filename()
+                    ),
+                ];
+            }
+        }
+
+        return [
+            'success' => false,
+        ];
+    }
+
+    /**
+     * Get the endpoint URI.
+     *
+     * @return UriInterface
+     */
+    #[\Override]
+    protected function get_endpoint(): UriInterface {
+        $requrl = "https://generativelanguage.googleapis.com/v1beta/models/{$this->get_model()}:generateContent";
+        return new Uri($requrl);
+    }
+
+    /**
+     * Get the name of the model to use.
+     *
+     * @return string
+     */
+    #[\Override]
+    protected function get_model(): string {
+        return 'gemini-2.5-flash-image';
+    }
+}

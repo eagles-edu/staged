@@ -53,7 +53,8 @@ class participants {
             || ($identitymode === constants::IDENTITYMODE_OPTIONAL
                 && ($displayname === null || trim($displayname) === ''));
         if ($userealidentity) {
-            $displayname = fullname($USER);
+            // The displayname column holds 100 characters.
+            $displayname = \core_text::substr(fullname($USER), 0, 100);
         } else {
             $displayname = \core_text::substr(trim($displayname ?? ''), 0, constants::DISPLAYNAME_MAXLENGTH);
         }
@@ -256,19 +257,19 @@ class participants {
         }
         $response = download_file_content($url, null, null, true, 5, 3);
         if ($response->status == 200 && !empty($response->results)) {
-            $mimetype = $response->headers['Content-Type'] ?? 'image/png';
-            // Strip any charset or parameters from the Content-Type header.
-            $mimetype = trim(explode(';', $mimetype)[0]);
-            $ext = match ($mimetype) {
+            $imageinfo = @getimagesizefromstring($response->results);
+            $ext = match ($imageinfo['mime'] ?? '') {
+                'image/png' => 'png',
                 'image/jpeg' => 'jpg',
                 'image/gif' => 'gif',
                 'image/webp' => 'webp',
-                'image/svg+xml' => 'svg',
-                default => 'png',
+                default => null,
             };
-            $filerecord['filename'] = "profile.$ext";
-            $fs->create_file_from_string($filerecord, $response->results);
-            return "profile.$ext";
+            if ($ext !== null) {
+                $filerecord['filename'] = "profile.$ext";
+                $fs->create_file_from_string($filerecord, $response->results);
+                return "profile.$ext";
+            }
         }
 
         return null;

@@ -23,6 +23,10 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/mod/kahoodle/lib.php');
 
+#[\PHPUnit\Framework\Attributes\CoversFunction('kahoodle_supports')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('kahoodle_delete_instance')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('mod_kahoodle_inplace_editable')]
+#[\PHPUnit\Framework\Attributes\CoversFunction('mod_kahoodle_realtime_event_received')]
 /**
  * Tests for Kahoodle lib.php callback functions
  *
@@ -217,6 +221,6 @@ final class lib_test extends \advanced_testcase {
 
         // JSON "true" must not be treated as the "advance" action.
         $result = mod_kahoodle_realtime_event_received(['action' => true, 'roundid' => $round->get_id()]);
-        $this->assertEquals(['error' => 'Invalid action'], $result);
+        $this->assertEquals(['error' => get_string('invalidaction', 'error')], $result);
     }
 }

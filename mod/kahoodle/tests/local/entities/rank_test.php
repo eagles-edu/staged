@@ -19,6 +19,7 @@ namespace mod_kahoodle\local\entities;
 use mod_kahoodle\constants;
 use mod_kahoodle\local\game\questions;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_kahoodle\local\entities\rank::class)]
 /**
  * Tests for rank entity display methods
  *
@@ -353,6 +354,13 @@ final class rank_test extends \advanced_testcase {
                 'tiewithnames' => ['Bob', 'Charlie'],
                 'expected' => 'You finished in 1-3rd place tied with Bob and Charlie!',
             ],
+            'revision, tied with a name that needs escaping' => [
+                'score' => 500,
+                'minrank' => 1,
+                'maxrank' => 2,
+                'tiewithnames' => ['Tom & Jerry'],
+                'expected' => 'You finished in 1-2nd place tied with Tom &amp; Jerry!',
+            ],
             'revision, rank range with tie' => [
                 'score' => 200,
                 'minrank' => 4,
@@ -363,6 +371,7 @@ final class rank_test extends \advanced_testcase {
         ];
     }
 
+    #[\PHPUnit\Framework\Attributes\DataProvider('revision_rank_message_provider')]
     /**
      * Test get_rank_message via get_data_for_revision
      *
@@ -523,6 +532,7 @@ final class rank_test extends \advanced_testcase {
         ];
     }
 
+    #[\PHPUnit\Framework\Attributes\DataProvider('question_results_rank_message_provider')]
     /**
      * Test get_rank_message via get_data_for_question_results
      *

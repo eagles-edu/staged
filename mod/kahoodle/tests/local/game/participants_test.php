@@ -21,6 +21,7 @@ use mod_kahoodle\local\entities\participant;
 use mod_kahoodle\local\entities\round;
 use mod_kahoodle\local\game\questions;
 
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_kahoodle\local\game\participants::class)]
 /**
  * Tests for participant game management
  *
@@ -98,13 +99,41 @@ final class participants_test extends \advanced_testcase {
             $DB->get_field('kahoodle_participants', 'displayname', $params)
         );
 
-        // Without a nickname, the escaped full name is displayed.
+        // Without a nickname, the full name is displayed, as plain text.
         $user3 = $this->getDataGenerator()->create_and_enrol($course, 'student', ['firstname' => 'Tom & Jerry']);
         $this->setUser($user3);
         participants::join_round($round, '   ');
         $participant = $round->is_participant();
-        $this->assertEquals(s(fullname($user3)), $participant->get_display_name());
-        $this->assertStringContainsString('Tom &amp; Jerry', $participant->get_display_name());
+        $this->assertEquals(fullname($user3), $participant->get_display_name());
+        $this->assertStringContainsString('Tom & Jerry', $participant->get_display_name());
+    }
+
+    /**
+     * A user whose full name is longer than the displayname column can still join in the real name mode
+     */
+    public function test_join_round_long_real_name(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $kahoodle = $this->getDataGenerator()->create_module('kahoodle', [
+            'course' => $course->id,
+            'identitymode' => constants::IDENTITYMODE_REALNAME,
+        ]);
+        $round = questions::get_last_round($kahoodle->id);
+        $user = $this->getDataGenerator()->create_and_enrol($course, 'student', [
+            'firstname' => str_repeat('名', 100),
+            'lastname' => str_repeat('姓', 100),
+        ]);
+        $this->setUser($user);
+
+        participants::join_round($round, null);
+
+        $params = ['roundid' => $round->get_id(), 'userid' => $user->id];
+        $this->assertEquals(
+            \core_text::substr(fullname($user), 0, 100),
+            $DB->get_field('kahoodle_participants', 'displayname', $params)
+        );
     }
 
     /**
@@ -313,20 +342,51 @@ final class participants_test extends \advanced_testcase {
         $pid = $generator->create_participant(['roundid' => $round->get_id(), 'userid' => $user->id]);
 
         // Mock the HTTP response so download_file_content succeeds.
-        $fakecontent = 'fake-downloaded-image';
-        \curl::mock_response($fakecontent);
+        ob_start();
+        imagejpeg(imagecreatetruecolor(2, 2));
+        $jpeg = ob_get_clean();
+        \curl::mock_response($jpeg);
 
         $filename = participants::save_profile_picture_to_avatar($round, $pid);
 
-        // Mock response has no Content-Type header, so defaults to png.
-        $this->assertEquals('profile.png', $filename);
+        // The extension comes from the downloaded bytes.
+        $this->assertEquals('profile.jpg', $filename);
 
         // Verify the file was stored with the downloaded content.
         $fs = get_file_storage();
         $context = $round->get_context();
-        $file = $fs->get_file($context->id, 'mod_kahoodle', constants::FILEAREA_AVATAR, $pid, '/', 'profile.png');
+        $file = $fs->get_file($context->id, 'mod_kahoodle', constants::FILEAREA_AVATAR, $pid, '/', 'profile.jpg');
         $this->assertNotFalse($file);
-        $this->assertEquals($fakecontent, $file->get_content());
+        $this->assertEquals($jpeg, $file->get_content());
+    }
+
+    /**
+     * Test save_profile_picture_to_avatar stores nothing when the download is not a raster image.
+     */
+    public function test_save_profile_picture_download_not_an_image(): void {
+        global $CFG;
+        $this->resetAfterTest();
+
+        $CFG->enablegravatar = true;
+        $course = $this->getDataGenerator()->create_course();
+        $kahoodle = $this->getDataGenerator()->create_module('kahoodle', [
+            'course' => $course->id,
+            'identitymode' => constants::IDENTITYMODE_REALNAME,
+        ]);
+        $round = questions::get_last_round($kahoodle->id);
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        /** @var \mod_kahoodle_generator $generator */
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_kahoodle');
+        $pid = $generator->create_participant(['roundid' => $round->get_id(), 'userid' => $user->id]);
+
+        \curl::mock_response('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+
+        $this->assertNull(participants::save_profile_picture_to_avatar($round, $pid));
+        $contextid = $round->get_context()->id;
+        $files = get_file_storage()->get_area_files($contextid, 'mod_kahoodle', constants::FILEAREA_AVATAR, $pid, 'id', false);
+        $this->assertEmpty($files);
     }
 
     /**

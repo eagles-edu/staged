@@ -38,19 +38,21 @@ class generator {
         // Call the appropriate API
         if ($provider === 'custom') {
             $text = self::call_custom($prompt, $slides);
-        } else {
-            // Default to Gemini
+        } else if ($provider === 'gemini') {
             $text = self::call_gemini($prompt, $slides);
+        } else {
+            // Default to OpenAI.
+            $text = self::call_openai($prompt, $slides);
         }
 
         if (empty($text)) {
-            throw new \moodle_exception('No response from AI provider');
+            throw new \moodle_exception('error_no_response', 'pptgen');
         }
 
         $structured_slides = self::parse_slides($text);
 
         if (empty($structured_slides)) {
-            throw new \moodle_exception('Could not parse slides from response');
+            throw new \moodle_exception('error_parse_slides', 'pptgen');
         }
 
         $structured_slides = array_slice($structured_slides, 0, $slides);
@@ -67,7 +69,7 @@ class generator {
         $apikey = get_config('local_pptgen', 'geminiapikey');
 
         if (empty($apikey)) {
-            throw new \moodle_exception('Gemini API key not configured');
+            throw new \moodle_exception('error_gemini_nokey', 'pptgen');
         }
 
         $system_prompt = "You are a professional PowerPoint presentation creator.
@@ -96,7 +98,7 @@ Rules:
             ]],
             'generationConfig' => [
                 'temperature' => 0.7,
-                'maxOutputTokens' => 2000
+                'maxOutputTokens' => 8192
             ]
         ];
 
@@ -106,21 +108,92 @@ Rules:
             'CURLOPT_HTTPHEADER' => ['Content-Type: application/json']
         ];
         
-        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $apikey;
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' . $apikey;
         $response = $curl->post($url, json_encode($payload), $options);
         $info = $curl->get_info();
 
         if ($info['http_code'] !== 200) {
-             throw new \moodle_exception('Gemini API error: HTTP ' . $info['http_code']);
+             throw new \moodle_exception('error_gemini_http', 'pptgen', '', $info['http_code']);
         }
 
         $json = json_decode($response, true);
         if (!isset($json['candidates'][0]['content']['parts'][0]['text'])) {
-             throw new \moodle_exception('Invalid Gemini response format');
+             throw new \moodle_exception('error_gemini_format', 'pptgen');
+        }
+
+        if (($json['candidates'][0]['finishReason'] ?? '') === 'MAX_TOKENS') {
+             throw new \moodle_exception('error_gemini_truncated', 'pptgen');
         }
 
         $raw_text = $json['candidates'][0]['content']['parts'][0]['text'];
         return $raw_text;
+    }
+
+    /**
+     * CALL OPENAI CHAT COMPLETIONS API
+     */
+    private static function call_openai(string $prompt, int $slides): string {
+        $apikey = get_config('local_pptgen', 'openaiapikey');
+        $model = get_config('local_pptgen', 'openaimodel');
+
+        if (empty($apikey)) {
+            throw new \moodle_exception('error_openai_nokey', 'pptgen');
+        }
+        if (empty($model)) {
+            $model = 'gpt-6-luna';
+        }
+
+        $system_prompt = "You are a professional PowerPoint presentation creator.
+Generate exactly {$slides} slides with clean, professional content.
+For each slide, use this EXACT format:
+---SLIDE START---
+[SLIDE TITLE]
+[BULLET POINT 1]
+[BULLET POINT 2]
+[BULLET POINT 3]
+[BULLET POINT 4]
+---SLIDE END---
+Rules:
+- Title should be 5-10 words max
+- Each bullet should be 10-15 words max
+- Use 3-4 bullets per slide
+- No speaker notes, no metadata, no instructions
+- No explanations before or after the slides
+- Only output the slide content in the format above";
+
+        $payload = [
+            'model' => $model,
+            'messages' => [
+                ['role' => 'system', 'content' => $system_prompt],
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'max_completion_tokens' => 16384
+        ];
+
+        $curl = new \curl();
+        $options = [
+            'CURLOPT_HTTPHEADER' => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apikey
+            ]
+        ];
+
+        $response = $curl->post('https://api.openai.com/v1/chat/completions', json_encode($payload), $options);
+        $info = $curl->get_info();
+
+        if ($info['http_code'] !== 200) {
+            throw new \moodle_exception('error_openai_http', 'pptgen', '', $info['http_code']);
+        }
+
+        $json = json_decode($response, true);
+        if (!isset($json['choices'][0]['message']['content'])) {
+            throw new \moodle_exception('error_openai_format', 'pptgen');
+        }
+        if (($json['choices'][0]['finish_reason'] ?? '') === 'length') {
+            throw new \moodle_exception('error_openai_truncated', 'pptgen');
+        }
+
+        return $json['choices'][0]['message']['content'];
     }
 
     /**
@@ -174,7 +247,7 @@ Rules:
         $info = $curl->get_info();
 
         if ($info['http_code'] !== 200) {
-            throw new \moodle_exception("Ollama API Error (HTTP {$info['http_code']}). Make sure 'ollama serve' is running.");
+            throw new \moodle_exception('error_ollama_http', 'pptgen', '', $info['http_code']);
         }
 
         $json = json_decode($response, true);
@@ -182,7 +255,7 @@ Rules:
             $raw_text = $json['choices'][0]['message']['content'];
             return $raw_text;
         } else {
-            throw new \moodle_exception('Invalid Ollama response format');
+            throw new \moodle_exception('error_ollama_format', 'pptgen');
         }
     }
 
@@ -237,14 +310,14 @@ Rules:
         $template = __DIR__ . '/../template/template.pptx'; 
         
         if (!file_exists($template)) {
-             throw new \moodle_exception('PPT template not found at: ' . $template);
+             throw new \moodle_exception('error_template_missing', 'pptgen', '', $template);
         }
         
         copy($template, $pptxpath);
         
         $zip = new \ZipArchive();
         if ($zip->open($pptxpath) !== true) {
-             throw new \moodle_exception('Unable to open PPTX file');
+             throw new \moodle_exception('error_pptx_open', 'pptgen');
         }
 
         $template_count = 0;
@@ -254,11 +327,20 @@ Rules:
 
         $requested_count = count($slides);
 
+        // Package-level parts are edited in memory and written once: re-reading an entry that
+        // was replaced earlier in the same ZipArchive session returns empty content.
+        $parts = [
+            'content_types' => $zip->getFromName('[Content_Types].xml'),
+            'pres_rels' => $zip->getFromName('ppt/_rels/presentation.xml.rels'),
+            'pres' => $zip->getFromName('ppt/presentation.xml'),
+            'core' => $zip->getFromName('docProps/core.xml'),
+        ];
+
         // EXPAND
         if ($requested_count > $template_count) {
             $last_slide_index = $template_count;
             for ($new_index = $template_count + 1; $new_index <= $requested_count; $new_index++) {
-                self::clone_slide_complete($zip, $last_slide_index, $new_index);
+                self::clone_slide_complete($zip, $last_slide_index, $new_index, $parts);
             }
         }
 
@@ -269,15 +351,31 @@ Rules:
                 if ($zip->locateName("ppt/slides/_rels/slide{$i}.xml.rels") !== false) {
                     $zip->deleteName("ppt/slides/_rels/slide{$i}.xml.rels");
                 }
+                // Drop the package references to the removed slide so no dangling part remains.
+                $parts['content_types'] = preg_replace('#<Override PartName="/ppt/slides/slide' . $i . '\.xml"[^>]*/>#', '', $parts['content_types']);
+                $parts['pres_rels'] = preg_replace('#<Relationship [^>]*Target="slides/slide' . $i . '\.xml"[^>]*/>#', '', $parts['pres_rels']);
             }
             // Clean presentation.xml
-            $pres_xml = $zip->getFromName('ppt/presentation.xml');
-            if (preg_match('/(<p:sldIdLst>)(.*?)(<\/p:sldIdLst>)/s', $pres_xml, $matches)) {
+            if (preg_match('/(<p:sldIdLst>)(.*?)(<\/p:sldIdLst>)/s', $parts['pres'], $matches)) {
                 preg_match_all('/<p:sldId\s+[^>]*\/>/', $matches[2], $slide_ids);
                 $kept_ids = array_slice($slide_ids[0], 0, $requested_count);
                 $new_list = $matches[1] . implode('', $kept_ids) . $matches[3];
-                $zip->addFromString('ppt/presentation.xml', str_replace($matches[0], $new_list, $pres_xml));
+                $parts['pres'] = str_replace($matches[0], $new_list, $parts['pres']);
             }
+        }
+
+        $zip->addFromString('[Content_Types].xml', $parts['content_types']);
+        $zip->addFromString('ppt/_rels/presentation.xml.rels', $parts['pres_rels']);
+        $zip->addFromString('ppt/presentation.xml', $parts['pres']);
+        if ($parts['core'] !== false) {
+            $cover_title = htmlspecialchars($slides[0]['title'] ?? '', ENT_XML1, 'UTF-8');
+            $zip->addFromString('docProps/core.xml', str_replace('{{TITLE}}', $cover_title, $parts['core']));
+        }
+        $zip->close();
+
+        // Reopen so slide reads see the expanded package.
+        if ($zip->open($pptxpath) !== true) {
+             throw new \moodle_exception('error_pptx_open', 'pptgen');
         }
 
         // UPDATE CONTENT
@@ -286,7 +384,11 @@ Rules:
             $slidefile = "ppt/slides/slide{$slide_index}.xml";
             if ($zip->locateName($slidefile) !== false) {
                 $xml = $zip->getFromName($slidefile);
-                $xml = self::update_slide_xml($xml, $slides[$i]);
+                $slide = $slides[$i];
+                if ($i === 0) {
+                    $slide['subtitle'] = $slide['bullets'][0] ?? '';
+                }
+                $xml = self::update_slide_xml($xml, $slide);
                 $zip->addFromString($slidefile, $xml);
             }
         }
@@ -316,7 +418,7 @@ Rules:
     /**
      * CLONE SLIDE (Internal)
      */
-    private static function clone_slide_complete($zip, $source_index, $new_index) {
+    private static function clone_slide_complete($zip, $source_index, $new_index, array &$parts) {
         $slide_xml = $zip->getFromName("ppt/slides/slide{$source_index}.xml");
         $slide_rels = $zip->getFromName("ppt/slides/_rels/slide{$source_index}.xml.rels");
         
@@ -328,25 +430,23 @@ Rules:
         }
         
         // Content Types
-        $content_types = $zip->getFromName('[Content_Types].xml');
+        $content_types = $parts['content_types'];
         if (strpos($content_types, "/ppt/slides/slide{$new_index}.xml") === false) {
             $new_override = '<Override PartName="/ppt/slides/slide'.$new_index.'.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>';
-            $content_types = str_replace('</Types>', $new_override.'</Types>', $content_types);
-            $zip->addFromString('[Content_Types].xml', $content_types);
+            $parts['content_types'] = str_replace('</Types>', $new_override.'</Types>', $content_types);
         }
         
         // Relationships
-        $pres_rels_xml = $zip->getFromName('ppt/_rels/presentation.xml.rels');
+        $pres_rels_xml = $parts['pres_rels'];
         preg_match_all('/Id="rId(\d+)"/', $pres_rels_xml, $rid_matches);
         $max_rid = empty($rid_matches[1]) ? 2 : max(array_map('intval', $rid_matches[1]));
         $new_rid = 'rId' . ($max_rid + 1);
         
         $new_rel = '<Relationship Id="'.$new_rid.'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide'.$new_index.'.xml"/>';
-        $pres_rels_xml = str_replace('</Relationships>', $new_rel.'</Relationships>', $pres_rels_xml);
-        $zip->addFromString('ppt/_rels/presentation.xml.rels', $pres_rels_xml);
+        $parts['pres_rels'] = str_replace('</Relationships>', $new_rel.'</Relationships>', $pres_rels_xml);
         
         // Presentation XML
-        $pres_xml = $zip->getFromName('ppt/presentation.xml');
+        $pres_xml = $parts['pres'];
         preg_match_all('/<p:sldId id="(\d+)"/', $pres_xml, $sid_matches);
         $max_sid = empty($sid_matches[1]) ? 256 : max(array_map('intval', $sid_matches[1]));
         $new_sid = $max_sid + 1;
@@ -354,8 +454,7 @@ Rules:
         $new_slide_entry = '<p:sldId id="'.$new_sid.'" r:id="'.$new_rid.'"/>';
         if (preg_match('/(<p:sldIdLst>)(.*?)(<\/p:sldIdLst>)/s', $pres_xml, $list_matches)) {
             $new_list = $list_matches[1] . $list_matches[2] . $new_slide_entry . $list_matches[3];
-            $pres_xml = str_replace($list_matches[0], $new_list, $pres_xml);
-            $zip->addFromString('ppt/presentation.xml', $pres_xml);
+            $parts['pres'] = str_replace($list_matches[0], $new_list, $pres_xml);
         }
         return true;
     }
@@ -366,11 +465,24 @@ Rules:
     private static function update_slide_xml(string $xml, array $slide): string {
         $title = htmlspecialchars($slide['title'], ENT_XML1, 'UTF-8');
         $bullets = $slide['bullets'] ?? [];
-        
+
+        // Reuse the template's body paragraph and run formatting (size, font, bullets).
+        // The master has no bodyStyle, so bare paragraphs would fall back to 18pt.
+        $body_ppr = '<a:pPr lvl="0"/>';
+        $body_rpr = '';
+        if (preg_match('/<p:cNvPr id="\d+" name="Content Placeholder[^"]*"(?:(?!<\/p:sp>).)*?<p:txBody>(.*?)<\/p:txBody>/is', $xml, $body_match)) {
+            if (preg_match('/<a:pPr\b[^>]*\/>|<a:pPr\b[^>]*>.*?<\/a:pPr>/s', $body_match[1], $ppr_match)) {
+                $body_ppr = $ppr_match[0];
+            }
+            if (preg_match('/<a:rPr\b[^>]*\/>|<a:rPr\b[^>]*>.*?<\/a:rPr>/s', $body_match[1], $rpr_match)) {
+                $body_rpr = $rpr_match[0];
+            }
+        }
+
         $bullets_xml = '';
         foreach ($bullets as $bullet) {
             $bullet_text = htmlspecialchars($bullet, ENT_XML1, 'UTF-8');
-            $bullets_xml .= '<a:p><a:pPr lvl="0"/><a:r><a:rPr lang="en-US" dirty="0" smtClean="0"/><a:t>' . $bullet_text . '</a:t></a:r><a:endParaRPr lang="en-US" dirty="0"/></a:p>';
+            $bullets_xml .= '<a:p>' . $body_ppr . '<a:r>' . $body_rpr . '<a:t>' . $bullet_text . '</a:t></a:r><a:endParaRPr lang="en-US" dirty="0"/></a:p>';
         }
         
         $xml = preg_replace_callback(
@@ -386,8 +498,15 @@ Rules:
             1
         );
         
+        $subtitle = $slide['subtitle'] ?? '';
+        if ($subtitle === '') {
+            $xml = preg_replace('#<p:sp\b(?:(?!</p:sp>).)*?<a:t>\{\{SUBTITLE\}\}</a:t>.*?</p:sp>#s', '', $xml, 1);
+        } else {
+            $xml = str_replace('<a:t>{{SUBTITLE}}</a:t>', '<a:t>' . htmlspecialchars($subtitle, ENT_XML1, 'UTF-8') . '</a:t>', $xml);
+        }
+
         $xml = preg_replace(
-            '/(<p:cNvPr id="3"[^>]*>.*?<p:txBody>).*?(<\/p:txBody><\/p:sp>)/is',
+            '/(<p:sp\b(?:(?!<\/p:sp>).)*?<p:cNvPr id="\d+" name="Content Placeholder[^"]*"(?:(?!<\/p:sp>).)*?<p:txBody>).*?(<\/p:txBody><\/p:sp>)/is',
             '$1<a:bodyPr/><a:lstStyle/>' . $bullets_xml . '$2',
             $xml,
             1

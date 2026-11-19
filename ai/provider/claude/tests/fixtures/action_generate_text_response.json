@@ -1,0 +1,35 @@
+{
+  "model": "claude-fable-5",
+  "id": "msg_01TXAQww627LmSB5KAGToFLM",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "",
+      "signature": "CAIS4gEKYggPGAIqQGwBtOnyPbP/E+Vr4hVbBozh6Su6zj4PIQ/lImDiaXo5MgtspPQl+fpDQH7L7isWtuiO3x8eCVG/YhH96gklABQyDmNsYXVkZS1mYWJsZS01OAFCCHRoaW5raW5nEgwK2oqERLKMSXRQp5UaDK+AQY0H91ph89TBGSIwnUvwRByUydcT8z/pgZbzG2ZnYQ9jRsu2rC7joFbkqELhWAJeuAcMzJsbE+my9gqyKi4uGQVg58XxpcIDUzex+Q/6RWTESdXiogKIwosb4KW52SJcl4NWTbtRDuHHOfi3GAE="
+    },
+    {
+      "type": "text",
+      "text": "Moodle is a free online learning platform that teachers and schools use to create websites for their courses. It lets teachers share lessons, assignments, quizzes, and videos with students over the internet. Students can log in to access study materials, submit homework, take tests, and communicate with teachers and classmates. Think of it as a virtual classroom where teaching and learning can happen anytime and anywhere."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 89,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 137,
+    "output_tokens_details": {
+      "thinking_tokens": 12
+    },
+    "service_tier": "standard",
+    "inference_geo": "global"
+  }
+}

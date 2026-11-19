@@ -1,0 +1,29 @@
+#quiz-bgwatermark-overlay {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.12; /* default, can be overridden by inline style or JS */
+    pointer-events: none; /* don't block clicks */
+    z-index: 1;
+}
+
+.apply-to-question-areas #quiz-bgwatermark-overlay,
+#quiz-bgwatermark-overlay.apply-to-question-areas {
+    position: absolute;
+}
+
+#page {
+    position: relative;
+}
+
+.quiz-bgwatermark-inline {
+    opacity: 0.12;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+
