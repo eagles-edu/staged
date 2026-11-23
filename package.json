@@ -168,7 +168,7 @@
     "dom-serializer": "^2.0.0",
     "dotenv": "^17.4.2",
     "fast-xml-parser": "^5.10.0",
-    "glob": ">=11.1.0",
+    "glob": ">=14.0.6",
     "js-yaml": "^4.3.1",
     "nodemailer": "^10.2.1",
     "pdfkit": "^0.19.1",
