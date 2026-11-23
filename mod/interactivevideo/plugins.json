@@ -1,0 +1,437 @@
+{
+    "subplugins": [
+        {
+            "name": "fbvdopro",
+            "title": "Video Pro",
+            "component": "local_fbvdopro",
+            "description": "A video interaction with custom player controls, uploadable subtitles, and playback locked to the active tab.",
+            "icon": "bi bi-play-btn-fill",
+            "version": "2026111000",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_fbvdopro",
+            "git": "https://github.com/sokunthearithmakara/local_fbvdopro/archive/refs/heads/master.zip",
+            "support": [
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "modelviewer",
+            "title": "3D Model Viewer",
+            "component": "local_ivmodelviewer",
+            "description": "Display 3D models in the interactive video/flexbook.",
+            "icon": "bi bi-3d-circle",
+            "version": "2026100100",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivmodelviewer",
+            "git": "https://github.com/sokunthearithmakara/local_ivmodelviewer/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "question",
+            "title": "Question",
+            "component": "local_ivquestion",
+            "description": "Add a single MCQ to the interactive video/flexbook.",
+            "icon": "bi bi-question",
+            "version": "2026101400",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivquestion",
+            "git": "https://github.com/sokunthearithmakara/local_ivquestion/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "quiz",
+            "title": "AI Quiz",
+            "component": "local_ivquiz",
+            "description": "Assess learners with AI-generated questions.",
+            "icon": "bi bi-check2-square",
+            "version": "2026100100",
+            "type": "paid",
+            "description_url": "https://youtu.be/Et4MFEjCUH0",
+            "download_url": "https://tmakara.com/shop/item/local_ivquiz",
+            "git": "https://github.com/sokunthearithmakara/ivquiz/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "videotrack",
+            "title": "Video Track",
+            "component": "local_ivvideotrack",
+            "description": "Add multiple video tracks to the main activity.",
+            "icon": "bi bi-collection-play",
+            "version": "20260100100",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivvideotrack",
+            "git": "https://github.com/sokunthearithmakara/local_ivvideotrack/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "audiotrack",
+            "title": "Audio Track",
+            "component": "local_ivaudiotrack",
+            "description": "Add alternative audio tracks to the video",
+            "icon": "bi bi-headset",
+            "version": "2026100100",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivaudiotrack",
+            "git": "https://github.com/sokunthearithmakara/local_ivaudiotrack/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "rajabsgames",
+            "title": "Rajab's Games",
+            "component": "block_rajabsgames",
+            "description": "Add game components such as leaderboard, points, levels and badges to your course that integrate with Interactive Video.",
+            "icon": "bi bi-shield-fill-check",
+            "version": "2026110300",
+            "type": "free",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/block_rajabsgames",
+            "git": "https://github.com/sokunthearithmakara/block_rajabsgames/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "reaction",
+            "title": "Reaction",
+            "component": "local_ivreaction",
+            "description": "Allow viewers to react to the video with emojis and comments.",
+            "icon": "bi bi-chat-left-heart",
+            "version": "2026111000",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivreaction",
+            "git": "https://github.com/sokunthearithmakara/local_ivreaction/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "form",
+            "title": "Form",
+            "component": "local_ivform",
+            "description": "Collect form responses from users in interactive video/flexbook.",
+            "icon": "bi bi-bar-chart-line-fill",
+            "version": "2026111000",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivform",
+            "git": "https://github.com/sokunthearithmakara/local_ivform/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "ggb",
+            "title": "GeoGebra",
+            "component": "local_ivggb",
+            "description": "Embed GeoGebra applets with completion rules, analytics, and Flexbook support.",
+            "icon": "bi bi-bezier2",
+            "version": "2026080500",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "",
+            "git": "https://github.com/sokunthearithmakara/local_ivggb/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "courseactivity",
+            "title": "Course Activity",
+            "component": "local_ivcourseactivity",
+            "description": "Link or embed an existing course activity and track completion.",
+            "icon": "bi bi-plugin",
+            "version": "2026100100",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivcourseactivity",
+            "git": "https://github.com/sokunthearithmakara/local_ivcourseactivity/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "poll",
+            "title": "Poll",
+            "component": "local_ivpoll",
+            "description": "Create a poll to gather feedback from users in interactive video/flexbook.",
+            "icon": "bi bi-bar-chart-line-fill",
+            "version": "2026100100",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivpoll",
+            "git": "https://github.com/sokunthearithmakara/moodle-local_ivpoll/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "transcript",
+            "title": "Interactive Transcript",
+            "component": "local_ivtranscript",
+            "description": "Upload and display a transcript of the video. Supports multiple languages.",
+            "icon": "bi bi-badge-cc",
+            "version": "2026111000",
+            "type": "paid",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivtranscript",
+            "download_url": "https://tmakara.com/shop/item/local_ivtranscript",
+            "git": "https://github.com/sokunthearithmakara/moodle-local_ivtranscript/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "scorm",
+            "title": "SCORM Content",
+            "component": "local_ivscorm",
+            "description": "Embed SCORM-compliant content in interactive video/flexbook. Track completion.",
+            "icon": "bi bi-box2",
+            "version": "2026110300",
+            "type": "paid",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivscorm",
+            "download_url": "https://tmakara.com/shop/item/local_ivscorm",
+            "git": "https://github.com/sokunthearithmakara/moodle-local_ivscorm/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "aigame",
+            "title": "Mini Game",
+            "component": "local_ivaigame",
+            "description": "Add an AI-generated HTML mini game interaction with prompt builder in interactive video/flexbook.",
+            "icon": "bi bi-bullseye",
+            "version": "2026100100",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivaigame",
+            "git": "https://github.com/sokunthearithmakara/local_ivaigame/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "analytics",
+            "title": "Analytics",
+            "component": "local_ivanalytics",
+            "description": "Track user interactions with the video. Prevent learners from skipping ahead.",
+            "icon": "bi bi-graph-up",
+            "version": "2026100100",
+            "type": "paid",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivanalytics",
+            "download_url": "https://tmakara.com/shop/item/local_ivanalytics",
+            "git": "https://github.com/sokunthearithmakara/local_ivanalytics/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "annotation",
+            "title": "Annotation",
+            "component": "local_ivannotation",
+            "description": "Add persistent annotations on top of the video.",
+            "icon": "bi bi-pip",
+            "version": "2026100100",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivannotation",
+            "download_url": "https://tmakara.com/shop/item/local_ivannotation",
+            "git": "https://github.com/sokunthearithmakara/local_ivannotation/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "decision",
+            "title": "Decision",
+            "component": "local_ivdecision",
+            "description": "Have viewers decide where to go next.",
+            "icon": "bi bi-signpost-split-fill",
+            "version": "2026100100",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivdecision",
+            "download_url": "https://tmakara.com/shop/item/local_ivdecision",
+            "git": "https://github.com/sokunthearithmakara/local_ivdecision/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "h5pupload",
+            "title": "H5P content",
+            "component": "local_ivh5pupload",
+            "description": "Upload an H5P package in .html or .h5p format, with optional translation JSON files and Flexbook support.",
+            "icon": "bi bi-file-zip",
+            "version": "2026110300",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivh5pupload",
+            "download_url": "https://tmakara.com/shop/item/local_ivh5pupload",
+            "git": "https://github.com/sokunthearithmakara/local_ivh5pupload/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "htmlviewer",
+            "title": "HTML content",
+            "component": "local_ivhtmlviewer",
+            "description": "Embed HTML content in the video.",
+            "icon": "bi bi-filetype-html",
+            "version": "2026100100",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivhtmlviewer",
+            "download_url": "https://tmakara.com/shop/item/local_ivhtmlviewer",
+            "git": "https://github.com/sokunthearithmakara/local_ivhtmlviewer/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "inlineannotation",
+            "title": "Paused Annotation",
+            "component": "local_ivinlineannotation",
+            "description": "Superimpose an audio, image, or video on the video.",
+            "icon": "bi bi-pip-fill",
+            "version": "2026110300",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivinlineannotation",
+            "download_url": "https://tmakara.com/shop/item/local_ivinlineannotation",
+            "git": "https://github.com/sokunthearithmakara/local_ivinlineannotation/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "officeviewer",
+            "title": "Office document",
+            "component": "local_ivofficeviewer",
+            "description": "Embed an Office document from a local file or external URL, with Flexbook support.",
+            "icon": "bi bi-file-word",
+            "version": "2026100100",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivofficeviewer",
+            "download_url": "https://tmakara.com/shop/item/local_ivofficeviewer",
+            "git": "https://github.com/sokunthearithmakara/local_ivofficeviewer/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "pdfviewer",
+            "title": "PDF document",
+            "component": "local_ivpdfviewer",
+            "description": "Embed a PDF document from a local file or external URL, with Flexbook support.",
+            "icon": "bi bi-file-pdf",
+            "version": "2026111000",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivpdfviewer",
+            "download_url": "https://tmakara.com/shop/item/local_ivpdfviewer",
+            "git": "https://github.com/sokunthearithmakara/local_ivpdfviewer/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo",
+                "mod_flexbook"
+            ]
+        },
+        {
+            "name": "playlist",
+            "title": "Playlist",
+            "component": "local_ivplaylist",
+            "description": "Add a playlist",
+            "icon": "bi bi-view-list",
+            "version": "2026111000",
+            "type": "paid",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivplaylist",
+            "download_url": "https://tmakara.com/shop/item/local_ivplaylist",
+            "git": "https://github.com/sokunthearithmakara/local_ivplaylist/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "xpreward",
+            "title": "XP Reward",
+            "component": "local_ivxpreward",
+            "description": "Reward viewers with experience points.",
+            "icon": "bi bi-fast-forward-fill",
+            "version": "2026100100",
+            "type": "free",
+            "description_url": "https://buymeacoffee.com/tsmakara/ivxpreward",
+            "download_url": "https://tmakara.com/shop/item/local_ivxpreward",
+            "git": "https://github.com/sokunthearithmakara/local_ivxpreward/archive/refs/heads/master.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "resources",
+            "title": "Resources",
+            "component": "local_ivresources",
+            "description": "Attach files and external links to your videos.",
+            "icon": "bi bi-paperclip",
+            "version": "2026111000",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivresources",
+            "git": "https://github.com/sokunthearithmakara/local_ivresources/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "tasks",
+            "title": "Tasks",
+            "component": "local_ivtasks",
+            "description": "Give learners a checklist of tasks to work through while they watch.",
+            "icon": "bi bi-list-check",
+            "version": "2026111003",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivtasks",
+            "git": "https://github.com/sokunthearithmakara/local_ivtasks/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        },
+        {
+            "name": "toknow",
+            "title": "Concept",
+            "component": "local_ivtoknow",
+            "description": "Present the key terms, concepts or vocabulary of the video, with definitions and pronunciation.",
+            "icon": "bi bi-lightbulb",
+            "version": "2026111004",
+            "type": "paid",
+            "description_url": "",
+            "download_url": "https://tmakara.com/shop/item/local_ivtoknow",
+            "git": "https://github.com/sokunthearithmakara/local_ivtoknow/archive/refs/heads/main.zip",
+            "support": [
+                "mod_interactivevideo"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,148 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * English language strings for the Late Penalty plugin.
+ *
+ * @package    local_latepenalty
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+defined('MOODLE_INTERNAL') || die();
+// phpcs:disable moodle.Files.LineLength
+
+$string['badge_ontime'] = 'Deadline: {$a->date}';
+$string['badge_penalty'] = 'Penalty: {$a->pct}%';
+$string['badge_penalty_max'] = 'Penalty: {$a->pct}% (max)';
+$string['badge_teacher_pending'] = 'Penalty: {$a->pct}% · {$a->pending} pending';
+$string['badge_teacher_pending_max'] = 'Penalty: {$a->pct}% (max) · {$a->pending} pending';
+$string['courseinfo_notice'] = 'This activity must be submitted by {$a->deadline}. A penalty of {$a->daily}% per day will be applied, up to a maximum of {$a->max}%.';
+$string['courseinfo_notice_overdue'] = 'The deadline for this activity was {$a->deadline}. Accumulated penalty: {$a->pct}% ({$a->daily}% per day · maximum of {$a->max}%).';
+$string['courseinfo_notice_overdue_max'] = 'The deadline for this activity was {$a->deadline}. A penalty of {$a->max}% (max) is being applied.';
+$string['courseinfo_teacher_overdue'] = 'The deadline for this activity was {$a->deadline}. Accumulated penalty: {$a->pct}% ({$a->daily}% per day · maximum of {$a->max}%). {$a->pending} student(s) have not yet submitted.';
+$string['courseinfo_teacher_overdue_max'] = 'The deadline for this activity was {$a->deadline}. A penalty of {$a->max}% (max) is being applied. {$a->pending} student(s) have not yet submitted.';
+$string['deadline_datetime'] = '{$a->date} - {$a->time}';
+$string['deadline_none'] = 'No deadline: no late penalty is applied. Set a due date or a "Set reminder in Timeline" date.';
+$string['deadline_origin_activity_close'] = 'Close date of the activity override';
+$string['deadline_origin_activity_override'] = 'Activity override';
+$string['deadline_origin_duedate'] = 'Due date';
+$string['deadline_origin_exempt'] = '{$a}: no due date';
+$string['deadline_origin_extension'] = 'Extension';
+$string['deadline_origin_none'] = 'No deadline';
+$string['deadline_origin_plugin_group'] = 'Late Penalty group override';
+$string['deadline_origin_plugin_user'] = 'Late Penalty override';
+$string['deadline_origin_reminder'] = 'Set reminder in Timeline';
+$string['deadline_used'] = 'Deadline used for the penalty: {$a->date} ({$a->origin})';
+$string['deadline_used_help'] = 'The deadline Late Penalty applies to this activity, as currently saved: its due date when it has one (assignment, forum, and quiz from Moodle 5.3), otherwise the "Set reminder in Timeline" date. Save the form to update this line after changing those dates. A student can have another deadline through an override or an extension; the Late Penalty report shows the deadline of each student.';
+$string['error_daily_range'] = 'Daily penalty must be between 0% and 100%';
+$string['error_max_less_than_daily'] = 'Maximum penalty cannot be less than daily penalty';
+$string['error_max_range'] = 'Maximum penalty must be between 0% and 100%';
+$string['filter_activity'] = 'Activity';
+$string['filter_all_activities'] = 'All activities';
+$string['filter_all_students'] = 'All students';
+$string['filter_apply'] = 'Apply';
+$string['filter_student'] = 'Student';
+$string['group_override_add'] = 'Add group override';
+$string['group_override_col_group'] = 'Group';
+$string['group_override_confirm_delete'] = 'Are you sure you want to delete the override for group {$a}?';
+$string['group_override_empty'] = 'No group overrides have been set for this activity.';
+$string['group_override_error_duplicate'] = 'This group already has an override for this activity.';
+$string['group_override_group'] = 'Group';
+$string['group_override_no_groups'] = 'All groups already have an override, or there are no groups in this course.';
+$string['invaliddataformat'] = 'The requested export format "{$a}" is not available on this site.';
+$string['latepenalty'] = 'Late penalty';
+$string['latepenalty:manageoverrides'] = 'Manage late penalty overrides per student';
+$string['latepenalty:viewreport'] = 'View late penalty report';
+$string['latepenalty_base'] = 'Penalty applies to';
+$string['latepenalty_base_grade'] = 'Grade obtained';
+$string['latepenalty_base_help'] = 'Which grade the daily percentage is taken from.<br><br>Example with a 20% penalty and a maximum grade of 10:<ul><li><strong>Grade obtained:</strong> a student who got 10 loses 2 points and one who got 8 loses 1.6. The discount follows each student\'s grade.</li><li><strong>Maximum grade:</strong> both lose 2 points. Each day late costs the same points for everyone, and a low grade can drop to the minimum grade; the maximum penalty limits how far.</li></ul>';
+$string['latepenalty_base_max'] = 'Maximum grade';
+$string['latepenalty_daily'] = 'Daily penalty (%)';
+$string['latepenalty_enabled'] = 'Enable progressive penalty?';
+$string['latepenalty_enabled_help'] = 'Discounts a percentage for each day late, up to the maximum, of the grade obtained or of the maximum grade ("Penalty applies to"). Every day started counts as a whole day: 1 minute after the deadline already discounts 1 day, and 1 day and 2 hours late discount 2 days.<br><br>The deadline of each student is the first of these that is set:<ol><li>A Late Penalty override for the student.</li><li>A Late Penalty override for one of the student\'s groups.</li><li>The activity\'s own extension or override (assignment, quiz, lesson).</li><li>The activity due date (assignment, forum, and quiz from Moodle 5.3).</li><li>The "Set reminder in Timeline" date.</li></ol>Only numeric grades are discounted. A teacher\'s own edit of a grade is never changed, and neither are the grades that already exist when the rule is first enabled.';
+$string['latepenalty_keepbest'] = 'Do not let a new late attempt lower the grade';
+$string['latepenalty_keepbest_help'] = 'For activities with several attempts. When ticked, the penalty on a new late attempt never takes the grade below the best grade the student already had, after its own penalty; the grade also never goes above the one the activity sent.<br><br>By the grading method of the activity (examples at 10% a day on the grade obtained):<ul><li><strong>Highest grade: tick it.</strong> 90 on time, then 95 two days late (95 - 20% = 76): 90 stays. Unticked, it becomes 76.</li><li><strong>Last attempt or average: leave it unticked.</strong> Ticked, a late attempt worse than an earlier one escapes the discount: 90 on time, then 60 two days late stays 60 instead of 48.</li><li><strong>A single attempt:</strong> it makes no difference.</li></ul>';
+$string['latepenalty_max'] = 'Maximum penalty (%)';
+$string['latepenalty_recalc_deadline'] = 'Recalculate penalties when deadline changes';
+$string['latepenalty_recalc_deadline_help'] = 'When the activity deadline changes, recalculate the grades already discounted. A later deadline reduces or removes the discount; an earlier one only increases the discount of students who were already late and never penalises students who handed in on time. Removing the deadline gives back the original grade to students left without one. Overrides and extensions always recalculate the student they apply to.';
+$string['latepenalty_recalc_rate'] = 'Recalculate penalties when the penalty settings change';
+$string['latepenalty_recalc_rate_help'] = 'When the daily penalty, the maximum, what the penalty applies to or the option to keep the best grade changes, recalculate the grades already discounted with the new values. Disabling the rule gives back the original grades; enabling it applies the rule to every graded student. To forgive one student, give a later deadline with an override or an extension.';
+$string['notice_base_grade'] = 'The penalty is a percentage of the grade obtained.';
+$string['notice_base_max'] = 'The penalty is a percentage of the maximum grade.';
+$string['override_add'] = 'Add override';
+$string['override_col_daily'] = 'Daily (%)';
+$string['override_col_deadline'] = 'Deadline';
+$string['override_col_max'] = 'Max (%)';
+$string['override_col_student'] = 'Student';
+$string['override_confirm_delete'] = 'Are you sure you want to delete the override for {$a}?';
+$string['override_daily'] = 'Daily penalty (%)';
+$string['override_deadline'] = 'Custom deadline';
+$string['override_delete'] = 'Delete';
+$string['override_deleted'] = 'Override deleted successfully.';
+$string['override_edit'] = 'Edit';
+$string['override_empty'] = 'No overrides have been set for this activity.';
+$string['override_error_duplicate'] = 'This student already has an override for this activity.';
+$string['override_error_nothing_enabled'] = 'Enable at least one field to create an override.';
+$string['override_hint'] = 'Leave a field blank to inherit the activity\'s configured value.';
+$string['override_inherit'] = 'Activity default';
+$string['override_max'] = 'Maximum penalty (%)';
+$string['override_no_students'] = 'All enrolled students already have an override for this activity.';
+$string['override_notfound'] = 'This override no longer exists, or it is outside your groups.';
+$string['override_saved'] = 'Override saved successfully.';
+$string['override_student'] = 'Student';
+$string['overrides'] = 'Late penalty overrides';
+$string['overrides_for'] = 'Late penalty overrides: {$a}';
+$string['overrides_mode_group'] = 'Group overrides';
+$string['overrides_mode_user'] = 'User overrides';
+$string['overrides_rule_disabled'] = 'The late penalty rule for this activity is currently disabled.';
+$string['percent'] = '{$a}%';
+$string['pluginname'] = 'Late Penalty';
+$string['privacy:metadata:local_latepenalty_overrides'] = 'Per-student deadline and penalty rate overrides configured by teachers for specific activities.';
+$string['privacy:metadata:local_latepenalty_overrides:cmid'] = 'The course module this override applies to.';
+$string['privacy:metadata:local_latepenalty_overrides:daily_penalty'] = 'Custom daily penalty percentage for this student, or null to inherit the activity rule.';
+$string['privacy:metadata:local_latepenalty_overrides:deadline'] = 'Custom submission deadline for this student, or null to inherit the activity deadline.';
+$string['privacy:metadata:local_latepenalty_overrides:max_penalty'] = 'Custom maximum penalty cap for this student, or null to inherit the activity rule.';
+$string['privacy:metadata:local_latepenalty_overrides:timecreated'] = 'The time this override was created.';
+$string['privacy:metadata:local_latepenalty_overrides:timemodified'] = 'The time this override was last modified.';
+$string['privacy:metadata:local_latepenalty_overrides:userid'] = 'The ID of the student this override applies to.';
+$string['report'] = 'Late penalty report';
+$string['report_col_activity'] = 'Activity';
+$string['report_col_date'] = 'Penalty applied';
+$string['report_col_deadline'] = 'Deadline';
+$string['report_col_deadline_origin'] = 'Deadline origin';
+$string['report_col_discount'] = 'Discount';
+$string['report_col_finalgrade'] = 'Final grade';
+$string['report_col_points'] = 'Points discounted';
+$string['report_col_rawgrade'] = 'Raw grade';
+$string['report_col_student'] = 'Student';
+$string['report_download_csv'] = 'Download CSV';
+$string['report_download_excel'] = 'Download Excel';
+$string['report_empty'] = 'No late penalties have been applied in this course yet.';
+$string['report_export_grademax'] = 'Grade max';
+$string['report_export_override'] = 'Override';
+$string['report_history_disabled'] = 'Grade history is disabled on this site (Site administration > Server > Cleanup > Disable grade history), so this report cannot list the penalties applied.';
+$string['report_history_lifetime'] = 'This site deletes grade history older than {$a} days (Site administration > Server > Cleanup > Grade history lifetime), so this report only lists penalties applied in the last {$a} days.';
+$string['report_override_group'] = 'Group override';
+$string['report_override_user'] = 'User override';
+$string['task_reprocess_grades'] = 'Reprocess late-penalised grades changed by the activity';
+$string['unknown'] = 'Unknown';
+$string['warning_disable_restores'] = 'When you save, the grades this rule discounted go back to their original value.';
+$string['warning_history_disabled'] = 'Grade history is disabled on this site (Site administration > Server > Cleanup > Disable grade history). Late Penalty finds the penalties it applied in that history, so turning this rule off or changing the deadline, the daily penalty or the maximum will not change grades already discounted.';
+$string['warning_history_lifetime'] = 'This site deletes grade history older than {$a} days (Site administration > Server > Cleanup > Grade history lifetime). Late Penalty finds the penalties it applied in that history, so turning this rule off or changing the deadline, the daily penalty or the maximum will not change grades discounted more than {$a} days ago.';
+$string['warning_native_penalty'] = 'This assignment applies the core grade penalties (Grade penalties: Yes), so Late Penalty does not act on it. Grades Late Penalty discounted before stay as they are.';
+$string['warning_override_storage'] = 'On this site, a better grade sent after a penalty (a new attempt, a regrade) can take a few minutes to show in the gradebook, until the scheduled task "{$a}" runs (every 5 minutes by default). Quiz attempts and quiz questions graded by the teacher are updated at once.';
+$string['warning_scale_notsupported'] = 'Late Penalty only discounts numeric grades. This activity is graded with a scale or not graded, so no penalty is applied.';

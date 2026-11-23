@@ -1,0 +1,499 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * PHPUnit tests for the Late Penalty report controller.
+ *
+ * @package    local_latepenalty
+ * @category   test
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_latepenalty\report;
+
+use advanced_testcase;
+use context_course;
+use grade_item;
+use stdClass;
+
+/**
+ * Tests for local_latepenalty\report\controller.
+ *
+ * @covers \local_latepenalty\report\controller
+ */
+final class controller_test extends advanced_testcase {
+    #[\Override]
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+    }
+
+    /**
+     * Creates a course with two groups, each holding one student, and one assign
+     * activity with an enabled penalty rule. Both students submit one day late
+     * and are graded, so the plugin's real observer chain writes genuine
+     * source = 'local_latepenalty' rows into grade_grades_history.
+     *
+     * @param int      $coursegroupmode Course-level group mode (default SEPARATEGROUPS).
+     * @param int      $groupmodeforce  Whether the course forces its group mode onto activities.
+     * @param int|null $cmgroupmode     Activity-level group mode override, or null to leave the
+     *                                  value create_module() assigns (0 = inherit from course).
+     * @return array{course: stdClass, context: context_course, cm: stdClass,
+     *               group1: stdClass, group2: stdClass, student1: stdClass, student2: stdClass}
+     */
+    private function make_scenario(
+        int $coursegroupmode = SEPARATEGROUPS,
+        int $groupmodeforce = 1,
+        ?int $cmgroupmode = null
+    ): array {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $course = $this->getDataGenerator()->create_course([
+            'groupmode'      => $coursegroupmode,
+            'groupmodeforce' => $groupmodeforce,
+        ]);
+        $context = context_course::instance($course->id);
+
+        // The generator draws random names from a short list, and two students can get the same one;
+        // tests that look rows up by full name would then read the other student's row.
+        $student1 = $this->getDataGenerator()->create_and_enrol(
+            $course,
+            'student',
+            ['firstname' => 'Student', 'lastname' => 'One']
+        );
+        $student2 = $this->getDataGenerator()->create_and_enrol(
+            $course,
+            'student',
+            ['firstname' => 'Student', 'lastname' => 'Two']
+        );
+
+        $group1 = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $group2 = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        groups_add_member($group1->id, $student1->id);
+        groups_add_member($group2->id, $student2->id);
+
+        $assign = $this->getDataGenerator()->create_module('assign', [
+            'course'  => $course->id,
+            'grade'   => 100,
+            'duedate' => 0,
+        ]);
+
+        if ($cmgroupmode !== null) {
+            $DB->set_field('course_modules', 'groupmode', $cmgroupmode, ['id' => $assign->cmid]);
+        }
+
+        $deadline = time() - 5 * DAYSECS;
+        $DB->set_field('course_modules', 'completionexpected', $deadline, ['id' => $assign->cmid]);
+        rebuild_course_cache($course->id);
+
+        $rule = $DB->get_record('local_latepenalty_rules', ['cmid' => $assign->cmid], '*', MUST_EXIST);
+        $rule->enabled       = 1;
+        $rule->daily_penalty = 10.0;
+        $rule->max_penalty   = 50.0;
+        $DB->update_record('local_latepenalty_rules', $rule);
+
+        $gradeitem = grade_item::fetch([
+            'itemtype'     => 'mod',
+            'itemmodule'   => 'assign',
+            'iteminstance' => $assign->id,
+            'courseid'     => $course->id,
+        ]);
+
+        $submissiontime = $deadline + DAYSECS;
+        foreach ([$student1, $student2] as $student) {
+            $DB->insert_record('assign_submission', (object) [
+                'assignment'    => $assign->id,
+                'userid'        => $student->id,
+                'timecreated'   => $submissiontime,
+                'timemodified'  => $submissiontime,
+                'status'        => 'submitted',
+                'groupid'       => 0,
+                'attemptnumber' => 0,
+                'latest'        => 1,
+            ]);
+            $gradeitem->update_raw_grade($student->id, 100.0, 'mod/assign');
+        }
+
+        return [
+            'course'   => $course,
+            'context'  => $context,
+            'cm'       => $assign,
+            'group1'   => $group1,
+            'group2'   => $group2,
+            'student1' => $student1,
+            'student2' => $student2,
+        ];
+    }
+
+    /**
+     * Enrol a user as a plain (non-editing) teacher, the archetype that does not
+     * carry moodle/site:accessallgroups by default.
+     *
+     * @param \stdClass $course
+     * @return \stdClass The enrolled teacher.
+     */
+    private function enrol_teacher(stdClass $course): stdClass {
+        return $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+    }
+
+    /**
+     * Instantiate the report controller from a resolve_group_restriction() result.
+     *
+     * @param array $scenario Scenario array from make_scenario().
+     * @param array $groupscope Return value of controller::resolve_group_restriction().
+     * @return controller
+     */
+    private function make_controller(array $scenario, array $groupscope): controller {
+        return new controller(
+            (int) $scenario['course']->id,
+            $scenario['context'],
+            0,
+            0,
+            $groupscope['groupids'],
+            $groupscope['restrictedcmids']
+        );
+    }
+
+    // Tests for resolve_group_restriction().
+
+    /**
+     * A non-editing teacher without accessallgroups, in a course-wide
+     * separate-groups course, is restricted to their own group on the activity
+     * carrying the rule.
+     */
+    public function test_resolve_group_restriction_separategroups_without_accessallgroups(): void {
+        $s = $this->make_scenario();
+        $teacher = $this->enrol_teacher($s['course']);
+        groups_add_member($s['group1']->id, $teacher->id);
+        $this->setUser($teacher);
+
+        $result = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        self::assertSame([(int) $s['group1']->id], $result['groupids']);
+        self::assertSame([(int) $s['cm']->cmid], $result['restrictedcmids']);
+    }
+
+    /**
+     * An editing teacher (moodle/site:accessallgroups by default archetype) is
+     * never restricted, even in a separate-groups course.
+     */
+    public function test_resolve_group_restriction_editingteacher_sees_all(): void {
+        $s = $this->make_scenario();
+        $editingteacher = $this->getDataGenerator()->create_and_enrol($s['course'], 'editingteacher');
+        $this->setUser($editingteacher);
+
+        $result = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        self::assertSame([], $result['restrictedcmids']);
+    }
+
+    /**
+     * Activities without separate groups restrict nothing, even for a teacher confined to one group.
+     *
+     * Covers no groups and visible groups, each on a real activity with a rule and
+     * penalties, so the group mode check itself is exercised (a course with no rule
+     * returns before reaching it).
+     */
+    public function test_resolve_group_restriction_non_separategroups_returns_no_restriction(): void {
+        foreach ([NOGROUPS, VISIBLEGROUPS] as $groupmode) {
+            $s = $this->make_scenario(NOGROUPS, 0, $groupmode);
+            $teacher = $this->enrol_teacher($s['course']);
+            groups_add_member($s['group1']->id, $teacher->id);
+            $this->setUser($teacher);
+
+            $result = controller::resolve_group_restriction($s['course'], $s['context']);
+
+            self::assertSame([], $result['restrictedcmids'], "Group mode $groupmode");
+            self::assertCount(2, $this->make_controller($s, $result)->get_template_context()['penalties']);
+        }
+    }
+
+    /**
+     * A non-editing teacher belonging to no group at all, in a separate-groups
+     * course, is still restricted (to an empty group set) rather than
+     * unrestricted.
+     */
+    public function test_resolve_group_restriction_teacher_with_no_group(): void {
+        $s = $this->make_scenario();
+        $teacher = $this->enrol_teacher($s['course']);
+        $this->setUser($teacher);
+
+        $result = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        self::assertSame([], $result['groupids']);
+        self::assertSame([(int) $s['cm']->cmid], $result['restrictedcmids']);
+    }
+
+    /**
+     * Regression guard for the activity-level group mode gap: a course in
+     * NOGROUPS (unforced) with an activity individually set to SEPARATEGROUPS
+     * must still restrict that activity's rows to the caller's own group.
+     *
+     * groups_get_course_groupmode() alone would miss this, because it only
+     * reads $course->groupmode; the activity's own groupmode applies here since
+     * the course does not force its mode onto activities.
+     */
+    public function test_resolve_group_restriction_activity_level_separategroups(): void {
+        $s = $this->make_scenario(NOGROUPS, 0, SEPARATEGROUPS);
+        $teacher = $this->enrol_teacher($s['course']);
+        groups_add_member($s['group1']->id, $teacher->id);
+        $this->setUser($teacher);
+
+        $result = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        self::assertSame([(int) $s['cm']->cmid], $result['restrictedcmids']);
+    }
+
+    // Tests for the report itself, driven by the resolved restriction.
+
+    /**
+     * A teacher restricted to group1 sees only group1's student in the report
+     * table and in the student filter — group2's student must not leak through.
+     */
+    public function test_report_restricts_to_own_group(): void {
+        $s = $this->make_scenario();
+        $teacher = $this->enrol_teacher($s['course']);
+        groups_add_member($s['group1']->id, $teacher->id);
+        $this->setUser($teacher);
+
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+
+        self::assertCount(1, $ctx['penalties']);
+
+        $useroptionvalues = array_column($ctx['useroptions'], 'value');
+        self::assertContains((int) $s['student1']->id, $useroptionvalues);
+        self::assertNotContains((int) $s['student2']->id, $useroptionvalues);
+    }
+
+    /**
+     * The report says when the grade history it reads is disabled or kept for a limited time.
+     */
+    public function test_report_grade_history_warning(): void {
+        global $CFG;
+
+        $s = $this->make_scenario();
+        $this->setAdminUser();
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+        self::assertSame('', $ctx['historywarning']);
+
+        $CFG->disablegradehistory = 1;
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+        self::assertSame(get_string('report_history_disabled', 'local_latepenalty'), $ctx['historywarning']);
+
+        $CFG->disablegradehistory = 0;
+        $CFG->gradehistorylifetime = 365;
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+        self::assertSame(get_string('report_history_lifetime', 'local_latepenalty', 365), $ctx['historywarning']);
+    }
+
+    /**
+     * A teacher with no group in a separate-groups course sees an empty report,
+     * not the whole course's penalties.
+     */
+    public function test_report_zero_groups_sees_nothing(): void {
+        $s = $this->make_scenario();
+        $teacher = $this->enrol_teacher($s['course']);
+        $this->setUser($teacher);
+
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+
+        self::assertSame([], $ctx['penalties']);
+        // Only the "all students" placeholder option remains.
+        self::assertCount(1, $ctx['useroptions']);
+    }
+
+    /**
+     * An editing teacher (unrestricted) still sees both groups' students —
+     * the fix must not over-restrict a caller who legitimately has
+     * moodle/site:accessallgroups.
+     */
+    public function test_report_editingteacher_sees_all_groups(): void {
+        $s = $this->make_scenario();
+        $editingteacher = $this->getDataGenerator()->create_and_enrol($s['course'], 'editingteacher');
+        $this->setUser($editingteacher);
+
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+
+        self::assertCount(2, $ctx['penalties']);
+    }
+
+    /**
+     * A group override marks every penalised member of the group, on screen and in the export.
+     *
+     * Regression guard: the lookup used to key its rows by override ID, so each
+     * member overwrote the previous one and only one student kept the badge.
+     */
+    public function test_group_override_marks_every_member(): void {
+        global $DB;
+
+        $s = $this->make_scenario();
+        groups_add_member($s['group1']->id, $s['student2']->id);
+        $DB->insert_record('local_latepenalty_group_overrides', (object) [
+            'cmid' => $s['cm']->cmid,
+            'groupid' => $s['group1']->id,
+            'deadline' => null,
+            'daily_penalty' => 10.0,
+            'max_penalty' => null,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $this->setAdminUser();
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+        $controller = $this->make_controller($s, $groupscope);
+
+        $penalties = $controller->get_template_context()['penalties'];
+        self::assertCount(2, $penalties);
+        self::assertSame([true, true], array_column($penalties, 'hasgroupoverride'));
+
+        [, $rows] = $controller->get_export_data();
+        $label = get_string('report_override_group', 'local_latepenalty');
+        self::assertSame([$label, $label], array_map(fn(array $row): string => end($row), $rows));
+    }
+
+    /**
+     * Names with "&" or quotes reach the screen escaped once and the export as plain text.
+     *
+     * Regression guard: format_string() output was escaped again by the template
+     * ("Q&amp;A" on screen) and exported as HTML ("Q&amp;A" in the file). Both
+     * values of "Remove HTML tags from all activity names" are covered, since
+     * format_string() takes a different path for each.
+     */
+    public function test_names_are_escaped_once(): void {
+        global $CFG, $DB, $OUTPUT;
+
+        $s = $this->make_scenario();
+        $DB->set_field('assign', 'name', 'Q&A "1"', ['id' => $s['cm']->id]);
+        $DB->set_field('user', 'lastname', 'Silva & Souza', ['id' => $s['student1']->id]);
+        rebuild_course_cache($s['course']->id);
+        $this->setAdminUser();
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        foreach ([1, 0] as $striptags) {
+            $CFG->formatstringstriptags = $striptags;
+            $controller = $this->make_controller($s, $groupscope);
+            $ctx = $controller->get_template_context();
+
+            self::assertSame(['Q&A "1"', 'Q&A "1"'], array_column($ctx['penalties'], 'activity'), "striptags $striptags");
+            self::assertContains('Q&A "1"', array_column($ctx['cmoptions'], 'label'));
+            self::assertStringContainsString('Silva & Souza', implode(' ', array_column($ctx['useroptions'], 'label')));
+
+            $html = $OUTPUT->render_from_template('local_latepenalty/report', $ctx);
+            self::assertStringContainsString('Q&amp;A &quot;1&quot;', $html);
+            self::assertStringNotContainsString('&amp;amp;', $html);
+
+            [, $rows] = $controller->get_export_data();
+            self::assertSame(['Q&A "1"', 'Q&A "1"'], array_column($rows, 1));
+            self::assertStringContainsString('Silva & Souza', implode(' ', array_column($rows, 0)));
+        }
+    }
+
+    /**
+     * The report lists the course's current students, not those of a term that ended.
+     *
+     * Regression guard: it read every penalty in the grade history, which no reset or
+     * unenrolment clears, so students who had left (or whose enrolment was suspended)
+     * kept appearing next to the current ones, on screen, in the filter and in the export.
+     */
+    public function test_report_lists_current_students_only(): void {
+        global $DB;
+
+        $s = $this->make_scenario();
+        $this->setAdminUser();
+        $instances = enrol_get_instances($s['course']->id, true);
+        $manual = reset($instances);
+        enrol_get_plugin('manual')->unenrol_user($manual, $s['student2']->id);
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+        self::assertCount(1, $ctx['penalties']);
+        self::assertNotContains((int) $s['student2']->id, array_column($ctx['useroptions'], 'value'));
+        [, $rows] = $this->make_controller($s, $groupscope)->get_export_data();
+        self::assertCount(1, $rows);
+
+        $DB->set_field('user_enrolments', 'status', ENROL_USER_SUSPENDED, ['userid' => $s['student1']->id]);
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+        self::assertCount(0, $ctx['penalties'], 'Suspended');
+        self::assertCount(1, $ctx['useroptions'], 'Only "All students"');
+    }
+
+    /**
+     * After several recalculations the report shows the latest penalty, once per student and activity.
+     *
+     * Regression guard: the latest row was picked by time, and writes within the same
+     * second came back in no particular order, so an older penalty could be shown.
+     */
+    public function test_report_shows_latest_penalty_only(): void {
+        $s = $this->make_scenario();
+        $this->setAdminUser();
+        \local_latepenalty\recalculator::recalculate_for_student((int) $s['cm']->cmid, (int) $s['student1']->id, 20.0, 50.0);
+        \local_latepenalty\recalculator::recalculate_for_student((int) $s['cm']->cmid, (int) $s['student1']->id, 30.0, 50.0);
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+
+        $gradeitem = \grade_item::fetch(['itemtype' => 'mod', 'itemmodule' => 'assign', 'iteminstance' => $s['cm']->id]);
+        $grade = new \grade_grade(['itemid' => $gradeitem->id, 'userid' => $s['student1']->id]);
+        self::assertEqualsWithDelta(70.0, (float) $grade->finalgrade, 0.001, 'Recalculated');
+
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+        $byname = array_column($ctx['penalties'], 'discount', 'fullname');
+
+        self::assertCount(2, $ctx['penalties']);
+        self::assertSame(format_float(30.0, 1), $byname[fullname($s['student1'])]);
+        [, $rows] = $this->make_controller($s, $groupscope)->get_export_data();
+        self::assertCount(2, $rows);
+    }
+
+    /**
+     * The CSV/Excel export data must honour the same group restriction as the
+     * on-screen report — this is the path that lets a restricted teacher
+     * exfiltrate every group's data in a single file if left unfiltered.
+     */
+    public function test_export_data_restricts_to_own_group(): void {
+        $s = $this->make_scenario();
+        $teacher = $this->enrol_teacher($s['course']);
+        groups_add_member($s['group1']->id, $teacher->id);
+        $this->setUser($teacher);
+
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+        [, $rows] = $this->make_controller($s, $groupscope)->get_export_data();
+
+        self::assertCount(1, $rows);
+    }
+
+    /**
+     * End-to-end regression guard for the activity-level group mode gap: with the
+     * course in NOGROUPS (unforced) and the activity individually set to
+     * SEPARATEGROUPS, the report must still show only the caller's own group's
+     * student, not both — the exact scenario the course-level-only check missed.
+     */
+    public function test_report_activity_level_separategroups_restricts_to_own_group(): void {
+        $s = $this->make_scenario(NOGROUPS, 0, SEPARATEGROUPS);
+        $teacher = $this->enrol_teacher($s['course']);
+        groups_add_member($s['group1']->id, $teacher->id);
+        $this->setUser($teacher);
+
+        $groupscope = controller::resolve_group_restriction($s['course'], $s['context']);
+        $ctx = $this->make_controller($s, $groupscope)->get_template_context();
+
+        self::assertCount(1, $ctx['penalties']);
+    }
+}

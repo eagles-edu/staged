@@ -1,0 +1,196 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Restore support for the local_latepenalty plugin.
+ *
+ * Moodle's restore framework auto-discovers this class and calls
+ * define_module_plugin_structure() when any course module is restored,
+ * so the penalty rule is recreated with the new course_modules.id.
+ *
+ * @package    local_latepenalty
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/**
+ * Restore plugin class that reads the penalty rule from the backup XML.
+ */
+class restore_local_latepenalty_plugin extends restore_local_plugin {
+    /**
+     * Returns the XML paths to process, relative to the module node.
+     *
+     * @return restore_path_element[]
+     */
+    protected function define_module_plugin_structure(): array {
+        return [
+            new restore_path_element(
+                'local_latepenalty_rule',
+                $this->get_pathfor('/rule')
+            ),
+            new restore_path_element(
+                'local_latepenalty_override',
+                $this->get_pathfor('/overrides/override')
+            ),
+            new restore_path_element(
+                'local_latepenalty_group_override',
+                $this->get_pathfor('/groupoverrides/groupoverride')
+            ),
+        ];
+    }
+
+    /**
+     * Process one override record from the backup XML.
+     *
+     * Maps the backed-up userid to the restored user ID and shifts the deadline
+     * by the course start date offset. Records whose user was not included in
+     * the restore are silently skipped.
+     *
+     * @param array $data Raw element data from the XML.
+     * @return void
+     */
+    public function process_local_latepenalty_override(array $data): void {
+        global $DB;
+
+        $data = (object) $data;
+
+        $data->userid = (int) $this->get_mappingid('user', $data->userid);
+        if (!$data->userid) {
+            return;
+        }
+
+        $data->cmid = $this->task->get_moduleid();
+        // The deadline moves with the course start date, as the activity's own dates do.
+        $data->deadline = $this->apply_date_offset($data->deadline ?? null);
+
+        $existing = $DB->get_record(
+            'local_latepenalty_overrides',
+            ['cmid' => $data->cmid, 'userid' => $data->userid]
+        );
+
+        if ($existing) {
+            $existing->deadline = $data->deadline;
+            $existing->daily_penalty = $data->daily_penalty ?? null;
+            $existing->max_penalty = $data->max_penalty ?? null;
+            $existing->timemodified = time();
+            $DB->update_record('local_latepenalty_overrides', $existing);
+        } else {
+            unset($data->id);
+            $data->timecreated = time();
+            $data->timemodified = time();
+            $DB->insert_record('local_latepenalty_overrides', $data);
+        }
+    }
+
+    /**
+     * Process one group override record from the backup XML.
+     *
+     * Maps the backed-up groupid to the restored group ID and shifts the deadline
+     * by the course start date offset. Records whose group was not included in
+     * the restore are silently skipped.
+     *
+     * @param array $data Raw element data from the XML.
+     * @return void
+     */
+    public function process_local_latepenalty_group_override(array $data): void {
+        global $DB;
+
+        $data = (object) $data;
+
+        $data->groupid = (int) $this->get_mappingid('group', $data->groupid);
+        if (!$data->groupid) {
+            return;
+        }
+
+        $data->cmid = $this->task->get_moduleid();
+        // The deadline moves with the course start date, as the activity's own dates do.
+        $data->deadline = $this->apply_date_offset($data->deadline ?? null);
+
+        $existing = $DB->get_record(
+            'local_latepenalty_group_overrides',
+            ['cmid' => $data->cmid, 'groupid' => $data->groupid]
+        );
+
+        if ($existing) {
+            $existing->deadline      = $data->deadline;
+            $existing->daily_penalty = $data->daily_penalty ?? null;
+            $existing->max_penalty   = $data->max_penalty ?? null;
+            $existing->timemodified  = time();
+            $DB->update_record('local_latepenalty_group_overrides', $existing);
+        } else {
+            unset($data->id);
+            $data->timecreated  = time();
+            $data->timemodified = time();
+            $DB->insert_record('local_latepenalty_group_overrides', $data);
+        }
+    }
+
+    /**
+     * Process one rule record from the backup XML.
+     *
+     * Replaces the backed-up cmid with the newly assigned one from the
+     * restore task and upserts the record.  An existing row may already be
+     * present because local_latepenalty_coursemodule_edit_post_actions()
+     * runs during module creation and inserts a disabled rule; in that case
+     * the backed-up values simply overwrite it.
+     *
+     * @param array $data Raw element data from the XML.
+     * @return void
+     */
+    public function process_local_latepenalty_rule(array $data): void {
+        global $DB;
+
+        $data = (object) $data;
+
+        // Replace the original cmid with the new one created during restore.
+        $data->cmid = $this->task->get_moduleid();
+
+        // Seed last_deadline from the restored activity so the first teacher save
+        // after restore does not trigger a spurious bulk recalculation. The activity
+        // instance may not be linked to the course module yet at this point in the
+        // restore, so fall back to 0 when the module cannot be resolved.
+        $restoredcm = get_coursemodule_from_id('', $data->cmid, 0, false, IGNORE_MISSING);
+        $data->last_deadline = $restoredcm
+            ? \local_latepenalty\local\deadline_resolver::activity_deadline($restoredcm)->time
+            : 0;
+
+        // Backups made before 1.2.0 have no keepbest.
+        $data->keepbest = $data->keepbest ?? 0;
+        // Kept as it was, not shifted with the course dates: restored grades and grade history keep
+        // their own dates too, so each grade stays before or after it as in the original course (F19).
+        // Backups made before 1.4.0 have none: no cutoff, as then.
+        $data->timeenabled = $data->timeenabled ?? 0;
+        // Backups made before 1.5.0 have none: the grade obtained, the only base then.
+        $data->penaltybase = $data->penaltybase ?? \local_latepenalty\penalty_helper::BASE_GRADE;
+
+        $existing = $DB->get_record('local_latepenalty_rules', ['cmid' => $data->cmid]);
+        if ($existing) {
+            $existing->enabled = $data->enabled;
+            $existing->daily_penalty = $data->daily_penalty;
+            $existing->max_penalty = $data->max_penalty;
+            $existing->recalc_on_deadline = $data->recalc_on_deadline ?? 1;
+            $existing->recalc_on_rate = $data->recalc_on_rate ?? 1;
+            $existing->keepbest = $data->keepbest ?? 0;
+            $existing->timeenabled = $data->timeenabled;
+            $existing->penaltybase = $data->penaltybase;
+            $existing->last_deadline = $data->last_deadline;
+            $DB->update_record('local_latepenalty_rules', $existing);
+        } else {
+            unset($data->id);
+            $DB->insert_record('local_latepenalty_rules', $data);
+        }
+    }
+}

@@ -1,0 +1,462 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Computes and writes late penalties for one or many students.
+ *
+ * @package    local_latepenalty
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_latepenalty;
+
+use local_latepenalty\local\deadline_resolver;
+use local_latepenalty\local\penalty_writer;
+use local_latepenalty\local\submission_resolver;
+
+/**
+ * The single penalty engine behind the observer, the recalculations and the scheduled task.
+ *
+ * Every path goes through run(), so a grade gets the same result whichever
+ * of them reaches it: deadline from deadline_resolver, submission time from
+ * submission_resolver, storage by penalty_writer.
+ *
+ * Grades the engine never touches: locked grades and items, grades without a
+ * raw grade, and overrides that are not the plugin's own (teacher edits, and
+ * any override at all where penalties are stored as a deducted mark, including
+ * overrides written by versions before 1.2.0).
+ */
+class recalculator {
+    /** @var string[] Deadline origins that are the activity's own date rather than a per-student one. */
+    private const ACTIVITY_ORIGINS = [
+        deadline_resolver::ORIGIN_DUEDATE,
+        deadline_resolver::ORIGIN_REMINDER,
+        deadline_resolver::ORIGIN_NONE,
+    ];
+
+    /**
+     * Recalculate the students already penalised in an activity after its rule or deadline changed.
+     *
+     * Only students with a previous penalty are reconsidered, so moving the
+     * activity deadline earlier never penalises students who were on time. A
+     * new deadline of 0 (the activity no longer has one) gives back the original
+     * grade to every student left without an effective deadline; students with
+     * an override or extension of their own follow it.
+     *
+     * @param int   $cmid        Course module ID.
+     * @param int   $newdeadline New activity deadline (0: none); per-student overrides and extensions still win.
+     * @param float $daily       New daily penalty percentage.
+     * @param float $max         New maximum penalty cap percentage.
+     * @return void
+     */
+    public static function recalculate(int $cmid, int $newdeadline, float $daily, float $max): void {
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
+        foreach (penalty_helper::get_penalisable_items($cm) as $gradeitem) {
+            self::run($cm, $gradeitem, self::penalised_users($gradeitem), $daily, $max, $newdeadline);
+        }
+    }
+
+    /**
+     * Give back the original grade to every student the plugin penalised in an activity (rule disabled).
+     *
+     * Teacher edits and locked grades stay as they are.
+     *
+     * @param int $cmid Course module ID.
+     * @return void
+     */
+    public static function restore(int $cmid): void {
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
+        foreach (penalty_helper::get_penalisable_items($cm) as $gradeitem) {
+            self::run($cm, $gradeitem, self::penalised_users($gradeitem), 0.0, 0.0, null, true);
+        }
+    }
+
+    /**
+     * Apply the rule to every student with a grade in an activity (rule enabled).
+     *
+     * @param int   $cmid  Course module ID.
+     * @param float $daily Rule daily penalty percentage.
+     * @param float $max   Rule maximum penalty cap percentage.
+     * @return void
+     */
+    public static function recalculate_all(int $cmid, float $daily, float $max): void {
+        global $DB;
+
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
+        foreach (penalty_helper::get_penalisable_items($cm) as $gradeitem) {
+            $userids = $DB->get_fieldset_select(
+                'grade_grades',
+                'userid',
+                'itemid = :itemid AND rawgrade IS NOT NULL',
+                ['itemid' => $gradeitem->id]
+            );
+            self::run($cm, $gradeitem, self::without_predating($cm, $gradeitem, $userids), $daily, $max, null);
+        }
+    }
+
+    /**
+     * Apply the rules again to the activities of a course with an enabled rule.
+     *
+     * @param int $courseid Course ID.
+     * @param int[]|null $cmids Only these course modules, or null for every one of the course.
+     * @return void
+     */
+    public static function recalculate_course(int $courseid, ?array $cmids = null): void {
+        global $DB;
+
+        if ($cmids === []) {
+            return;
+        }
+        $where = '';
+        $params = ['courseid' => $courseid];
+        if ($cmids !== null) {
+            [$insql, $inparams] = $DB->get_in_or_equal(array_map('intval', $cmids), SQL_PARAMS_NAMED, 'cm');
+            $where = " AND r.cmid $insql";
+            $params += $inparams;
+        }
+        $rules = $DB->get_records_sql(
+            "SELECT r.cmid, r.daily_penalty, r.max_penalty
+               FROM {local_latepenalty_rules} r
+               JOIN {course_modules} cm ON cm.id = r.cmid
+              WHERE cm.course = :courseid AND r.enabled = 1$where",
+            $params
+        );
+        foreach ($rules as $rule) {
+            self::recalculate_all((int) $rule->cmid, (float) $rule->daily_penalty, (float) $rule->max_penalty);
+        }
+    }
+
+    /**
+     * Enabled rules of a course whose activity deadline a group changes.
+     *
+     * A group changes a deadline through a Late Penalty group override or a group
+     * override of the activity itself (assignment, quiz, lesson), the sources the
+     * deadline resolver reads.
+     *
+     * @param int $courseid Course ID.
+     * @param int $groupid Group ID.
+     * @return array Rules (cmid, daily_penalty, max_penalty) keyed by course module ID.
+     */
+    public static function rules_with_group_deadline(int $courseid, int $groupid): array {
+        global $DB;
+
+        // Assignment, quiz and lesson can be uninstalled: only ask the override tables that exist.
+        $dbman = $DB->get_manager();
+        $activities = ['assign' => ['assign_overrides', 'assignid'], 'quiz' => ['quiz_overrides', 'quiz'],
+            'lesson' => ['lesson_overrides', 'lessonid']];
+        $conditions = ['EXISTS (SELECT 1 FROM {local_latepenalty_group_overrides} go WHERE go.cmid = r.cmid AND go.groupid = :g0)'];
+        $params = ['courseid' => $courseid, 'g0' => $groupid];
+        foreach ($activities as $modname => [$table, $instancefield]) {
+            if (!$dbman->table_exists($table)) {
+                continue;
+            }
+            $conditions[] = "(m.name = :m$modname AND EXISTS (SELECT 1 FROM {{$table}} o
+                                                              WHERE o.$instancefield = cm.instance AND o.groupid = :g$modname))";
+            $params["m$modname"] = $modname;
+            $params["g$modname"] = $groupid;
+        }
+
+        return $DB->get_records_sql(
+            "SELECT r.cmid, r.daily_penalty, r.max_penalty
+               FROM {local_latepenalty_rules} r
+               JOIN {course_modules} cm ON cm.id = r.cmid
+               JOIN {modules} m ON m.id = cm.module
+              WHERE cm.course = :courseid AND r.enabled = 1
+                AND (" . implode(' OR ', $conditions) . ")",
+            $params
+        );
+    }
+
+    /**
+     * Whether the plugin has ever written a penalty in an activity.
+     *
+     * @param int $cmid Course module ID.
+     * @return bool
+     */
+    public static function has_penalised(int $cmid): bool {
+        global $DB;
+
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST);
+        $itemids = array_map(fn(\grade_item $item): int => (int) $item->id, penalty_helper::get_penalisable_items($cm));
+        if (empty($itemids)) {
+            return false;
+        }
+        [$insql, $params] = $DB->get_in_or_equal($itemids, SQL_PARAMS_NAMED, 'item');
+        return $DB->record_exists_select(
+            'grade_grades_history',
+            "itemid $insql AND source = :source",
+            $params + ['source' => penalty_writer::SOURCE]
+        );
+    }
+
+    /**
+     * Students the plugin has written a penalty for on a grade item.
+     *
+     * @param \grade_item $gradeitem Grade item.
+     * @return int[]
+     */
+    private static function penalised_users(\grade_item $gradeitem): array {
+        global $DB;
+
+        return $DB->get_fieldset_sql(
+            "SELECT DISTINCT userid
+               FROM {grade_grades_history}
+              WHERE itemid = :itemid
+                AND source = :source",
+            ['itemid' => $gradeitem->id, 'source' => penalty_writer::SOURCE]
+        );
+    }
+
+    /**
+     * Recalculate one student, e.g. after an override of that student changed.
+     *
+     * @param int   $cmid   Course module ID.
+     * @param int   $userid Student user ID.
+     * @param float $daily  Rule daily penalty percentage.
+     * @param float $max    Rule maximum penalty cap percentage.
+     * @return void
+     */
+    public static function recalculate_for_student(int $cmid, int $userid, float $daily, float $max): void {
+        self::recalculate_users($cmid, [$userid], $daily, $max);
+    }
+
+    /**
+     * Recalculate every member of a group, e.g. after a group override changed.
+     *
+     * @param int   $cmid    Course module ID.
+     * @param int   $groupid Group ID whose members should be recalculated.
+     * @param float $daily   Rule daily penalty percentage (fallback when no override).
+     * @param float $max     Rule maximum penalty cap percentage (fallback when no override).
+     * @return void
+     */
+    public static function recalculate_for_group(int $cmid, int $groupid, float $daily, float $max): void {
+        global $DB;
+
+        $userids = $DB->get_fieldset_select('groups_members', 'userid', 'groupid = :groupid', ['groupid' => $groupid]);
+        self::recalculate_users($cmid, $userids, $daily, $max);
+    }
+
+    /**
+     * Recalculate a set of students of one activity, every penalisable grade item.
+     *
+     * @param int   $cmid    Course module ID.
+     * @param int[] $userids Student IDs.
+     * @param float $daily   Rule daily penalty percentage (fallback when no override).
+     * @param float $max     Rule maximum penalty cap percentage (fallback when no override).
+     * @return void
+     */
+    public static function recalculate_users(int $cmid, array $userids, float $daily, float $max): void {
+        global $CFG;
+        require_once($CFG->libdir . '/gradelib.php');
+
+        if (empty($userids)) {
+            return;
+        }
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, IGNORE_MISSING);
+        if (!$cm) {
+            return;
+        }
+        foreach (penalty_helper::get_penalisable_items($cm) as $gradeitem) {
+            self::run($cm, $gradeitem, self::without_predating($cm, $gradeitem, $userids), $daily, $max, null);
+        }
+    }
+
+    /**
+     * Leave out the students whose grade arrived before the rule was first enabled and was never penalised.
+     *
+     * Enabling the rule for the first time leaves the grades that already exist alone (F17); background
+     * recalculations (enabling again, overrides, extensions, groups) keep that promise (F19). A grade the
+     * plugin penalised stays in its care. A grade arrives when someone other than the plugin writes it:
+     * the latest such write in the grade history, which records the real time of each write whatever date
+     * the module reports; without history, the date of the grade itself. New grades reaching the observer
+     * never pass here: they arrive now.
+     *
+     * @param \stdClass $cm Course module.
+     * @param \grade_item $gradeitem Grade item.
+     * @param int[] $userids Student IDs.
+     * @return int[] The students to recalculate.
+     */
+    private static function without_predating(\stdClass $cm, \grade_item $gradeitem, array $userids): array {
+        global $DB;
+
+        $userids = array_values(array_unique(array_map('intval', $userids)));
+        $timeenabled = (int) $DB->get_field('local_latepenalty_rules', 'timeenabled', ['cmid' => $cm->id]);
+        if ($timeenabled === 0 || empty($userids)) {
+            return $userids;
+        }
+
+        [$usql, $uparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'usr');
+        $params = ['itemid' => $gradeitem->id, 'source' => penalty_writer::SOURCE] + $uparams;
+        $penalised = $DB->get_fieldset_sql(
+            "SELECT DISTINCT userid
+               FROM {grade_grades_history}
+              WHERE itemid = :itemid AND userid $usql AND source = :source",
+            $params
+        );
+        $arrived = $DB->get_records_sql_menu(
+            "SELECT userid, MAX(timemodified)
+               FROM {grade_grades_history}
+              WHERE itemid = :itemid AND userid $usql AND (source IS NULL OR source <> :source)
+           GROUP BY userid",
+            $params
+        );
+        $graded = $DB->get_records_sql_menu(
+            "SELECT userid, timemodified
+               FROM {grade_grades}
+              WHERE itemid = :itemid AND userid $usql",
+            ['itemid' => $gradeitem->id] + $uparams
+        );
+
+        $penalised = array_flip(array_map('intval', $penalised));
+        return array_values(array_filter($userids, static function (int $userid) use ($penalised, $arrived, $graded, $timeenabled) {
+            $arrival = $arrived[$userid] ?? $graded[$userid] ?? null;
+            return isset($penalised[$userid]) || $arrival === null || (int) $arrival >= $timeenabled;
+        }));
+    }
+
+    /**
+     * Compute and write the penalty of one grade item for a set of students.
+     *
+     * @param \stdClass   $cm                Course module.
+     * @param \grade_item $gradeitem         Penalisable grade item of that module.
+     * @param int[]       $userids           Student IDs.
+     * @param float       $daily             Rule daily penalty (overrides may replace it per student).
+     * @param float       $max               Rule penalty cap (overrides may replace it per student).
+     * @param int|null    $activitydeadline  New activity deadline replacing the activity's own date, if any.
+     * @param bool        $restore           Give back the original grades instead of computing penalties.
+     * @return void
+     */
+    public static function run(
+        \stdClass $cm,
+        \grade_item $gradeitem,
+        array $userids,
+        float $daily,
+        float $max,
+        ?int $activitydeadline,
+        bool $restore = false
+    ): void {
+        global $DB;
+
+        $userids = array_values(array_unique(array_map('intval', $userids)));
+        if (empty($userids) || $gradeitem->is_locked() || !penalty_helper::is_penalisable_item($gradeitem)) {
+            return;
+        }
+        if (penalty_helper::native_penalty_active($cm)) {
+            // The core assignment penalty is in charge; grades penalised before stay as they are.
+            return;
+        }
+
+        $grades = [];
+        foreach (\grade_grade::fetch_users_grades($gradeitem, $userids, false) as $userid => $grade) {
+            // The item is already known (and checked above): attach it so no grade loads it again.
+            $grade->grade_item = $gradeitem;
+            if (empty($grade->locked)) {
+                $grades[(int) $userid] = $grade;
+            }
+        }
+
+        $deductedmark = penalty_writer::uses_deducted_mark((int) $gradeitem->courseid);
+        $ownoverrides = $deductedmark ? [] : penalty_writer::own_overrides($gradeitem, $grades);
+        foreach (array_keys($grades) as $userid) {
+            $ours = !empty($ownoverrides[$userid]);
+            if (!empty($grades[$userid]->overridden) && !$ours) {
+                unset($grades[$userid]);
+            } else if ($grades[$userid]->rawgrade === null) {
+                // No grade from the module: only an override of ours is left to lift.
+                if ($ours) {
+                    penalty_writer::apply($gradeitem, $grades[$userid], 0.0);
+                }
+                unset($grades[$userid]);
+            }
+        }
+        if (empty($grades)) {
+            return;
+        }
+
+        $ids = array_keys($grades);
+        $deadlines = deadline_resolver::for_users($cm, $ids);
+        $submissions = submission_resolver::for_users($cm, $gradeitem, $ids);
+        $rule = $DB->get_record('local_latepenalty_rules', ['cmid' => $cm->id], 'keepbest, penaltybase');
+        $keepbest = !empty($rule->keepbest);
+        $basemax = $rule && (int) $rule->penaltybase === penalty_helper::BASE_MAX;
+        $candidates = $restore ? null : submission_resolver::best_candidates($cm, $gradeitem, $ids, $keepbest);
+
+        foreach ($grades as $userid => $grade) {
+            if ($restore) {
+                penalty_writer::apply($gradeitem, $grade, 0.0);
+                continue;
+            }
+            $submissiontime = $submissions[$userid] ?? null;
+            if ($submissiontime === null) {
+                continue;
+            }
+
+            $resolved = $deadlines[$userid];
+            $deadline = $resolved->time;
+            if ($activitydeadline !== null && in_array($resolved->origin, self::ACTIVITY_ORIGINS, true)) {
+                $deadline = $activitydeadline;
+            }
+
+            $raw = (float) $grade->rawgrade;
+            $points = 0.0;
+            if ($deadline > 0) {
+                // On the maximum grade, the one the module recorded with this grade: the raw grade's own scale.
+                $rates = [
+                    $resolved->daily ?? $daily,
+                    $resolved->max ?? $max,
+                    (float) $gradeitem->grademin,
+                    $basemax ? (float) $grade->rawgrademax : null,
+                ];
+                if (!empty($candidates[$userid])) {
+                    // Highest grade: the best grade after each attempt's own penalty (F15).
+                    $best = null;
+                    foreach ($candidates[$userid] as [$candidateraw, $candidatetime, $candidatemax]) {
+                        // On the grade's own scale: the module may already be on a new maximum grade.
+                        if ($candidatemax > 0) {
+                            $candidateraw = $candidateraw * (float) $grade->rawgrademax / $candidatemax;
+                        }
+                        $value = self::penalised($candidateraw, $candidatetime, $deadline, $rates);
+                        $best = $best === null ? $value : max($best, $value);
+                    }
+                    $points = max(0.0, $raw - $best);
+                } else {
+                    $points = $raw - self::penalised($raw, $submissiontime, $deadline, $rates);
+                }
+            }
+
+            penalty_writer::apply($gradeitem, $grade, $points);
+        }
+    }
+
+    /**
+     * A grade after the penalty for its submission time.
+     *
+     * @param float $raw Raw grade.
+     * @param int $time Submission time.
+     * @param int $deadline Deadline.
+     * @param array $rates [daily penalty, penalty cap, grade minimum, maximum grade or null for the grade obtained].
+     * @return float
+     */
+    private static function penalised(float $raw, int $time, int $deadline, array $rates): float {
+        [$daily, $max, $grademin, $grademax] = $rates;
+        $dayslate = penalty_helper::calculate_days_late($time, $deadline);
+        if ($dayslate <= 0) {
+            return $raw;
+        }
+        return penalty_helper::apply_penalty($raw, $dayslate, $daily, $max, $grademin, $grademax);
+    }
+}

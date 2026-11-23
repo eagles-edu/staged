@@ -1,0 +1,5025 @@
+/* stylelint-disable csstree/validator */
+/* stylelint-disable declaration-no-important */
+:root {
+    --iv-animate-duration: 1s;
+    --iv-animate-delay: 1s;
+    --iv-animate-repeat: 1;
+    --ivwhite: #fff;
+    --ivgray: #6a737b;
+    --ivgray-dark: #343a40;
+    --ivprimary: #0f6cbf;
+    --ivsecondary: #ced4da;
+    --ivsuccess: #357a32;
+    --ivinfo: #008196;
+    --ivwarning: #f0ad4e;
+    --ivdanger: #ca3120;
+    --ivlight: #f2f5f8;
+    --ivdark: #343a40;
+    --ivblack: #000;
+    --ivdarker: #263238;
+    --ivprimaryalt: #e7f0f9;
+    --ivdangeralt: #f8d7da;
+    --ivwarningalt: #fdf3e7;
+    --ivinfoalt: #e6f7f9;
+    --ivsuccessalt: #eaf4ea;
+    --ivrounded-sm: 0.2rem;
+    --ivrounded: 0.25rem;
+    --ivrounded-lg: 0.6rem;
+    --ivrounded-circle: 50%;
+    --ivdvh: 100dvh;
+}
+
+[data-bs-theme="dark"] {
+    --ivwhite: #343a40;
+    --ivgray: #6a737b;
+    --ivgray-dark: #343a40;
+    --ivprimary: #0f6cbf;
+    --ivsecondary: #535d66;
+    --ivsuccess: #357a32;
+    --ivinfo: #008196;
+    --ivlight: #292e33;
+    --ivdark: #15181a;
+    --ivblack: #000;
+    --ivdarker: #263238;
+}
+
+[dir="rtl"] {
+    --ivdvh: 100vh;
+}
+
+.iv-scrollbar-0 {
+    scrollbar-width: none;
+}
+
+.iv-scrollbar-0 ::-webkit-scrollbar {
+    display: none;
+}
+
+.iv-pl-0 {
+    padding-inline-start: 0 !important;
+}
+
+.iv-pl-1 {
+    padding-inline-start: 0.25rem !important;
+}
+
+.iv-pl-2 {
+    padding-inline-start: 0.5rem !important;
+}
+
+.iv-pl-3 {
+    padding-inline-start: 1rem !important;
+}
+
+.iv-pl-4 {
+    padding-inline-start: 1.5rem !important;
+}
+
+.iv-pl-5 {
+    padding-inline-start: 2rem !important;
+}
+
+.iv-pl-6 {
+    padding-inline-start: 2.5rem !important;
+}
+
+.iv-pr-0 {
+    padding-inline-end: 0 !important;
+}
+
+@media (max-width: 992px) {
+    .iv-pr-md-0 {
+        padding-inline-end: 0 !important;
+    }
+}
+
+.iv-pr-1 {
+    padding-inline-end: 0.25rem !important;
+}
+
+.iv-pr-2 {
+    padding-inline-end: 0.5rem !important;
+}
+
+.iv-pr-3 {
+    padding-inline-end: 1rem !important;
+}
+
+.iv-pr-4 {
+    padding-inline-end: 1.5rem !important;
+}
+
+.iv-pr-5 {
+    padding-inline-end: 2rem !important;
+}
+
+.iv-pr-6 {
+    padding-inline-end: 2.5rem !important;
+}
+
+.iv-ml-0 {
+    margin-inline-start: 0 !important;
+}
+
+.iv-ml-1 {
+    margin-inline-start: 0.25rem !important;
+}
+
+.iv-ml-2 {
+    margin-inline-start: 0.5rem !important;
+}
+
+.iv-ml-3 {
+    margin-inline-start: 1rem !important;
+}
+
+.iv-ml-4 {
+    margin-inline-start: 1.5rem !important;
+}
+
+.iv-ml-5 {
+    margin-inline-start: 2rem !important;
+}
+
+.iv-ml-6 {
+    margin-inline-start: 2.5rem !important;
+}
+
+.iv-mr-0 {
+    margin-inline-end: 0 !important;
+}
+
+.iv-mr-1 {
+    margin-inline-end: 0.25rem !important;
+}
+
+.iv-mr-2 {
+    margin-inline-end: 0.5rem !important;
+}
+
+.iv-mr-3 {
+    margin-inline-end: 1rem !important;
+}
+
+.iv-mr-4 {
+    margin-inline-end: 1.5rem !important;
+}
+
+.iv-mr-5 {
+    margin-inline-end: 2rem !important;
+}
+
+.iv-mr-6 {
+    margin-inline-end: 2.5rem !important;
+}
+
+.iv-mr-auto {
+    margin-inline-end: auto !important;
+}
+
+.iv-ml-auto {
+    margin-inline-start: auto !important;
+}
+
+.iv-px-5 {
+    padding-inline-start: 2rem !important;
+    padding-inline-end: 2rem !important;
+}
+
+.iv-mx-5 {
+    margin-inline-start: 2rem !important;
+    margin-inline-end: 2rem !important;
+}
+
+.iv-mb-n1 {
+    margin-bottom: -0.25rem !important;
+}
+
+.iv-mb-n2 {
+    margin-bottom: -0.5rem !important;
+}
+
+.iv-mb-n3 {
+    margin-bottom: -1rem !important;
+}
+
+.iv-mt-n1 {
+    margin-top: -0.25rem !important;
+}
+
+.iv-mt-n2 {
+    margin-top: -0.5rem !important;
+}
+
+.iv-mt-n3 {
+    margin-top: -1rem !important;
+}
+
+.iv-font-weight-bold {
+    font-weight: 500 !important;
+}
+
+.iv-font-weight-normal {
+    font-weight: normal !important;
+}
+
+.iv-font-weight-light {
+    font-weight: 300 !important;
+}
+
+.iv-rounded-0 {
+    border-radius: 0 !important;
+}
+
+.iv-rounded-sm {
+    border-radius: var(--ivrounded-sm) !important;
+}
+
+.iv-rounded-lg {
+    border-radius: var(--ivrounded-lg) !important;
+}
+
+.iv-rounded {
+    border-radius: var(--ivrounded) !important;
+}
+
+.iv-rounded-circle {
+    border-radius: 50% !important;
+}
+
+.iv-rounded-pill {
+    border-radius: 50rem !important;
+}
+
+.iv-border-left {
+    border-left: 1px solid rgb(222, 226, 230) !important;
+}
+
+.iv-border-right {
+    border-right: 1px solid rgb(222, 226, 230) !important;
+}
+
+.iv-form-group {
+    margin-bottom: 1rem;
+}
+
+.iv-float-right {
+    float: right !important;
+}
+
+.iv-float-left {
+    float: left !important;
+}
+
+.iv-text-right {
+    text-align: right !important;
+}
+
+.iv-text-left {
+    text-align: left !important;
+}
+
+.iv-badge-secondary {
+    color: #1d2125 !important;
+    background-color: var(--ivsecondary) !important;
+}
+
+.iv-badge-primary {
+    color: #fff !important;
+    background-color: var(--ivprimary) !important;
+}
+
+.iv-badge-success {
+    color: #fff !important;
+    background-color: var(--ivsuccess) !important;
+}
+
+.iv-badge-warning {
+    color: #fff !important;
+    background-color: var(--ivwarning) !important;
+}
+
+.iv-badge-danger {
+    color: #fff !important;
+    background-color: var(--ivdanger) !important;
+}
+
+.iv-badge-pill {
+    border-radius: 10rem !important;
+    padding: 0 0.75rem !important;
+}
+
+.iv-btn-block {
+    display: block;
+    width: 100%;
+}
+
+.path-mod-interactivevideo {
+    line-height: 1.5;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) :is(h1, h2, h3, h4, h5, h6),
+.path-mod-interactivevideo :where([role="main"], .modal) :is(.h1, .h2, .h3, .h4, .h5, .h6) {
+    color: unset;
+}
+
+.path-mod-interactivevideo .clamp-1,
+.path-mod-interactivevideo .clamp-2,
+.path-mod-interactivevideo .clamp-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+
+.path-mod-interactivevideo .clamp-3 {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+}
+
+.path-mod-interactivevideo .clamp-1 {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .col {
+    padding-inline-start: 15px;
+    padding-inline-end: 15px;
+}
+
+[dir="ltr"] .path-mod-interactivevideo .dir-ltr-hide {
+    display: none !important;
+}
+
+[dir="rtl"] .path-mod-interactivevideo .dir-rtl-hide {
+    display: none !important;
+}
+
+.path-mod-interactivevideo.bs-5 :where([role="main"], .modal) .alert-success {
+    color: var(--bs-success-text-emphasis);
+    background: var(--bs-success-bg-subtle);
+}
+
+.path-mod-interactivevideo .popover-body p {
+    margin-bottom: 0;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group-append {
+    display: flex;
+}
+
+.path-mod-interactivevideo .tooltip-inner {
+    text-align: left;
+}
+
+.path-mod-interactivevideo .modal-backdrop {
+    z-index: 1031;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .form-control,
+.path-mod-interactivevideo :where([role="main"], .modal) .custom-select,
+.path-mod-interactivevideo :where([role="main"], .modal) .form-select,
+.path-mod-interactivevideo :where([role="main"], .modal) .btn:not(.btn-rounded) {
+    border-radius: var(--ivrounded-sm);
+}
+
+.path-mod-interactivevideo .btn-circle {
+    border-radius: 50% !important;
+    display: inline-block !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .form-control,
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .custom-select,
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .form-select {
+    border-radius: 0;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .form-control:first-child,
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .custom-select:first-child,
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .form-select:first-child {
+    border-radius: var(--ivrounded-sm) 0 0 var(--ivrounded-sm);
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .form-control:last-child,
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .custom-select:last-child,
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group .form-select:last-child {
+    border-radius: 0 var(--ivrounded-sm) var(--ivrounded-sm) 0;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .input-group * {
+    border-radius: 0 !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) ul {
+    margin: 0;
+}
+
+.path-mod-interactivevideo .btn-hover:hover {
+    transition: all 0.3s;
+    background: rgba(0, 0, 0, 0.075);
+}
+
+.path-mod-interactivevideo .fs-n {
+    font-size: 16px !important;
+}
+
+.path-mod-interactivevideo div.dataTables_wrapper div.dataTables_length label {
+    margin: 0;
+}
+
+.path-mod-interactivevideo .dataTables_filter input {
+    height: unset;
+}
+
+html:has(.path-mod-interactivevideo) {
+    scrollbar-color: hsl(0, 0%, 67%) transparent;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .container-fluid {
+    max-width: 100%;
+    width: 100%;
+}
+
+.path-mod-interactivevideo .overflow-visible {
+    overflow: visible !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .dropdown-menu {
+    scrollbar-color: hsl(0, 0%, 67%) #fff;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .dropdown-menu .dropdown-item:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #000;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .dropdown-menu.bg-black {
+    color: #fff;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .dropdown-menu.bg-black .dropdown-item {
+    color: #fff !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .dropdown-menu.bg-black .dropdown-item:hover {
+    background-color: #343a40;
+}
+
+.path-mod-interactivevideo ::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.path-mod-interactivevideo .opacity-0 {
+    opacity: 0 !important;
+}
+
+.path-mod-interactivevideo .opacity-1 {
+    opacity: 1 !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .badge {
+    padding: 0.25em 0.4em;
+    border-radius: var(--ivrounded-sm);
+}
+
+.path-mod-interactivevideo .sticky-left-0 {
+    left: 0;
+    position: sticky !important;
+    z-index: 2;
+}
+
+.path-mod-interactivevideo #background-loading {
+    z-index: 1031;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.path-mod-interactivevideo .navbar.fixed-top {
+    height: 70px;
+    z-index: 1030 !important;
+}
+
+.path-mod-interactivevideo.darkmode .navbar .dropdown-toggle::after {
+    color: #fff;
+}
+
+.path-mod-interactivevideo:not(.page-interactions).darkmode .navbar .btn-outline-secondary {
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.path-mod-interactivevideo.darkmode #user-action-menu {
+    filter: invert(1);
+    border: 0;
+}
+
+.path-mod-interactivevideo.darkmode :where([role="main"], .modal) .usertext {
+    color: #fff;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-dark,
+.path-mod-interactivevideo.bg-dark {
+    background-color: var(--ivdark) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-danger {
+    background-color: var(--ivdanger) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-warning {
+    background-color: var(--ivwarning) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-info {
+    background-color: var(--ivinfo) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-success {
+    background-color: var(--ivsuccess) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-primary {
+    background-color: var(--ivprimary) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-secondary {
+    background-color: var(--ivsecondary) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-light {
+    background-color: var(--ivlight) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-white {
+    background-color: var(--ivwhite) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-darker {
+    background-color: var(--ivdarker) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-black {
+    background-color: var(--ivblack) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-black-75 {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-transparent {
+    background: transparent !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-primary-alt {
+    background-color: var(--ivprimaryalt) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .bg-red {
+    background-color: red !important;
+}
+
+.path-mod-interactivevideo .rounded-lg {
+    border-radius: var(--ivrounded-lg) !important;
+}
+
+.path-mod-interactivevideo .line-height-100 {
+    line-height: 100%;
+}
+
+.path-mod-interactivevideo .color-picker {
+    height: 20px;
+    width: 20px;
+    border-radius: 0;
+    border: 1px solid #000;
+}
+
+.path-mod-interactivevideo .color-picker input {
+    opacity: 0;
+}
+
+.path-mod-interactivevideo .pulse,
+.path-mod-interactivevideo .pulse-sm {
+    overflow: visible;
+    position: relative;
+}
+
+.path-mod-interactivevideo .pulse::before,
+.path-mod-interactivevideo .pulse-sm::before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: inherit;
+    border-radius: inherit;
+    -webkit-transition: opacity 0.3s, -webkit-transform 0.3s;
+    transition: opacity 0.3s, transform 0.3s, -webkit-transform 0.3s;
+    -webkit-animation: pulse-animation 1s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    animation: pulse-animation 1s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    z-index: -1;
+}
+
+.path-mod-interactivevideo .pulse-sm::before {
+    -webkit-transition: opacity 0.5s, -webkit-transform 0.5s;
+    transition: opacity 0.5s, transform 0.5s, -webkit-transform 0.5s;
+    -webkit-animation: pulse-animation-sm 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    animation: pulse-animation-sm 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@-webkit-keyframes pulse-animation {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0;
+        -webkit-transform: scale(2);
+        transform: scale(2);
+    }
+
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(2);
+        transform: scale(2);
+    }
+}
+
+@keyframes pulse-animation {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0;
+        -webkit-transform: scale(2);
+        transform: scale(2);
+    }
+
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(2);
+        transform: scale(2);
+    }
+}
+
+@-webkit-keyframes pulse-animation-sm {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0;
+        -webkit-transform: scale(1.1);
+        transform: scale(1.1);
+    }
+
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(1.75);
+        transform: scale(1.75);
+    }
+}
+
+@keyframes pulse-animation-sm {
+    0% {
+        opacity: 1;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0;
+        -webkit-transform: scale(1.1);
+        transform: scale(1.1);
+    }
+
+    100% {
+        opacity: 0;
+        -webkit-transform: scale(1.75);
+        transform: scale(1.75);
+    }
+}
+
+.path-mod-interactivevideo .no-pointer-events {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.path-mod-interactivevideo .no-pointer,
+.path-mod-interactivevideo .no-click {
+    pointer-events: none;
+}
+
+.path-mod-interactivevideo i.bi {
+    display: inline-block;
+    font-size: 16px;
+}
+
+.path-mod-interactivevideo .rotate i {
+    transform: rotate(90deg);
+}
+
+[dir="rtl"] .path-mod-interactivevideo .rotate i {
+    transform: rotate(-90deg);
+}
+
+.path-mod-interactivevideo .btn-flex,
+.path-mod-interactivevideo :where([role="main"], .modal) .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .btn-default {
+    display: inline-block;
+}
+
+.path-mod-interactivevideo #toolbar {
+    right: 45px;
+    width: 0;
+    overflow: visible;
+    z-index: 1032;
+    height: calc(var(--ivdvh) - 110px);
+    margin-inline-end: 0;
+    top: 55px;
+    align-content: center;
+}
+
+.path-mod-interactivevideo #toolbar .btn {
+    left: 0;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    padding: 0;
+    position: relative;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 50%;
+    margin-bottom: 0.25rem;
+    opacity: 0.75;
+    transition: all ease-in-out 300ms;
+    border: 0;
+}
+
+.path-mod-interactivevideo.embed-mode #toolbar,
+.path-mod-interactivevideo:not(#page-mod-interactivevideo-view) #toolbar {
+    right: 25px;
+}
+
+.path-mod-interactivevideo.embed-mode #toolbar .btn,
+.path-mod-interactivevideo:not(#page-mod-interactivevideo-view) #toolbar .btn {
+    width: 25px;
+    border-radius: 5px 0 0 5px;
+}
+
+.path-mod-interactivevideo #toolbar .btn:hover {
+    opacity: 1;
+}
+
+.path-mod-interactivevideo:not(.bg-dark) #toolbar .btn {
+    color: #000;
+}
+
+/* View page on large screens: each toolbar button is an icon labelled with its title. The toolbar keeps its zero
+   width and centred buttons, so only the buttons take clicks. Full screen, embedding and smaller screens keep the
+   floating buttons. The page scope sits in :where() so a course format that styles the toolbar itself still wins. */
+@media (min-width: 992px) {
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar {
+        right: 72px;
+    }
+
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar .btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        width: 64px;
+        height: auto;
+        margin-bottom: 8px;
+        padding: 8px 0;
+        border-radius: 8px;
+        opacity: 1;
+        font-size: 20px;
+        background-color: transparent;
+        box-shadow: none !important;
+    }
+
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar .btn.d-none {
+        display: none;
+    }
+
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar .btn::after {
+        content: attr(title);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar .btn:hover,
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar .btn:focus-visible {
+        background-color: rgba(0, 0, 0, 0.06);
+    }
+
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view.distraction-free.darkmode:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar .btn:hover,
+    .path-mod-interactivevideo:where(#page-mod-interactivevideo-view.distraction-free.darkmode:not(.embed-mode))
+    #wrapper:where(:not(.fullscreen)) #toolbar .btn:focus-visible {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+#page-mod-interactivevideo-interactions {
+    background: var(--bs-body-bg, #edf0f2);
+}
+
+.path-mod-interactivevideo #annotation-canvas {
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.path-mod-interactivevideo [data-groupname="supportedlinks"],
+.path-mod-interactivevideo #fitem_id_nametip,
+.path-mod-interactivevideo #fitem_id_starttip,
+.path-mod-interactivevideo #fitem_id_endtip {
+    margin-top: -1rem;
+}
+
+.path-mod-interactivevideo [data-name="starttip"],
+.path-mod-interactivevideo [data-name="endtip"],
+.path-mod-interactivevideo [data-name="nametip"] {
+    width: 100%;
+}
+
+.path-mod-interactivevideo #instructions-text:has(.clamp-2) .showless {
+    display: none;
+}
+
+.path-mod-interactivevideo #instructions-text:not(:has(.clamp-2)) .showmore {
+    display: none;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .mform .col-form-label .form-label-addon {
+    margin-inline-start: auto;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .mform .col-form-label {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .mform i.icon.fa-circle-question {
+    line-height: 1.5;
+}
+
+.path-mod-interactivevideo #video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+}
+
+.path-mod-interactivevideo #video-wrapper .video-block {
+    height: 100%;
+    top: 0;
+    z-index: 3;
+    cursor: pointer;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    display: flex;
+    background: transparent;
+}
+
+#page-mod-interactivevideo-interactions #video-wrapper {
+    background: var(--ivdark);
+}
+
+.path-mod-interactivevideo.embed-mode #video-wrapper .video-block {
+    background: #000;
+}
+
+.path-mod-interactivevideo.bg-dark.embed-mode {
+    background: #000 !important;
+}
+
+.path-mod-interactivevideo #video-wrapper #pausebutton {
+    transition: all ease-in-out 300ms;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    z-index: 4;
+    position: absolute;
+    top: calc(50% - 25px);
+}
+
+.path-mod-interactivevideo #video-wrapper #pausebutton:hover {
+    transform: rotate(360deg) scale(1.5);
+    transition: transform 0.5s;
+}
+
+.path-mod-interactivevideo #player {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+}
+
+.path-mod-interactivevideo .fullscreen #player {
+    border-radius: 0;
+    padding-bottom: 0 !important;
+    position: unset !important;
+}
+
+.path-mod-interactivevideo #video-wrapper #fullscreen {
+    height: 30px;
+    width: 30px;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1030;
+    display: none;
+    position: absolute;
+    background-color: #fff;
+}
+
+.path-mod-interactivevideo.distraction-free #video-wrapper #fullscreen,
+.path-mod-interactivevideo.embed-mode #video-wrapper #fullscreen {
+    position: fixed;
+    display: flex;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.path-mod-interactivevideo #video-wrapper:hover #fullscreen {
+    display: flex;
+}
+
+.path-mod-interactivevideo #annotation-list {
+    padding: 0;
+    margin: 0;
+    min-height: 200px;
+    max-height: 300px;
+    border-radius: 0 0 0.5rem 0.5rem;
+    overflow: auto;
+}
+
+.path-mod-interactivevideo #annotation-list .timestamp {
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+}
+
+.path-mod-interactivevideo #annotation-list tr.active {
+    background-color: lightblue;
+    transition: all ease-in-out 1000ms;
+}
+
+.path-mod-interactivevideo #annotation-list tr.deleted {
+    background-color: #fce4ec;
+    transition: all ease-in-out 1000ms;
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo #annotation-list tr.active {
+    background-color: rgba(110, 168, 254, 0.25);
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo #annotation-list tr.deleted {
+    background-color: rgba(234, 134, 143, 0.25);
+}
+
+.path-mod-interactivevideo #annotation-list tr td {
+    vertical-align: middle;
+}
+
+.path-mod-interactivevideo #annotation-list tr td:first-child {
+    width: 1px;
+}
+
+.path-mod-interactivevideo #annotation-list tr.listItem .btn {
+    height: unset;
+    background: transparent;
+}
+
+.path-mod-interactivevideo .toast-wrapper,
+body:has(.modtype_interactivevideo) .toast-wrapper {
+    z-index: 2056 !important;
+}
+
+.path-mod-interactivevideo #video-action {
+    height: 65px;
+}
+
+.path-mod-interactivevideo #annotationwrapper {
+    height: calc(100% - 115px);
+}
+
+@media (max-width: 992px) {
+    .path-mod-interactivevideo #contentblock {
+        position: relative !important;
+    }
+}
+
+@media (max-width: 992px) {
+
+    .path-mod-interactivevideo #content-region,
+    .path-mod-interactivevideo #player-region {
+        width: 100% !important;
+    }
+}
+
+.path-mod-interactivevideo .w-wistia-logo,
+.path-mod-interactivevideo .w-bpb-wrapper {
+    display: none !important;
+}
+
+.path-mod-interactivevideo #video-nav {
+    width: 100%;
+    height: 4px;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    overflow-y: visible;
+    padding: 0;
+    justify-content: center;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #video-nav ul {
+    height: 4px;
+}
+
+.path-mod-interactivevideo #interactions-nav {
+    width: 100%;
+    position: relative;
+    display: flex;
+    padding: 0;
+    justify-content: center;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #interactions-nav {
+    top: -3px;
+}
+
+.path-mod-interactivevideo #video-nav ul,
+.path-mod-interactivevideo #interactions-nav ul {
+    padding: 0;
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #interactions-nav ul {
+    justify-content: center;
+}
+
+#page-mod-interactivevideo-interactions #video-nav ul {
+    border-top: 1px dotted var(--bs-border-color, #ddd);
+}
+
+.path-mod-interactivevideo #video-nav #progress {
+    padding: 0;
+    width: 0%;
+    position: absolute;
+    height: 4px;
+    background-color: var(--ivdanger);
+    display: flex;
+    border-radius: 5px;
+}
+
+.path-mod-interactivevideo #video-nav .annotation.skipsegment {
+    height: 4px;
+    opacity: 0.6;
+    z-index: 1;
+    transition: height ease-in-out 300ms, opacity ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo #video-nav li,
+.path-mod-interactivevideo #interactions-nav li {
+    list-style: none;
+    display: flex;
+    position: absolute;
+    z-index: 1;
+    width: 10px;
+    height: 10px;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #interactions-nav li {
+    width: 100%;
+    max-width: 30px;
+    margin: 0 2px;
+    position: relative;
+    left: unset !important;
+    right: unset !important;
+}
+
+.path-mod-interactivevideo #video-nav li .item,
+.path-mod-interactivevideo #interactions-nav li .item {
+    border-radius: 50%;
+    width: 5px;
+    height: 5px;
+    border: 1px solid #000;
+    background-color: #ddd;
+    transition: transform ease-in-out 300ms;
+    cursor: pointer;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #interactions-nav li .item {
+    width: 100%;
+    border: none !important;
+    border-radius: 2px;
+    opacity: 0.7;
+    transition: opacity ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #video-nav > div {
+    height: 4px;
+    position: absolute;
+}
+
+.path-mod-interactivevideo #video-nav li.dragging {
+    background-color: var(--ivwhite);
+}
+
+.path-mod-interactivevideo #video-nav li.dragging .item {
+    display: none;
+}
+
+.path-mod-interactivevideo:not(.mobiletheme) #video-nav .item:hover,
+.path-mod-interactivevideo:not(.mobiletheme) #controller:not(.align-indicator) #interactions-nav .item:hover,
+.path-mod-interactivevideo #controller:not(.align-indicator) #interactions-nav .item.active {
+    transform: scale(1.75);
+    box-shadow:
+        0 0 10px #399be2,
+        0 0 20px #399be2,
+        0 0 30px #399be2,
+        0 0 40px #399be2,
+        0 0 50px #399be2,
+        0 0 60px #399be2,
+        0 0 70px #399be2,
+        0 0 80px #399be2,
+        0 0 90px #399be2,
+        0 0 100px #399be2;
+    transition: all ease-in-out 300ms;
+    opacity: 1;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #interactions-nav li .item:hover,
+.path-mod-interactivevideo #controller.align-indicator #interactions-nav li .item.active {
+    opacity: 1;
+}
+
+.path-mod-interactivevideo:not(.mobiletheme) #video-nav #seekhead:hover,
+.path-mod-interactivevideo:not(.mobiletheme) #timeline #scrollhead:hover,
+.path-mod-interactivevideo:not(.mobiletheme) #scrollhead-top:hover,
+.path-mod-interactivevideo #video-nav #seekhead.active {
+    height: 10px;
+    width: 10px;
+    transition: transform ease-in-out 300ms;
+    box-shadow:
+        0 0 10px #399be2,
+        0 0 20px #399be2,
+        0 0 30px #399be2,
+        0 0 40px #399be2,
+        0 0 50px #399be2,
+        0 0 60px #399be2,
+        0 0 70px #399be2,
+        0 0 80px #399be2,
+        0 0 90px #399be2,
+        0 0 100px #399be2;
+}
+
+.path-mod-interactivevideo #interactions-nav li.completed .item {
+    border: 1px solid #fff;
+    background-color: #357a32;
+}
+
+.path-mod-interactivevideo #interactions-nav li.no-completion .item,
+.path-mod-interactivevideo #video-nav li.no-completion .item {
+    border: 1px solid #777;
+    background-color: #777;
+}
+
+.path-mod-interactivevideo #video-wrapper #message,
+.path-mod-interactivevideo #annotation-content #message {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    max-width: 100%;
+}
+
+.path-mod-interactivevideo.embed-mode #video-wrapper:not([data-ratio]):not(.fb) #message {
+    position: fixed;
+    height: calc(var(--ivdvh) - 55px);
+    z-index: 1000;
+
+    #title {
+        border-radius: 0;
+    }
+}
+
+.path-mod-interactivevideo .bottom-0 {
+    bottom: 0;
+}
+
+.path-mod-interactivevideo .right-0 {
+    right: 0;
+}
+
+.path-mod-interactivevideo .left-0 {
+    left: 0;
+}
+
+.path-mod-interactivevideo #video-wrapper #message.bottom-0 {
+    top: 100%;
+    transition: all ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo #annotation-content #message {
+    position: relative;
+}
+
+.path-mod-interactivevideo #video-wrapper #message #title,
+.path-mod-interactivevideo #annotation-content #message #title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    background-color: var(--bs-white, #fff);
+    z-index: 1;
+}
+
+.path-mod-interactivevideo #video-wrapper #message #content {
+    margin: 0;
+    padding: 1rem;
+    overflow: auto;
+    height: calc(100% - 50px);
+    background-color: var(--bs-white, #fff) !important;
+}
+
+.path-mod-interactivevideo #annotation-content #message #content {
+    margin: 0;
+    padding: 1rem;
+    overflow: auto;
+    background-color: var(--bs-white, #fff);
+}
+
+.path-mod-interactivevideo #start-screen,
+.path-mod-interactivevideo #end-screen {
+    z-index: 500;
+    top: 0;
+}
+
+.path-mod-interactivevideo #start-screen.square {
+    background-size: auto 80% !important;
+    background-color: var(--ivdarker) !important;
+}
+
+.path-mod-interactivevideo #start-screen .intro-content,
+.path-mod-interactivevideo #end-screen .end-content {
+    padding: 1rem;
+    height: 100%;
+    overflow: auto;
+    z-index: 3;
+}
+
+.path-mod-interactivevideo #start-screen .intro-content #title-section,
+.path-mod-interactivevideo #end-screen .end-content #title-section {
+    top: 0;
+}
+
+.path-mod-interactivevideo #start-screen .intro-content #spinner,
+.path-mod-interactivevideo #end-screen .end-content #spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+.path-mod-interactivevideo #start-screen .intro-content #play i,
+.path-mod-interactivevideo #end-screen .end-content #play i {
+    font-size: 50px;
+    line-height: 50px;
+}
+
+.path-mod-interactivevideo #start-screen .intro-content #restart i,
+.path-mod-interactivevideo #end-screen .end-content #restart i {
+    font-size: 25px;
+    line-height: 30px;
+}
+
+.path-mod-interactivevideo .modalhasiframe .modal-body,
+.path-mod-interactivevideo #message.hasiframe .modal-body {
+    padding: 0 !important;
+    display: flex;
+}
+
+.path-mod-interactivevideo .modal:not(.moodle-has-zindex) .modal-body {
+    min-height: 50dvh;
+}
+
+.path-mod-interactivevideo #message[data-placement="inline"] .modal-body {
+    min-height: unset;
+}
+
+.path-mod-interactivevideo .modalhasiframe .modal-body .no-overflow,
+.path-mod-interactivevideo #message.hasiframe .no-overflow {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    margin: 1rem;
+}
+
+.path-mod-interactivevideo .modal-body .no-overflow {
+    padding: 1rem;
+}
+
+.path-mod-interactivevideo .modal-body .no-overflow:is(:empty) {
+    padding: 0;
+}
+
+.path-mod-interactivevideo .modalhasiframe .modal-body {
+    height: calc(var(--ivdvh) - 3rem);
+}
+
+.path-mod-interactivevideo #message.hasiframe #iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.path-mod-interactivevideo .modalhasiframe .modal-body #iframe {
+    position: relative;
+}
+
+.path-mod-interactivevideo #message.hascontentbank .modal-body {
+    text-align: center;
+    min-height: unset;
+}
+
+.path-mod-interactivevideo #message.hascontentbank [name="h5player"],
+.path-mod-interactivevideo #message.contentbank .h5p-player-wrapper,
+.path-mod-interactivevideo #message.h5pupload #iframe {
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.path-mod-interactivevideo #message.h5pupload #iframe {
+    position: relative;
+    min-height: calc(100% - 1rem);
+}
+
+.path-mod-interactivevideo #annotation-content #message #iframe {
+    min-height: 50dvh;
+    position: relative;
+}
+
+.path-mod-interactivevideo #annotation-content {
+    border-radius: 1rem;
+}
+
+#page-mod-interactivevideo-view #wrapper {
+    max-width: 100%;
+    transition: max-width ease-in-out 300ms;
+}
+
+#page-mod-interactivevideo-view.distraction-free:not(.embed-mode) #wrapper {
+    width: calc((-125px - 2.5rem + var(--ivdvh)) * 1.78);
+}
+
+#page-mod-interactivevideo-view.embed-mode #wrapper {
+    width: calc((-55px + var(--ivdvh)) * 1.78);
+}
+
+/* In distraction-free mode on large screens the labelled toolbar floats 72px from the right edge. When the window is
+   tall for its width, the video would fill the width and run under it, so the video (not the controller) keeps clear
+   of it on both sides. With a side panel open, the panel covers the toolbar, so the video takes the full width. */
+@media (min-width: 992px) {
+    #page-mod-interactivevideo-view:where(.distraction-free:not(.embed-mode):not(.hassidebar):has(#toolbar .btn:not(.d-none)))
+    #wrapper:where(:not(.fullscreen)) {
+        max-width: calc(100% - 128px);
+    }
+}
+
+#page-mod-interactivevideo-view.limited-width #wrapper,
+#page-mod-interactivevideo-view #annotation-content {
+    max-width: clamp(300px, 100%, 1100px);
+    transition: max-width ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo #wrapper.fullscreen #video-wrapper:not(.fb),
+.path-mod-interactivevideo #wrapper.fullscreen .video-block {
+    position: absolute;
+    top: 0;
+    width: 100% !important;
+    height: calc(var(--ivdvh) - 55px);
+    padding: 0;
+    border-radius: 0;
+    border: none !important;
+}
+
+.path-mod-interactivevideo #wrapper.fullscreen.no-videonav #video-wrapper,
+.path-mod-interactivevideo #wrapper.fullscreen.no-videonav .video-block {
+    height: calc(var(--ivdvh));
+}
+
+.path-mod-interactivevideo #taskinfo .btn-control {
+    height: 25px;
+    width: 25px;
+    padding: 0;
+}
+
+.path-mod-interactivevideo #wrapper.fullscreen #content .no-overflow,
+.path-mod-interactivevideo #wrapper.fullscreen #content > .h5p,
+.path-mod-interactivevideo #wrapper.fullscreen #start-screen .no-overflow,
+.path-mod-interactivevideo #wrapper.fullscreen #end-screen .no-overflow,
+.path-mod-interactivevideo.embed-mode #message[data-placement="inline"] .no-overflow,
+.path-mod-interactivevideo.embed-mode #message[data-placement="inline"] #content > .h5p {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.path-mod-interactivevideo .contentbank-item-icon {
+    height: 30px;
+    width: 30px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.path-mod-interactivevideo .contentbank-item:nth-child(odd) {
+    background-color: var(--bs-body-bg, #f8f9fa);
+}
+
+.path-mod-interactivevideo .contentbank-item:hover {
+    background-color: var(--bs-gray-300, #ddd);
+}
+
+.path-mod-interactivevideo .contentbank-item.selected {
+    background-color: var(--ivprimary);
+    color: #fff;
+}
+
+.path-mod-interactivevideo .contentbank-item.selected i {
+    color: #fff;
+}
+
+.path-mod-interactivevideo #addcontent:hover i,
+.path-mod-interactivevideo #addnewcontent:hover i {
+    transform: rotate(90deg);
+    transition: transform 0.5s;
+}
+
+.path-mod-interactivevideo #addcontent i,
+.path-mod-interactivevideo #addnewcontent i {
+    transform: rotate(-90deg);
+    transition: transform 0.5s;
+}
+
+.path-mod-interactivevideo .contentbank .contentbank-container {
+    max-height: 185px;
+    overflow: auto;
+}
+
+.path-mod-interactivevideo #addnewcontentdropdown {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.path-mod-interactivevideo #addnewcontentdropdown .contentbank-itemlist-icon {
+    width: 30px;
+    height: 30px;
+    margin-inline-end: 10px;
+}
+
+.path-mod-interactivevideo #addnewcontentdropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding-inline-start: 0.25rem;
+}
+
+.path-mod-interactivevideo .contentbank .contentbank-item .contentbank-item-details {
+    cursor: pointer;
+    width: 100%;
+}
+
+.path-mod-interactivevideo .modalhasiframe .modal-body {
+    display: flex;
+}
+
+.path-mod-interactivevideo .display-icon,
+.path-mod-interactivevideo .type-icon {
+    padding-inline-start: 0;
+    padding-inline-end: 0;
+}
+
+.path-mod-interactivevideo #player {
+    max-width: 100%;
+}
+
+.path-mod-interactivevideo #message[data-placement=side] #title {
+    height: 70px;
+    align-items: center;
+    padding: 0 0.75rem;
+}
+
+.path-mod-interactivevideo #message[data-placement=side] #content {
+    overflow: auto;
+    height: calc(var(--ivdvh) - 80px);
+    max-height: calc(var(--ivdvh) - 80px);
+}
+
+.path-mod-interactivevideo #annotation-sidebar .sidebar-nav-item {
+    background-color: var(--ivdangeralt);
+    height: 10px;
+    cursor: pointer;
+    border-right: 1px solid var(--ivdanger);
+}
+
+.path-mod-interactivevideo #annotation-sidebar .sidebar-nav-item.no-completion {
+    background-color: var(--ivlight);
+    border-right: 1px solid var(--ivlight);
+}
+
+.path-mod-interactivevideo #annotation-sidebar .sidebar-nav-item.no-completion.active {
+    background-color: var(--ivgray);
+    border-right: 1px solid var(--ivsecondary);
+}
+
+.path-mod-interactivevideo #annotation-sidebar .sidebar-nav-item.completed {
+    background-color: var(--ivsuccessalt);
+    border-right: 1px solid var(--ivsuccess);
+}
+
+.path-mod-interactivevideo #annotation-sidebar .sidebar-nav-item.active {
+    background-color: var(--ivdanger);
+}
+
+.path-mod-interactivevideo #annotation-sidebar .sidebar-nav-item.active.completed {
+    background-color: var(--ivsuccess);
+}
+
+#page-mod-interactivevideo-report th.rotate {
+    height: 140px;
+    min-width: 30px;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+}
+
+#page-mod-interactivevideo-report th.rotate > div {
+    transform: rotate3d(0, 0, 1, -90deg);
+    width: 30px;
+    display: flex;
+    justify-content: start;
+    left: calc(50% - 16px);
+    position: absolute;
+    bottom: 1.75rem;
+}
+
+#page-mod-interactivevideo-report.bs-5 th.rotate > div {
+    bottom: 1rem;
+}
+
+[dir="rtl"] #page-mod-interactivevideo-report th.rotate > div {
+    transform: rotate3d(0, 0, 1, 90deg);
+}
+
+#page-mod-interactivevideo-report th.rotate > div .rotate-0 {
+    transform: rotate(90deg);
+}
+
+#page-mod-interactivevideo-report th.rotate > div > a {
+    margin-inline-start: 0.25rem;
+}
+
+#page-mod-interactivevideo-report th:not(.rotate) {
+    vertical-align: middle;
+}
+
+#page-mod-interactivevideo-report .completion-detail--xp-overridden,
+#page-mod-flexbook-report .completion-detail--xp-overridden {
+    color: var(--bs-warning);
+    font-weight: 600;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav {
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    z-index: 1060;
+    width: calc(100% - 2rem);
+    max-width: 940px;
+    transform: translateX(-50%);
+    pointer-events: auto;
+    padding: 0.25rem 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-position,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-position {
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-xp,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-xp {
+    white-space: nowrap;
+}
+
+#annotation-modal.has-completion-detail-nav {
+    overflow: hidden;
+}
+
+#page-mod-interactivevideo-report #annotation-modal.has-completion-detail-nav .modal-dialog,
+#page-mod-flexbook-report #annotation-modal.has-completion-detail-nav .modal-dialog {
+    margin-top: 3.5rem;
+}
+
+#page-mod-interactivevideo-report #annotation-modal.has-completion-detail-nav:not(.modal-fullscreen) .modal-content,
+#page-mod-flexbook-report #annotation-modal.has-completion-detail-nav:not(.modal-fullscreen) .modal-content {
+    max-height: calc(var(--ivdvh) - 5.5rem);
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile-region,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile-region,
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile,
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile-link,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile-link {
+    min-width: 0;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile-link,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile-link {
+    color: #fff;
+    font-weight: 700;
+    gap: 0.5rem;
+    max-width: 100%;
+    text-decoration: none;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile-link:hover,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile-link:hover,
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile-link:focus,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile-link:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile-link .userpicture,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile-link .userpicture {
+    flex-shrink: 0;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-profile-link .userinitials,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-profile-link .userinitials {
+    flex-shrink: 0;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-xp-input,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-xp-input {
+    width: 3.25rem;
+    min-height: auto;
+    height: 1.875rem;
+    padding: 0.125rem 0.375rem;
+    text-align: center;
+    border: 0;
+    background: #fff;
+    border-radius: 0.25rem;
+    color: #000;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-xp-edit,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-xp-edit {
+    gap: 0.25rem;
+    padding: 0.125rem 0.25rem 0.125rem 0.375rem;
+    background: #f8f9fa;
+    border-radius: 10rem;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-xp-max,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-xp-max {
+    color: #212529;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-xp-save,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-xp-save {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+#page-mod-interactivevideo-report #annotation-modal .completion-detail-nav-xp-region .completion-detail-nav-xp.badge,
+#page-mod-flexbook-report #annotation-modal .completion-detail-nav-xp-region .completion-detail-nav-xp.badge {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+#page-mod-interactivevideo-view #start-screen .intro-content:not(.hasintro),
+#page-mod-interactivevideo-view #end-screen .end-content:not(.hascontent) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#page-mod-interactivevideo-view .fullscreen #end-screen .end-content:not(.hascontent),
+#page-mod-interactivevideo-view.embed-mode:not(.iframe) #end-screen .end-content:not(.hascontent) {
+    background-color: #000 !important;
+}
+
+#page-mod-interactivevideo-view #start-screen #play,
+.path-mod-interactivevideo #end-screen #restart {
+    height: 46px;
+    width: 46px;
+}
+
+#page-mod-interactivevideo-view #start-screen #play i,
+.path-mod-interactivevideo #end-screen #restart {
+    transition: transform 0.5s;
+}
+
+#page-mod-interactivevideo-view #start-screen #play:hover i,
+.path-mod-interactivevideo #end-screen #restart:hover {
+    transform: rotate(360deg) scale(1.5);
+    transition: transform 0.5s;
+}
+
+.path-mod-interactivevideo #annotation-modal .modal-dialog {
+    width: calc(100% - 1rem);
+    max-width: 940px;
+}
+
+.path-mod-interactivevideo #annotation-modal .modal-dialog.modal-xl {
+    max-width: 1140px;
+}
+
+.path-mod-interactivevideo #annotation-modal {
+    padding-inline-end: 0 !important;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.path-mod-interactivevideo .modal .hasiframe .modal-body {
+    min-height: calc(var(--ivdvh) - 6rem - 66px);
+}
+
+.path-mod-interactivevideo div#player iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.path-mod-interactivevideo #id_upload,
+.path-mod-interactivevideo #id_delete {
+    background-color: var(--ivprimary);
+    color: #fff;
+    border: none;
+    width: 100%;
+}
+
+.path-mod-interactivevideo #id_delete {
+    background-color: var(--ivdanger);
+}
+
+.path-mod-interactivevideo #video-wrapper {
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+#page-mod-interactivevideo-view #video-wrapper #sharebutton {
+    height: 30px;
+    width: 30px;
+    text-align: center;
+    padding: 0;
+    top: 10px;
+    right: 10px;
+    z-index: 4;
+}
+
+#page-mod-interactivevideo-view.default-mode #page.drawers .main-inner {
+    max-width: 950px;
+}
+
+#page-mod-interactivevideo-view #toast:not(.show) {
+    display: none;
+}
+
+.path-mod-interactivevideo.modal-open,
+.path-mod-interactivevideo.distractionfreemode {
+    overflow: hidden !important;
+}
+
+.path-mod-interactivevideo #video-info {
+    z-index: 4;
+    background: linear-gradient(135deg, black, transparent);
+}
+
+.path-mod-interactivevideo #video-info .h1 {
+    border-left: 5px solid var(--ivdanger);
+    padding-inline-start: 0.3em;
+    margin-top: 0.3em;
+    position: relative;
+    transition: top ease-in-out 300ms;
+    opacity: 1;
+    top: 0;
+}
+
+.path-mod-interactivevideo #video-info .h1.trantohide {
+    position: relative;
+    top: -100%;
+    opacity: 0;
+    transition: all ease-in-out 300ms;
+}
+
+@media (max-width: 767.98px) {
+    .path-mod-interactivevideo #video-info {
+        background: linear-gradient(0deg, black, transparent);
+    }
+
+    .path-mod-interactivevideo #video-info .h1 {
+        bottom: 0;
+        top: unset;
+    }
+
+    .path-mod-interactivevideo #video-info .h1.trantohide {
+        bottom: -100%;
+        opacity: 0;
+        top: unset;
+        transition: all ease-in-out 300ms;
+    }
+}
+
+[dir="rtl"] .path-mod-interactivevideo #video-info {
+    background: linear-gradient(45deg, transparent, black);
+}
+
+.path-mod-interactivevideo #video-info #play {
+    top: calc(50% - 25px);
+    left: calc(50% - 25px);
+}
+
+.path-mod-interactivevideo #video-info #play i {
+    font-size: 50px;
+    line-height: 50px;
+}
+
+.path-mod-interactivevideo #chapter-container-left {
+    transition: left ease-in-out 300ms;
+    max-width: 400px;
+    z-index: 1031;
+    height: calc(100% - 55px);
+}
+
+.path-mod-interactivevideo.mobiletheme #chapter-container-left,
+.path-mod-interactivevideo.default-mode #chapter-container-left {
+    height: 100%;
+}
+
+.path-mod-interactivevideo [data-region="chapterwrapper"] {
+    background: var(--bs-body-bg, #fff);
+    top: 0;
+    z-index: 100;
+    overflow: auto;
+    width: calc(100% - 15px);
+}
+
+.path-mod-interactivevideo.darkmode #chapter-container-left [data-region="chapterwrapper"] {
+    background: rgba(0, 0, 0, 0.95);
+    color: #fff;
+}
+
+.path-mod-interactivevideo #video-nav li.chapter {
+    background: var(--ivdark);
+    border-radius: 50%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.path-mod-interactivevideo #video-nav li.chapter .item {
+    border-radius: 50%;
+    width: 6px;
+    height: 6px;
+    border: 1.5px solid #fff;
+    background-color: var(--ivdark);
+    transition: all ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo .cursor-pointer {
+    cursor: pointer;
+}
+
+.path-mod-interactivevideo .cursor-move {
+    cursor: move;
+}
+
+.page-interactions tr.annotation.chapter {
+    background-color: var(--ivsecondary);
+    border-top: 4px double var(--bs-white, #fff);
+}
+
+.page-interactions tr.annotation.chapter .type-icon,
+.page-interactions tr.annotation.chapter .display-icon {
+    display: none;
+}
+
+.page-interactions tr.annotation.chapter .timestamp {
+    background: var(--ivprimary) !important;
+    color: #fff;
+    padding: 0.1rem 0.3rem !important;
+    font-weight: 600;
+    border: 0;
+    font-size: small;
+}
+
+.path-mod-interactivevideo #addcontentdropdown span i {
+    font-size: 2rem;
+}
+
+.path-mod-interactivevideo #addcontentdropdown span i.tutorial {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.path-mod-interactivevideo #addcontentdropdown span:hover * {
+    color: #fff !important;
+}
+
+.path-mod-interactivevideo #controller {
+    height: 55px;
+    z-index: 1032;
+    width: 100%;
+    bottom: 0;
+    margin: 0;
+    left: 0;
+    position: fixed;
+    transition: opacity ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo.default-mode #controller {
+    border-radius: 0.75rem;
+    opacity: 1;
+}
+
+.path-mod-interactivevideo.default-mode #wrapper #controller,
+.path-mod-interactivevideo.iframe #wrapper #controller {
+    position: relative;
+    z-index: 1029;
+    opacity: 1;
+}
+
+.path-mod-interactivevideo #wrapper.fullscreen #controller {
+    position: fixed;
+    border-radius: 0 !important;
+    opacity: 1;
+}
+
+@media (min-width: 992px) {
+    .path-mod-interactivevideo.distraction-free:not(.embed-mode) #controller {
+        margin: 0 1rem;
+        border-radius: 1rem 1rem 0 0;
+        max-width: calc(100% - 2rem);
+    }
+}
+
+.path-mod-interactivevideo #wrapper.fullscreen #controller #expand,
+.path-mod-interactivevideo.embed-mode #controller #expand {
+    display: none !important;
+}
+
+.path-mod-interactivevideo #controller.fadeOut,
+.path-mod-interactivevideo .navbar.fadeOut {
+    opacity: 0 !important;
+    transition: opacity ease-in-out 600ms;
+}
+
+.path-mod-interactivevideo #controller:not(.fadeOut),
+.path-mod-interactivevideo .navbar:not(.fadeOut) {
+    transition: opacity ease-in-out 600ms;
+}
+
+.path-mod-interactivevideo #controller.fadeOut:hover,
+.path-mod-interactivevideo .navbar.fadeOut:hover {
+    opacity: 1 !important;
+}
+
+.path-mod-interactivevideo [data-region="chapterlists"] .chapter.active-chapter > div {
+    color: #fff;
+    background: var(--ivprimary);
+}
+
+.path-mod-interactivevideo #interactivevideo-container #chapter-container-left {
+    left: -100%;
+}
+
+.path-mod-interactivevideo #interactivevideo-container.chapter-open #chapter-container-left {
+    left: 0;
+}
+
+@media (max-width: 1199.98px) {
+    .path-mod-interactivevideo #interactivevideo-container.chapter-open #chapter-container-left {
+        display: block;
+        left: 0;
+    }
+}
+
+@media (min-width: 1199.98px) {
+    .path-mod-interactivevideo #interactivevideo-container {
+        transition: left ease 300ms, width ease 300ms;
+        left: 0;
+        width: 100%;
+    }
+
+    .path-mod-interactivevideo #interactivevideo-container.chapter-open,
+    .path-mod-interactivevideo.embed-mode #interactivevideo-container.chapter-open {
+        left: 400px;
+        width: calc(100% - 400px);
+        transition: left ease 300ms, width ease 300ms;
+    }
+
+    .path-mod-interactivevideo:has(#toolbar:empty) #interactivevideo-container.chapter-open {
+        width: calc(100% - 400px);
+    }
+
+    /* Outside distraction-free mode the page makes room for the panel, as it does for the sidebar. */
+    .path-mod-interactivevideo.default-mode:has(#interactivevideo-container.chapter-open) #page {
+        margin-inline-start: 400px;
+    }
+
+    .path-mod-interactivevideo.default-mode #interactivevideo-container.chapter-open {
+        left: 0;
+        width: 100%;
+    }
+}
+
+.path-mod-interactivevideo #interactivevideo-container.chapter-open.fullscreen #chapter-container-left {
+    display: block;
+    left: 0;
+}
+
+.path-mod-interactivevideo .fullscreen #chapterbutton {
+    margin: 0 0.2rem !important;
+}
+
+.path-mod-interactivevideo #closechapter {
+    display: none;
+}
+
+.path-mod-interactivevideo.mobiletheme .chapter-open #chapter-container-left,
+.path-mod-interactivevideo.default-mode .chapter-open #chapter-container-left,
+.path-mod-interactivevideo.embed-mode .chapter-open #chapter-container-left,
+.path-mod-interactivevideo.distraction-free .chapter-open #chapter-container-left {
+    position: fixed !important;
+    z-index: 1250;
+}
+
+.path-mod-interactivevideo.mobiletheme .chapter-open #chapter-container-left #closechapter,
+.path-mod-interactivevideo.default-mode .chapter-open #chapter-container-left #closechapter,
+.path-mod-interactivevideo.embed-mode .chapter-open #chapter-container-left #closechapter,
+.path-mod-interactivevideo.distraction-free .chapter-open #chapter-container-left #closechapter {
+    display: block;
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+    width: 30px;
+    height: 30px;
+    z-index: 10;
+}
+
+.path-mod-interactivevideo.default-mode .chapter-open #chapter-container-left #closechapter,
+.path-mod-interactivevideo.embed-mode .chapter-open #chapter-container-left #closechapter,
+.path-mod-interactivevideo.distraction-free .chapter-open #chapter-container-left #closechapter {
+    position: absolute;
+}
+
+.path-mod-interactivevideo.no-original-controls video::-webkit-media-controls-panel,
+.path-mod-interactivevideo.no-original-controls .w-bottom-bar,
+.path-mod-interactivevideo.no-original-controls .player-Rumble-cls > div > div:not(#pac),
+.path-mod-interactivevideo.no-original-controls .player-Rumble-cls [rel="noopener"],
+.path-mod-interactivevideo.no-original-controls .rumblePlayer-Rumble-cls [rel="noopener"],
+.path-mod-interactivevideo.no-original-controls .rumblePlayer-Rumble-cls > div > div:not(#pac) {
+    display: none !important;
+}
+
+.path-mod-interactivevideo.no-original-controls.rumble .video-block {
+    pointer-events: none;
+}
+
+#page-mod-interactivevideo-view.mobiletheme #message {
+    margin: 0;
+    width: 100%;
+    max-height: unset;
+}
+
+#page-mod-interactivevideo-view.mobiletheme #message .modal-content {
+    height: var(--ivdvh);
+}
+
+#page-mod-interactivevideo-view {
+    overflow-x: hidden;
+}
+
+.path-mod-interactivevideo .preview-iframe {
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+.path-mod-interactivevideo .preview-iframe iframe {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100% !important;
+    max-width: 100%;
+    height: 100% !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+}
+
+.path-mod-interactivevideo .modalhasiframe.editor-iframe .modal-body {
+    height: unset;
+    max-height: calc(var(--ivdvh) - 7rem);
+    overflow-y: hidden;
+}
+
+.path-mod-interactivevideo .modalhasiframe.editor-iframe .modal-body iframe {
+    max-width: 100% !important;
+    max-height: calc(var(--ivdvh) - 7rem);
+}
+
+.path-mod-interactivevideo #message[data-placement="inline"] .preview-iframe,
+.path-mod-interactivevideo #message[data-placement="popup"] .preview-iframe {
+    padding: 0 !important;
+}
+
+#page-mod-interactivevideo-interactions [data-field].editing {
+    min-width: 150px;
+}
+
+.path-mod-interactivevideo #page-wrapper {
+    overflow: auto;
+}
+
+.path-mod-interactivevideo .btn-rounded {
+    border-radius: 10rem;
+}
+
+.path-mod-interactivevideo .ui-icon-gripsmall-diagonal-se {
+    background-image: none !important;
+}
+
+.path-mod-interactivevideo .ui-icon,
+.path-mod-interactivevideo .ui-resizable-se {
+    width: 2px;
+    height: 2px;
+}
+
+.path-mod-interactivevideo .text-shadow {
+    text-shadow: 1px 1px 2px #000;
+}
+
+.path-mod-interactivevideo #xp,
+.path-mod-interactivevideo :where([role="main"], .modal) .btn.xp {
+    line-height: 16px;
+}
+
+.path-mod-interactivevideo td#xp {
+    line-height: unset;
+}
+
+.path-mod-interactivevideo #form-modal .modal-dialog {
+    max-width: 100%;
+    width: 100%;
+    justify-content: start;
+    max-height: var(--ivdvh);
+    height: var(--ivdvh);
+    margin: 0;
+}
+
+.path-mod-interactivevideo #form-modal .modal-body {
+    height: var(--ivdvh);
+}
+
+.path-mod-interactivevideo .modal-fullscreen > .modal-dialog,
+#playermodal.modal-fullscreen > .modal-dialog,
+.iv-modal.modal-fullscreen > .modal-dialog {
+    max-width: 100% !important;
+    width: 100% !important;
+    justify-content: start;
+    max-height: var(--ivdvh);
+    height: var(--ivdvh);
+    margin: 0;
+}
+
+.path-mod-interactivevideo .modal-fullscreen > .modal-dialog .modal-content,
+.iv-modal.modal-fullscreen > .modal-dialog .modal-content {
+    border-radius: 0 !important;
+    height: var(--ivdvh);
+    border: 0;
+    max-height: var(--ivdvh);
+}
+
+.path-mod-interactivevideo .modal-fullscreen > .modal-dialog .modal-body,
+#playermodal.modal-fullscreen > .modal-dialog .modal-body,
+.iv-modal.modal-fullscreen > .modal-dialog .modal-body {
+    height: var(--ivdvh);
+    padding: 1rem;
+    scrollbar-width: thin;
+}
+
+#playermodal.modal-fullscreen > .modal-dialog {
+    transition: all ease-in-out 300ms;
+}
+
+#playermodal.modal-fullscreen > .modal-dialog:not(:has(.modal-content.show-control)) {
+    max-width: 100% !important;
+    width: 100% !important;
+    justify-content: start;
+    max-height: calc(var(--ivdvh) + 55px);
+    height: calc(var(--ivdvh) + 55px);
+    margin: 0;
+    transition: height ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo #form-field-list .list-group-item {
+    background-color: transparent;
+}
+
+.path-mod-interactivevideo #form-field-list .list-group-item:hover {
+    background: var(--bs-white, #fff);
+}
+
+.path-mod-interactivevideo #form-field-list .list-group-item.field-highlight {
+    background: var(--ivprimary);
+    color: #fff;
+}
+
+.path-mod-interactivevideo [data-name="fieldform-form"] {
+    min-height: 100%;
+}
+
+.path-mod-interactivevideo [data-name="interaction-form"] fieldset.collapsible {
+    border-radius: 0.5rem;
+    padding: 1rem 1rem 0.5rem 1rem;
+    background-color: var(--ivlight);
+}
+
+.path-mod .activity-information .completion-info {
+    border-bottom: 0 !important;
+    display: block !important;
+}
+
+.path-mod-interactivevideo .groupselector {
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.path-mod-interactivevideo .groupselector #selectgroup {
+    display: flex;
+}
+
+.path-mod-interactivevideo .groupselector #selectgroup label {
+    margin-inline-end: 0.5rem;
+    margin-bottom: 0;
+}
+
+.path-mod-interactivevideo .fs-unset {
+    font-size: unset !important;
+}
+
+.path-mod-interactivevideo .fs-25px {
+    font-size: 25px !important;
+    line-height: 25px !important;
+}
+
+.path-mod-interactivevideo .fs-35px {
+    font-size: 35px !important;
+    line-height: 35px !important;
+}
+
+.path-mod-interactivevideo .rotate-360 {
+    transform: rotate(360deg);
+    transition: transform ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo #maincontent {
+    display: none;
+}
+
+.path-mod-interactivevideo #interactivevideo-container {
+    top: 70px;
+    width: calc(100% - 1rem);
+}
+
+.path-mod-interactivevideo.embed-mode #interactivevideo-container {
+    width: 100%;
+}
+
+.path-mod-interactivevideo:not(.embed-mode) #interactivevideo-container:has(#annotation-content:empty) {
+    height: calc(var(--ivdvh) - 70px);
+    align-content: center;
+}
+
+.path-mod-interactivevideo.default-mode #interactivevideo-container:has(#annotation-content:empty) {
+    height: unset;
+}
+
+@media (max-width: 576px) {
+    .path-mod-interactivevideo:not(.embed-mode) #interactivevideo-container:has(#annotation-content:empty) {
+        height: unset;
+        align-items: start;
+    }
+}
+
+.path-mod-interactivevideo:has(#toolbar:empty) #interactivevideo-container {
+    width: 100%;
+}
+
+.path-mod-interactivevideo.hassidebar #interactivevideo-container {
+    width: calc(100% - 475px);
+    margin-inline-start: 0;
+}
+
+.path-mod-interactivevideo.hassidebar #wrapper.fullscreen #video-wrapper {
+    margin-right: 475px;
+    width: calc(100% - 475px);
+    transform: width ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo.hassidebar.distraction-free #controller {
+    width: calc(100% - 475px - 2rem);
+    transition: width ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo.hassidebar.distraction-free.embed-mode #controller {
+    width: calc(100% - 475px);
+}
+
+.path-mod-interactivevideo #lightprogress {
+    height: 3px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+}
+
+.path-mod-interactivevideo.hassidebar.default-mode #page {
+    margin-inline-end: 475px;
+}
+
+.path-mod-interactivevideo.hassidebar.default-mode #interactivevideo-container {
+    width: 100%;
+}
+
+@media (max-width: 992px) {
+
+    .path-mod-interactivevideo.hassidebar #interactivevideo-container,
+    .path-mod-interactivevideo.hassidebar #wrapper.fullscreen #video-wrapper {
+        width: 100%;
+    }
+
+    .path-mod-interactivevideo.hassidebar.distraction-free #controller {
+        width: 100%;
+        transition: width ease-in-out 300ms;
+    }
+
+    .path-mod-interactivevideo.hassidebar.default-mode #page {
+        margin-inline-end: 0;
+    }
+}
+
+.path-mod-interactivevideo .iv-sidebar {
+    width: 475px;
+    max-width: 100%;
+    height: var(--ivdvh);
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1032;
+    padding: 1rem;
+    background-color: var(--bs-white, #fff);
+    overflow: visible;
+    transition: right ease-in-out 0.3s;
+    display: block;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.path-mod-interactivevideo.embed-mode:not(.showcontrols) .iv-sidebar {
+    max-height: calc(var(--ivdvh) - 55px);
+}
+
+.path-mod-interactivevideo.hassidebar .iv-sidebar {
+    right: 0;
+    transition: right ease-in-out 0.3s;
+}
+
+.path-mod-interactivevideo .iv-sidebar.hide,
+.path-mod-interactivevideo.hassidebar .iv-sidebar.hide {
+    right: -100%;
+    transition: right ease-in-out 0.3s;
+}
+
+/* ==========================================================================
+   Design system: side panels. See docs/design-system.md.
+   A panel opts in with the "iv-panel" class and the
+   mod_interactivevideo/sidepanel_head template.
+   ========================================================================== */
+.path-mod-interactivevideo .iv-sidebar {
+    --iv-panel-bg: #fff;
+    --iv-panel-fg: #1d2125;
+    --iv-panel-muted: var(--ivgray);
+    --iv-panel-border: #dee2e6;
+    --iv-panel-hover: rgba(0, 0, 0, 0.06);
+    --iv-panel-control: var(--ivlight);
+    --iv-panel-accent: var(--ivprimary);
+    --iv-panel-on-accent: #fff;
+    --iv-panel-pad-x: 1rem;
+    --iv-panel-header-h: 52px;
+    --iv-panel-gap: 6px;
+}
+
+.path-mod-interactivevideo .iv-sidebar.darkmode,
+[data-bs-theme="dark"] .path-mod-interactivevideo .iv-sidebar {
+    --iv-panel-bg: rgba(0, 0, 0, 0.95);
+    --iv-panel-fg: #fff;
+    --iv-panel-muted: rgba(255, 255, 255, 0.6);
+    --iv-panel-border: rgba(255, 255, 255, 0.12);
+    --iv-panel-hover: rgba(255, 255, 255, 0.1);
+    --iv-panel-control: var(--ivdark);
+    --iv-panel-accent: #8ec5ff;
+    --iv-panel-on-accent: #000;
+}
+
+/* Layout: the head, then a body that scrolls on its own. */
+.path-mod-interactivevideo .iv-sidebar.iv-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background-color: var(--iv-panel-bg);
+    color: var(--iv-panel-fg);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-head {
+    flex: none;
+    border-bottom: 1px solid var(--iv-panel-border);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* Header row: icon and title, meta, actions, close. */
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-header {
+    display: flex;
+    align-items: center;
+    gap: var(--iv-panel-gap);
+    min-height: var(--iv-panel-header-h);
+    padding-block: 0.375rem;
+    padding-inline: var(--iv-panel-pad-x) 0.5rem;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: bold;
+    line-height: 1.3;
+    color: inherit;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-title > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-meta {
+    flex: none;
+    font-size: 0.8125rem;
+    color: var(--iv-panel-muted);
+    white-space: nowrap;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-badge {
+    flex: none;
+    padding: 0.125rem 0.5rem;
+    border-radius: 50rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+    white-space: nowrap;
+    color: inherit;
+    background-color: var(--iv-panel-control);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-badge.iv-panel-badge-success {
+    color: var(--ivsuccess);
+    background-color: var(--ivsuccessalt);
+}
+
+/* Ghost icon button: actions, toggles and close. */
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+    color: inherit;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn:hover,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn:focus-visible,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn.show {
+    color: inherit;
+    background-color: var(--iv-panel-hover);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn.active,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn[aria-pressed="true"] {
+    color: var(--iv-panel-accent);
+    background-color: var(--iv-panel-hover);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn:focus-visible,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-select:focus-visible,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item:focus-visible {
+    outline: 2px solid var(--iv-panel-accent);
+    outline-offset: 1px;
+    box-shadow: none;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-btn.dropdown-toggle::after,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-select.dropdown-toggle::after,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item.dropdown-toggle::after {
+    display: none;
+}
+
+/* Toolbar: the optional second row of the head. */
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--iv-panel-gap);
+    padding: 0 var(--iv-panel-pad-x) 0.75rem;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-search {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-search > .bi {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 0.75rem;
+    transform: translateY(-50%);
+    color: var(--iv-panel-muted);
+    pointer-events: none;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-search .form-control {
+    height: 32px;
+    padding-block: 0;
+    padding-inline: 2rem 0.75rem;
+    border: 0;
+    border-radius: 50rem;
+    font-size: 0.875rem;
+    color: inherit;
+    background-color: var(--iv-panel-control);
+    box-shadow: none;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-search .form-control::placeholder {
+    color: var(--iv-panel-muted);
+    opacity: 1;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-search .form-control:focus {
+    box-shadow: 0 0 0 2px var(--iv-panel-accent);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    height: 32px;
+    padding: 0 0.75rem;
+    border: 0;
+    border-radius: 50rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+    text-align: start;
+    color: inherit;
+    background-color: var(--iv-panel-control);
+    box-shadow: none;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-select > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-select:hover,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-select.show,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item:not(.active):not([aria-pressed="true"]):hover {
+    color: inherit;
+    background-image: linear-gradient(var(--iv-panel-hover), var(--iv-panel-hover));
+}
+
+/* A grid, so every item is the same width whatever it holds (a button, or a dropdown wrapping one). */
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    height: 32px;
+    padding: 0 0.5rem;
+    border: 0;
+    border-radius: 50rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    color: inherit;
+    background-color: var(--iv-panel-control);
+    box-shadow: none;
+}
+
+/* An icon and a label or count sit on one centre line: no line box taller than the glyph, and no
+   Bootstrap Icons baseline nudge. Counts use figures of one width so the items do not shift as they change. */
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item > i,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item > span {
+    line-height: 1;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item > i::before {
+    vertical-align: 0;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item > span {
+    font-variant-numeric: tabular-nums;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item.active,
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-segment-item[aria-pressed="true"] {
+    color: var(--iv-panel-on-accent);
+    background-color: var(--iv-panel-accent);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel .iv-panel-progress {
+    flex: 1 1 auto;
+    height: 0.5rem;
+    border-radius: 50rem;
+    background-color: var(--iv-panel-control);
+}
+
+/* Menus opened from the head follow the panel's colours. */
+.path-mod-interactivevideo .iv-sidebar.iv-panel.darkmode .iv-panel-head .dropdown-menu {
+    color: #fff;
+    background-color: var(--ivdark);
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel.darkmode .iv-panel-head .dropdown-item {
+    color: #fff;
+}
+
+.path-mod-interactivevideo .iv-sidebar.iv-panel.darkmode .iv-panel-head .dropdown-item:hover,
+.path-mod-interactivevideo .iv-sidebar.iv-panel.darkmode .iv-panel-head .dropdown-item:focus,
+.path-mod-interactivevideo .iv-sidebar.iv-panel.darkmode .iv-panel-head .dropdown-item.active {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.path-mod-interactivevideo.iframe #interactivevideo-container,
+.path-mod-interactivevideo.embed-mode #interactivevideo-container {
+    top: 0;
+    padding: 0 !important;
+}
+
+.path-mod-interactivevideo.darkmode #interactivevideo-container {
+    padding-top: 0 !important;
+}
+
+.path-mod-interactivevideo.iframe #video-wrapper:not(.fb-interaction),
+.path-mod-interactivevideo.iframe #player,
+.path-mod-interactivevideo.embed-mode #video-wrapper:not(.fb-interaction),
+.path-mod-interactivevideo.embed-mode #player {
+    border-radius: 0 !important;
+    border: 0 !important;
+}
+
+.path-mod-interactivevideo.iframe #controller,
+.path-mod-interactivevideo.embed-mode #controller {
+    margin-top: 0 !important;
+}
+
+@media (max-width: 767.98px) {
+
+    .path-mod-interactivevideo #interactivevideo-container #video-wrapper,
+    .path-mod-interactivevideo #interactivevideo-container #player,
+    .path-mod-interactivevideo #interactivevideo-container #controller {
+        border-radius: 0 !important;
+        border: 0 !important;
+    }
+
+    .path-mod-interactivevideo #toolbar {
+        align-content: end;
+        padding-bottom: 60px;
+    }
+
+    .path-mod-interactivevideo #interactivevideo-container,
+    .path-mod-interactivevideo:not(.embed-mode) #interactivevideo-container:has(#annotation-content:empty) {
+        height: unset;
+        align-items: start;
+        width: 100%;
+        padding: 0 !important;
+    }
+}
+
+.path-mod-interactivevideo #seek {
+    height: 10px;
+    transition: all ease-in-out 300ms;
+}
+
+#page-mod-interactivevideo-view #caption-dropdown {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 67%) rgba(0, 0, 0, 1);
+    overflow-x: hidden;
+    max-height: 250px;
+}
+
+.path-mod-interactivevideo .alternative #wrapper #taskinfo {
+    height: 25px;
+    margin: 0;
+    border-top: 1px dotted #fff;
+    display: flex;
+    min-width: 100%;
+    position: relative;
+}
+
+.path-mod-interactivevideo #controller.align-indicator #taskinfo {
+    border-top: none;
+}
+
+.path-mod-interactivevideo #user-menu-toggle {
+    border: 0;
+    padding-inline-end: 0;
+}
+
+.path-mod-interactivevideo.darkmode .viewingas,
+.path-mod-interactivevideo.darkmode #user-menu-toggle {
+    color: #fff;
+}
+
+.path-mod-interactivevideo:not(.iframe) .alternative {
+    padding-bottom: calc(55px + 1rem) !important;
+}
+
+.path-mod-interactivevideo:not(.iframe) .alternative:has(.no-videonav) {
+    padding-bottom: 1rem !important;
+}
+
+.path-mod-interactivevideo .modal-header.ui-draggable-handle {
+    cursor: move;
+}
+
+.path-mod-interactivevideo #discussion-main .nav-link.active {
+    background-color: var(--ivsecondary);
+    font-weight: 600;
+    transition: all ease-in-out 300ms;
+}
+
+.path-mod-interactivevideo [data-name="interaction-form"] {
+    padding: 0;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) [type="checkbox"]:not(.custom-control-input, [role="switch"]),
+.path-mod-interactivevideo :where([role="main"], .modal) [type="radio"]:not(.custom-control-input, [role="switch"]) {
+    appearance: none;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) [type="checkbox"]:not(.custom-control-input, [role="switch"]):disabled,
+.path-mod-interactivevideo :where([role="main"], .modal) [type="radio"]:not(.custom-control-input, [role="switch"]):disabled {
+    opacity: 0.5;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal)
+[type="checkbox"]:not(.custom-control-input, [role="switch"]):checked:before,
+.path-mod-interactivevideo :where([role="main"], .modal)
+[type="checkbox"]:not(.custom-control-input, [role="switch"]):not(:checked):before,
+.path-mod-interactivevideo :where([role="main"], .modal) [type="radio"]:not(.custom-control-input, [role="switch"]):checked:before,
+.path-mod-interactivevideo :where([role="main"], .modal)
+[type="radio"]:not(.custom-control-input, [role="switch"]):not(:checked):before {
+    content: "";
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    height: 16px;
+    width: 16px;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .form-check-input {
+    margin-top: 3px;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .form-check label,
+.path-mod-interactivevideo :where([role="main"], .modal) .form-check span {
+    margin-bottom: 0;
+    margin-inline-start: 0.3rem;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .form-inline .form-check-input {
+    margin-inline-end: 0.5rem;
+}
+
+.path-mod-interactivevideo #video-nav #seekhead {
+    position: absolute;
+    margin: 0 -5px;
+    transition: width ease-in-out 300ms, height ease-in-out 300ms;
+    background-color: var(--ivdanger);
+    border-radius: 50%;
+    top: -3px !important;
+    height: 10px;
+    width: 10px;
+    z-index: 1;
+}
+
+.path-mod-interactivevideo #video-nav #position {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: 1px;
+    height: 100%;
+    background-color: #fff;
+    pointer-events: none;
+}
+
+.path-mod-interactivevideo #vseek #position-marker {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    border-left: 1px dotted #fff;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.path-mod-interactivevideo #vseek #position-marker #position {
+    background-color: #000;
+    position: absolute;
+    font-size: small;
+    padding: 3px 10px;
+    border-radius: 2px;
+    z-index: 600;
+    pointer-events: none;
+    color: #fff;
+}
+
+.path-mod-interactivevideo #video-nav #timelabel {
+    position: absolute;
+    background: #000;
+    color: #fff;
+    font-size: small;
+    top: -24px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    z-index: 600;
+    pointer-events: none;
+}
+
+#page-mod-interactivevideo-interactions #separator {
+    cursor: col-resize;
+}
+
+#page-mod-interactivevideo-interactions #separator i {
+    top: 30dvh;
+}
+
+#page-mod-interactivevideo-interactions #separator:hover {
+    width: 5px;
+    transition: background-color ease-in-out 300ms;
+    background-color: #328cdb;
+    z-index: 105;
+    margin-inline-start: -2.5px;
+    border: 0 !important;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    background-color: var(--ivdarker);
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    height: 125px;
+    z-index: 100;
+    scrollbar-color: hsl(0, 0%, 67%) rgba(0, 0, 0, 0.1);
+}
+
+#page-mod-interactivevideo-interactions #timeline-timestamp {
+    width: 180px;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    scrollbar-width: thin;
+    overflow: scroll;
+    z-index: 1;
+    height: calc(100% - 45px);
+    border-top: 1px solid #788389;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline-btns {
+    background: #34454e;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    color: #fff;
+    left: 0;
+    position: sticky;
+    top: 0;
+    justify-content: space-between;
+    height: 45px;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline-btns .col {
+    display: flex;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline-btns .btn {
+    height: unset;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline-items-wrapper {
+    width: 100%;
+    min-width: 100%;
+    height: 100%;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline-items {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    margin: 0 auto;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #scrollbar,
+#page-mod-interactivevideo-interactions #timeline-wrapper #cursorbar {
+    top: -5px !important;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    align-items: center;
+    left: 0;
+    margin: 0 -5px;
+    z-index: 2;
+    height: calc(100% + 5px);
+    width: 0;
+}
+
+[dir="rtl"] #page-mod-interactivevideo-interactions #timeline-wrapper #scrollbar {
+    margin: 0;
+}
+
+[dir="ltr"] #page-mod-interactivevideo-interactions #timeline-wrapper #scrollbar {
+    margin: 0;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #cursorbar {
+    pointer-events: none;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #scrollbar,
+#page-mod-interactivevideo-interactions #timeline-wrapper #scrollhead {
+    cursor: col-resize;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #scrollhead-top,
+#page-mod-interactivevideo-interactions #timeline-wrapper #scrollhead {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 105;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #scrollline {
+    border-left: 1px solid #fff;
+    height: 100%;
+    z-index: 1;
+    position: absolute;
+    left: 0;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #interaction-timeline {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    height: 25px;
+    width: 100%;
+    position: relative;
+    margin: 0 auto;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #video-nav {
+    align-items: center;
+    height: 4px;
+    background-color: transparent;
+    z-index: 5;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #video-timeline-wrapper {
+    width: 100%;
+    position: relative;
+    align-items: center;
+    height: 20px;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #video-timeline {
+    width: 100%;
+    position: absolute;
+    height: 20px;
+    background-color: var(--ivprimary);
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #vseek {
+    height: 10px;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    width: 100%;
+    z-index: 1;
+    margin-inline-start: 2rem;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #vseek #bar {
+    height: 10px;
+    opacity: 0.8;
+    cursor: pointer;
+    background-color: var(--ivgray);
+    /* transition: all ease-in-out 300ms; */
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #vseek #scrollhead-top {
+    margin-inline-start: -5px;
+    position: absolute;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #vseek:hover #bar {
+    opacity: 1;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline-items .minute {
+    top: -5px;
+    color: #aaa;
+    font-size: x-small;
+    text-align: center;
+    border-left: 1px dotted #aaa;
+    height: 100%;
+    z-index: -1;
+    position: absolute;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #timeline-items .minute .minute-label {
+    position: absolute;
+    top: -10px;
+    left: 0;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper .minute-marker {
+    border-left: 1px dotted #fff;
+    height: 100%;
+    padding-inline-start: 3px;
+}
+
+[dir="rtl"] #page-mod-interactivevideo-interactions #timeline-wrapper .minute-marker {
+    padding-inline-start: 0;
+    border-right: 1px dotted #fff;
+    border-left: none;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper #annotation-timeline {
+    position: relative;
+    display: none;
+    padding-bottom: 1rem;
+}
+
+#page-mod-interactivevideo-interactions #timeline-wrapper > .ui-resizable-handle:hover {
+    transition: all ease-in-out 300ms;
+    background-color: #328cdb;
+    z-index: 105;
+}
+
+#page-mod-interactivevideo-interactions #top-region {
+    height: calc(var(--ivdvh) - 195px);
+    overflow: auto;
+    margin-top: 70px;
+}
+
+#page-mod-interactivevideo-interactions #top-region > .iv-row {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    margin-inline-end: -15px;
+    margin-inline-start: -15px;
+}
+
+#page-mod-interactivevideo-interactions #top-region #player-region {
+    width: 60%;
+}
+
+#page-mod-interactivevideo-interactions #top-region #content-region {
+    width: 40%;
+    height: 100%;
+}
+
+.path-mod-interactivevideo #contentmodal {
+    z-index: 1050;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.path-mod-interactivevideo #contentmodal .dropdown-item:hover,
+.path-mod-interactivevideo #contentmodal .dropdown-item.active {
+    background-color: var(--ivprimary);
+    color: #fff !important;
+}
+
+#page-mod-interactivevideo-interactions #minute-markers-bg-wrapper,
+#page-mod-interactivevideo-interactions #minute-markers-wrapper {
+    min-width: calc(100dvw - 3rem);
+    overflow-x: auto;
+    scrollbar-width: none;
+    pointer-events: none;
+    padding-inline-end: 3rem !important;
+    padding-inline-start: 2rem;
+    z-index: 0;
+}
+
+#page-mod-interactivevideo-interactions #minute-markers-bg,
+#page-mod-interactivevideo-interactions #minute-markers {
+    font-size: x-small;
+    display: flex;
+    align-items: flex-end;
+}
+
+#page-mod-interactivevideo-interactions #minute-markers-bg {
+    height: 100%;
+}
+
+#page-mod-interactivevideo-interactions #minute-markers {
+    height: 15px;
+}
+
+#page-mod-interactivevideo-report .completiontablewrapper {
+    max-height: calc(var(--ivdvh) - 200px);
+}
+
+#page-mod-interactivevideo-report.embed-mode .completiontablewrapper {
+    max-height: calc(var(--ivdvh) - 120px);
+}
+
+#page-mod-interactivevideo-view.embed-mode #interactivevideo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+    height: calc(var(--ivdvh) - 55px);
+}
+
+#page-mod-interactivevideo-view.embed-mode #interactivevideo-container > .row {
+    width: 100%;
+}
+
+#page-mod-interactivevideo-view.embed-mode #interactivevideo-container:has(.no-videonav) {
+    height: 100%;
+}
+
+.path-mod-interactivevideo #video-wrapper.audio {
+    background: var(--ivdark);
+}
+
+.path-mod-interactivevideo #video-wrapper.audio :is(#player, video, audio) {
+    height: 30px !important;
+    bottom: 1rem !important;
+    top: unset !important;
+    max-width: calc(100% - 2rem) !important;
+    left: 1rem !important;
+}
+
+.path-mod-interactivevideo #visualizer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.path-mod-interactivevideo:not(.bs-5) :where([role="main"], .modal) .input-group > input,
+.path-mod-interactivevideo:not(.bs-5) :where([role="main"], .modal) .input-group > select,
+.path-mod-interactivevideo:not(.bs-5) :where([role="main"], .modal) .input-group > .input-group-prepend,
+.path-mod-interactivevideo:not(.bs-5) :where([role="main"], .modal) .input-group > .input-group-append,
+.path-mod-interactivevideo:not(.bs-5) :where([role="main"], .modal) .input-group .input-group-text {
+    height: 40px;
+    border-radius: 0;
+}
+
+.path-mod-interactivevideo.preview-mode #completiontoggle {
+    display: none;
+}
+
+#admin-enablecontenttypes .form-defaultinfo,
+#admin-enablecontenttypes .form-textarea,
+#admin-enablecontenttypes textarea,
+#admin-enablecontenttypes .textarea,
+.iv-enablecontenttypes-hidden {
+    display: none !important;
+}
+
+#admin-enablecontenttypes .form-text {
+    margin-top: 0 !important;
+}
+
+#admin-enablecontenttypeshelper {
+    display: none;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-body {
+    max-height: min(60vh, 520px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-footer,
+.iv-addcontenttype-modal .iv-enablecontenttypes-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-shoplink,
+.iv-addcontenttype-modal .iv-enablecontenttypes-shoplink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--ivprimary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-shoplink:hover,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-shoplink:focus,
+.iv-addcontenttype-modal .iv-enablecontenttypes-shoplink:hover,
+.iv-addcontenttype-modal .iv-enablecontenttypes-shoplink:focus {
+    color: var(--ivprimary);
+    text-decoration: underline;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row {
+    cursor: pointer;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:last-child {
+    border-bottom: 0 !important;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:hover,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:focus-within {
+    background-color: var(--ivprimary);
+    color: #fff;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:hover :is(.iv-enablecontenttypes-title, .iv-enablecontenttypes-titlelink,
+.iv-enablecontenttypes-icon, .iv-enablecontenttypes-version, .text-muted),
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:focus-within :is(.iv-enablecontenttypes-title, .iv-enablecontenttypes-titlelink,
+.iv-enablecontenttypes-icon, .iv-enablecontenttypes-version, .text-muted) {
+    color: #fff !important;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:hover .iv-badge-secondary,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:focus-within .iv-badge-secondary {
+    background-color: var(--ivsecondary) !important;
+    color: #1d2125 !important;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:hover .iv-badge-success,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:focus-within .iv-badge-success {
+    background-color: var(--ivsuccess) !important;
+    color: #fff !important;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:hover .iv-badge-warning,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:focus-within .iv-badge-warning {
+    background-color: var(--ivwarning) !important;
+    color: #fff !important;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:hover .badge,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:focus-within .badge {
+    filter: brightness(1.05);
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-checkwrap {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    margin-inline-end: 0.75rem;
+    width: 1.5rem;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-checkwrap--spacer {
+    visibility: hidden;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-info {
+    min-width: 0;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-head {
+    align-items: center;
+    column-gap: 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-head-main {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-head-actions {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    justify-self: end;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-head-main .iv-enablecontenttypes-title,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-head-main .iv-enablecontenttypes-titlelink {
+    flex: 0 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-head-main .badge {
+    flex-shrink: 0;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-meta {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row--more {
+    cursor: default;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-titlelink {
+    color: inherit;
+    text-decoration: none;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row--more:hover .iv-enablecontenttypes-titlelink,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row--more:focus-within .iv-enablecontenttypes-titlelink {
+    text-decoration: underline;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-icon {
+    flex-shrink: 0;
+    font-size: 2rem;
+    line-height: 1;
+    margin-inline-end: 1rem;
+    opacity: 0.85;
+    text-align: center;
+    width: 2rem;
+}
+
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:hover .iv-enablecontenttypes-icon,
+.iv-enablecontenttypes-modal .iv-enablecontenttypes-row:focus-within .iv-enablecontenttypes-icon {
+    opacity: 1;
+}
+
+.iv-enablecontenttypes-modal [type="checkbox"].iv-enablecontenttypes-check {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    height: 1.25rem;
+    margin: 0;
+    position: relative;
+    width: 1.25rem;
+}
+
+.iv-enablecontenttypes-modal [type="checkbox"].iv-enablecontenttypes-check::before {
+    background: center / contain no-repeat;
+    content: "";
+    display: block;
+    height: 1.25rem;
+    width: 1.25rem;
+}
+
+.iv-enablecontenttypes-modal [type="checkbox"].iv-enablecontenttypes-check:not(:checked)::before {
+    background-image: url([[pix:mod_interactivevideo|checkbox-unchecked]]);
+}
+
+.iv-enablecontenttypes-modal [type="checkbox"].iv-enablecontenttypes-check:checked::before {
+    background-image: url([[pix:mod_interactivevideo|checkbox-checked]]);
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card {
+    display: flex;
+    align-items: flex-start;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card.no-pointer {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card .name {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.activity.modtype_interactivevideo .image-container {
+    position: relative;
+    width: 100%;
+    max-width: 200px;
+    margin-inline-end: 1rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: all ease-in-out 0.3s;
+}
+
+.activity.modtype_interactivevideo .image-container .poster {
+    width: 100%;
+    border-radius: 0.5rem;
+    height: 0;
+    padding-top: 56.25%;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-color: var(--ivsecondary);
+    transition: all ease-in-out 0.3s;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.activity.modtype_interactivevideo .image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    position: absolute;
+    top: 0;
+    border-radius: 0;
+}
+
+.activity.modtype_interactivevideo .image-container .poster.square {
+    background-color: var(--ivgray-dark);
+}
+
+.activity.modtype_interactivevideo .image-container .poster.square img {
+    object-fit: contain;
+    height: 80%;
+    top: 10%;
+}
+
+.activity.modtype_interactivevideo .image-container:hover,
+.activity.modtype_interactivevideo .image-container.hovered {
+    transform: scale3d(1.05, 1.05, 1.05);
+    z-index: 3;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .activity-altcontent .no-overflow {
+    overflow: visible;
+}
+
+body:not(.editing) .modtype_interactivevideo:has(.interactivevideo-card) .activity-basis {
+    display: none !important;
+}
+
+.activity.modtype_interactivevideo .image-container a.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    border-radius: 0.5rem;
+}
+
+.activity.modtype_interactivevideo .image-container:hover a.overlay,
+.activity.modtype_interactivevideo .image-container.hovered a.overlay {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.activity.modtype_interactivevideo .image-container:hover a.overlay i,
+.activity.modtype_interactivevideo .image-container.hovered a.overlay i {
+    display: block;
+}
+
+.activity.modtype_interactivevideo .image-container a.overlay i {
+    font-size: 1.5rem;
+    color: #fff;
+    transition: all ease-in-out 300ms;
+    display: none;
+}
+
+.activity.modtype_interactivevideo .image-container .duration,
+.activity.modtype_interactivevideo .image-container .new-badge {
+    position: absolute;
+    bottom: 0.5em;
+    right: 0.5em;
+    z-index: 2;
+    border-radius: 0.25em;
+    mix-blend-mode: normal !important;
+}
+
+.activity.modtype_interactivevideo .image-container .percentage-badge,
+.activity.modtype_interactivevideo .image-container.card-only .badge {
+    mix-blend-mode: normal !important;
+}
+
+.activity.modtype_interactivevideo .image-container.hasanalytics .duration {
+    transition: all ease-in-out 300ms;
+    bottom: 0.75em;
+}
+
+.activity.modtype_interactivevideo .image-container.hasanalytics.card-only:hover .duration {
+    bottom: 0.5em;
+}
+
+.activity.modtype_interactivevideo .image-container .new-badge {
+    top: 0.5em;
+    right: 0;
+    bottom: unset;
+    border-radius: 0.25em 0 0 0.25em;
+}
+
+.activity.modtype_interactivevideo .image-container .duration,
+.activity.modtype_interactivevideo .image-container .percentage-badge,
+.activity.modtype_interactivevideo .image-container .password {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-weight: 500;
+}
+
+.activity.modtype_interactivevideo .image-container .password {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    z-index: 2;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only {
+    transition: all ease-in-out 300ms;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info {
+    display: flex;
+    flex-direction: column;
+    top: 1rem;
+    z-index: 0;
+    transition: top ease-in-out 500ms;
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: rgba(0, 0, 0, 0.95);
+    color: #fff;
+    font-size: small;
+    justify-content: center;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info a.title {
+    font-size: 1em;
+    font-weight: bold;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info .progress {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info .btn.btn-outline-secondary {
+    color: #fff;
+    border-color: #fff;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info .btn {
+    display: flex;
+    align-items: center;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info .btn i,
+.activity.modtype_interactivevideo .image-container.card-only .info .badge i,
+.activity.modtype_interactivevideo .image-container.card-only .info .badge-sm i {
+    margin-inline-end: 0.25rem;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info .badge-sm,
+.activity.modtype_interactivevideo .image-container.card-only .info .badge {
+    display: inline-block;
+    background: transparent !important;
+    color: #fff !important;
+    padding: 0;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only .info .automatic-completion-conditions {
+    margin: 0;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only:hover,
+.activity.modtype_interactivevideo .image-container.card-only.hovered {
+    transform: scale3d(1.2, 1.2, 1.2) translateY(-2rem);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+    overflow: visible;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only:hover .info,
+.activity.modtype_interactivevideo .image-container.card-only.hovered .info {
+    top: 100%;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+    transition: top ease-in-out 500ms, box-shadow ease-in-out 1s;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only:hover .poster,
+.activity.modtype_interactivevideo .image-container.card-only.hovered .poster {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only:hover .poster a,
+.activity.modtype_interactivevideo .image-container.card-only.hovered .poster a {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.activity.modtype_interactivevideo .image-container.card-only:hover .poster .percentage-badge,
+.activity.modtype_interactivevideo .image-container.card-only.hovered .poster .percentage-badge,
+.activity.modtype_interactivevideo .image-container.card-only:hover .poster .progress,
+.activity.modtype_interactivevideo .image-container.card-only.hovered .poster .progress {
+    display: none !important;
+}
+
+.activity.modtype_interactivevideo .description-container {
+    flex-grow: 1;
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.activity.modtype_interactivevideo .description-container .cursor-pointer {
+    cursor: pointer;
+}
+
+.activity.modtype_interactivevideo .description-container .fa {
+    transition: transform ease-in-out 300ms;
+}
+
+.activity.modtype_interactivevideo .description-container .fa.rotate {
+    transform: rotate(90deg);
+
+}
+
+body.dir-rtl .modtype_interactivevideo .description-container .fa.rotate {
+    transform: rotate(-90deg);
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card .progress {
+    height: 0.25rem;
+    background-color: var(--ivprimaryalt);
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card .analytics.progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 4;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card .analytics.progress .progress-bar {
+    background: linear-gradient(to right, #f04 60%, #ff2792 100%);
+}
+
+body:not(.editing) .modtype_interactivevideo:has(.interactivevideo-card) {
+    transition: background-color ease-in-out 300ms;
+}
+
+body:not(.editing) .modtype_interactivevideo:has(.interactivevideo-card) .activity-completion,
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .activity-name-area,
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .activity-icon,
+.activity.modtype_interactivevideo:has(.interactivevideo-card) [data-region="completionrequirements"] strong,
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .activity-info {
+    display: none !important;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .activity-item .activity-altcontent {
+    border-top: 0;
+    font-size: unset;
+    margin-top: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) [data-region="completionrequirements"] .badge {
+    margin-bottom: 0.25rem;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .card-only [data-region="completionrequirements"] .badge {
+    margin-bottom: 0.25rem;
+    font-size: 0.76rem;
+    opacity: 0.85;
+    display: inline-flex;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .card-only [data-region="completionrequirements"] {
+    overflow: hidden;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card).highlighted {
+    border-radius: 0.5rem;
+    background: rgb(0 128 255 / 11%) !important;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card).highlighted .tasks.progress {
+    background-color: var(--ivsecondary) !important;
+}
+
+.activity.modtype_interactivevideo {
+    transition: background-color ease-in-out 300ms;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card {
+    flex-direction: row;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card .image-container {
+    margin-inline-end: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card.columnlayout {
+    flex-direction: column;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card.poster-right {
+    flex-direction: row-reverse;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card.poster-right .image-container {
+    margin-inline-end: 0;
+}
+
+.activity.modtype_interactivevideo .interactivevideo-card.poster-right .description-container {
+    margin-inline-end: 1rem;
+}
+
+ul.section:has(.modtype_interactivevideo) {
+    container-type: inline-size;
+    container-name: section;
+}
+
+@container section (max-width: 400px) {
+
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card {
+        flex-direction: column;
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card .image-container,
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card .description-container {
+        margin-inline-end: 0;
+        margin-inline-start: 0;
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card.columnlayout {
+        flex-direction: column;
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card.poster-right {
+        flex-direction: column;
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card.poster-right .image-container,
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card.poster-right .description-container {
+        margin-inline-end: 0;
+        margin-inline-start: 0;
+        margin-top: 0;
+    }
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .card-only {
+    max-width: 300px;
+}
+
+.activity.modtype_interactivevideo:has(.card-medium),
+.activity.modtype_interactivevideo:has(.card-mediumlarge),
+.activity.modtype_interactivevideo:has(.card-small),
+.activity.modtype_interactivevideo:has(.card-largemedium),
+.activity.modtype_interactivevideo:has(.card-tiny) {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.activity.modtype_interactivevideo:has(.card-medium) {
+    width: calc(50% - 0.5rem);
+}
+
+.activity.modtype_interactivevideo:has(.card-largemedium) {
+    width: calc(75% - 0.5rem);
+}
+
+.activity.modtype_interactivevideo:has(.card-mediumlarge) {
+    width: calc(66.67% - 0.5rem);
+}
+
+.activity.modtype_interactivevideo:has(.card-small) {
+    width: calc(33.33% - 0.5rem);
+}
+
+.activity.modtype_interactivevideo:has(.card-tiny) {
+    width: calc(25% - 0.5rem);
+}
+
+body:not(.editing) .modtype_interactivevideo:has(.interactivevideo-card) .activity-item {
+    border: 0;
+    background-color: transparent;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .contentafterlink {
+    margin: 0;
+}
+
+body:not(.editing) .section .activity.modtype_interactivevideo:has(.interactivevideo-card):not(:first-child) {
+    border-top: 1px solid var(--bs-border-color, #dee2e6);
+
+}
+
+body:not(.editing) .section .activity.modtype_interactivevideo:has(.interactivevideo-card) {
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+}
+
+@container section (width < 750px) {
+
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-medium),
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-mediumlarge),
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-largemedium) {
+        width: calc(50% - 0.5rem);
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-medium) .interactivevideo-card,
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-mediumlarge) .interactivevideo-card,
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-largemedium) .interactivevideo-card {
+        flex-direction: column;
+    }
+}
+
+@container section (width < 650px) {
+
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-small),
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-tiny) {
+        width: calc(50% - 0.5rem);
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-small) .interactivevideo-card,
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-tiny) .interactivevideo-card {
+        flex-direction: column;
+    }
+}
+
+@container section (max-width: 400px) {
+
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-medium),
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-mediumlarge),
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-small),
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-largemedium),
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-tiny) {
+        width: 100%;
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-medium) .interactivevideo-card,
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-mediumlarge) .interactivevideo-card,
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-small) .interactivevideo-card,
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-largemedium) .interactivevideo-card,
+    [dir="ltr"] .activity.modtype_interactivevideo:has(.card-tiny) .interactivevideo-card {
+        flex-direction: column;
+    }
+}
+
+ul.section .activity.modtype_interactivevideo {
+    container-type: inline-size;
+    container-name: activity;
+}
+
+body:not(.editing) .modtype_interactivevideo:has(.interactivevideo-card):not(:has(.card-only)):hover {
+    background-color: rgba(155, 155, 155, 0.1);
+    border-radius: 0.5rem;
+    border-color: var(--ivlight) !important;
+    transition: background-color ease-in-out 300ms;
+}
+
+body:not(.editing) .modtype_interactivevideo:has(.interactivevideo-card):hover a.h5::after {
+    width: 100%;
+}
+
+@container activity (max-width: 400px) {
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card {
+        flex-direction: column;
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card.poster-right {
+        flex-direction: column;
+    }
+
+    [dir="ltr"] .activity.modtype_interactivevideo .interactivevideo-card .card-only {
+        max-width: 100%;
+    }
+}
+
+#playermodal .modal-dialog {
+    max-width: 1200px;
+    width: calc(100% - 0.5rem);
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+}
+
+#playermodal .modal-dialog img.icon {
+    width: 30px;
+    height: 30px;
+    max-width: 30px;
+    max-height: 30px;
+    filter: invert(1);
+}
+
+#playermodal .modal-header .btn-outline-secondary {
+    border-color: #fff;
+    color: #fff;
+}
+
+#playermodal .modal-header .completion-info strong {
+    display: none !important;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .image-container .percentage-badge {
+    bottom: 0.5em;
+    left: 0.5em;
+    z-index: 2;
+    border-radius: 0.25em;
+}
+
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .hasanalytics .percentage-badge {
+    bottom: 0.75em;
+}
+
+@media (max-width: 768px) {
+
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-small),
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-tiny) {
+        width: calc(50% - 0.5rem);
+    }
+}
+
+[dir="rtl"] .activity.modtype_interactivevideo:has(.card-small) .interactivevideo-card,
+[dir="rtl"] .activity.modtype_interactivevideo:has(.card-tiny) .interactivevideo-card,
+[dir="rtl"] .activity.modtype_interactivevideo:has(.card-medium) .interactivevideo-card {
+    flex-direction: column;
+}
+
+@media (max-width: 575.98px) {
+    .activity.modtype_interactivevideo .image-container {
+        max-width: 100%;
+    }
+
+    [dir="rtl"] body.activity.modtype_interactivevideo .interactivevideo-card {
+        flex-direction: column;
+    }
+
+    [dir="rtl"] body.activity.modtype_interactivevideo .interactivevideo-card.poster-right {
+        flex-direction: column;
+    }
+
+    [dir="rtl"] .activity.modtype_interactivevideo .interactivevideo-card .card-only {
+        max-width: 100%;
+    }
+
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-medium),
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-mediumlarge),
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-small),
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-largemedium),
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-tiny) {
+        width: 100%;
+    }
+
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-medium) .interactivevideo-card,
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-mediumlarge) .interactivevideo-card,
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-small) .interactivevideo-card,
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-largemedium) .interactivevideo-card,
+    [dir="rtl"] .activity.modtype_interactivevideo:has(.card-tiny) .interactivevideo-card {
+        flex-direction: column;
+    }
+}
+
+body.editing .modtype_interactivevideo:has(.interactivevideo-card) .contentwithoutlink,
+body.editing .modtype_interactivevideo:has(.interactivevideo-card) .section .activity .activityinstance {
+    padding-inline-end: 0;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .automatic-completion-conditions {
+    flex-direction: row;
+    margin: 0;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .automatic-completion-conditions .badge,
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .automatic-completion-conditions .badge-sm {
+    margin-bottom: 0.25rem;
+    margin-inline-end: 0.25rem;
+    font-size: small;
+    padding: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .clamp-2,
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .clamp-7 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    line-height: 1.5;
+    font-size: 1rem;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .clamp-7 {
+    -webkit-line-clamp: 7;
+    line-clamp: 7;
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card.full-width-poster) .image-container {
+    max-width: 100%;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card {
+    flex-direction: column;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    align-items: center;
+    max-width: unset;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card .image-container {
+    max-width: 100%;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card.card-medium .image-container {
+    max-width: 50%;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card.card-mediumlarge .image-container {
+    max-width: 66.67%;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card.card-largemedium .image-container {
+    max-width: 75%;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card.card-small .image-container {
+    max-width: 33.33%;
+}
+
+.activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card.card-tiny .image-container {
+    max-width: 25%;
+}
+
+@media (max-width: 575.98px) {
+    .activity.modtype_interactivevideo:has(.iv-aligncenter) .interactivevideo-card .image-container {
+        max-width: 100% !important;
+    }
+}
+
+#playermodal .modal-header {
+    display: flex;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent);
+    height: 0;
+    min-height: 0;
+    margin-top: 1.5rem;
+    top: -100%;
+    transition: top ease-in-out 500ms;
+}
+
+#playermodal .modal-header:hover,
+#playermodal .modal-header.show {
+    top: 0;
+}
+
+#playermodal .modal-content {
+    background-color: #000;
+}
+
+#playermodal .modal-background {
+    height: 75px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent);
+    z-index: 1;
+    pointer-events: none;
+    left: 0;
+}
+
+#playermodal.modal-fullscreen > .modal-dialog .modal-content {
+    height: calc(var(--ivdvh) + 55px);
+    transition: height ease-in-out 300ms;
+    max-height: unset;
+}
+
+#playermodal.modal-fullscreen > .modal-dialog .modal-content .toggle-controls {
+    position: absolute;
+    bottom: calc(55px + 0.25rem);
+    left: 0.25rem;
+    z-index: 2;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.25);
+    opacity: 0.4;
+}
+
+#playermodal.modal-fullscreen > .modal-dialog .modal-content .toggle-controls:hover {
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 1;
+}
+
+#playermodal.modal-fullscreen > .modal-dialog .modal-content.show-control {
+    height: var(--ivdvh);
+}
+
+#playermodal.modal-fullscreen > .modal-dialog .modal-content.show-control .toggle-controls {
+    transform: rotate(180deg);
+    transition: transform ease-in-out 300ms;
+}
+
+#playermodal:not(.modal-fullscreen) .toggle-controls {
+    display: none !important;
+}
+
+#playermodal > .modal-dialog .automatic-completion-conditions .badge {
+    font-size: 100%;
+}
+
+#playermodal {
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#playermodal > .modal-dialog .modal-body {
+    transition: all ease-in-out 300ms;
+}
+
+#playermodal.locked .modal-header {
+    top: 0;
+    display: flex !important;
+}
+
+#playermodal.locked > .modal-dialog .modal-body {
+    margin-top: 50px;
+    height: calc(var(--ivdvh) - 50px);
+    transition: all ease-in-out 300ms;
+}
+
+#playermodal.locked .modal-background {
+    height: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all ease-in-out 300ms;
+}
+
+#playermodal.modal-resized > .modal-dialog .modal-body {
+    height: calc(var(--ivdvh) - 50px);
+    transition: all ease-in-out 300ms;
+}
+
+#playermodal.modal-resized > .modal-dialog .modal-body iframe {
+    top: 0;
+}
+
+#playermodal.modal-resized .modal-header {
+    margin-top: 0;
+    height: unset;
+}
+
+.path-mod-interactivevideo [data-action="toggle-manual-completion"] i {
+    margin-inline-end: 0.25rem;
+}
+
+body:not(.editing) .section .activity.modtype_interactivevideo:has(.interactivevideo-card):hover {
+    z-index: 3;
+}
+
+.section .activity.modtype_interactivevideo:has(.interactivevideo-card) .activity-item .activity-grid {
+    grid-template-columns: min-content 1fr min-content min-content;
+    grid-template-areas:
+        "groupmode groupmode completion actions"
+        "altcontent altcontent altcontent altcontent"
+        "afterlink afterlink afterlink afterlink"
+        "availability availability availability availability"
+        "visibility visibility visibility visibility";
+}
+
+.activity.modtype_interactivevideo:has(.interactivevideo-card) .activity-instance.d-flex {
+    display: none !important;
+}
+
+.path-mod-interactivevideo.spotify #player,
+.path-mod-interactivevideo.soundcloud #player {
+    position: relative !important;
+    max-height: 352px;
+    max-width: clamp(300px, calc(100% - 2rem), 800px);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.path-mod-interactivevideo.spotify #annotation-canvas,
+.path-mod-interactivevideo.soundcloud #annotation-canvas {
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+body:has(.interactivevideo-card) #format_tiles_overlay {
+    z-index: 1;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) tr .timestamp-info {
+    left: 0;
+    top: -30px;
+    background-color: var(--ivprimaryalt) !important;
+    width: 100%;
+    padding: 0.1rem 0.5rem;
+    height: 30px;
+    line-height: 30px;
+    font-size: 1em;
+    border-top-left-radius: 0.2rem;
+    border-top-right-radius: 0.2rem;
+}
+
+.path-mod-interactivevideo #autoplay-error {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    line-height: 30px;
+}
+
+.path-mod-interactivevideo.path-mod-interactivevideo.distraction-free #autoplay-error {
+    bottom: calc(1rem + 55px);
+    right: 1rem;
+    left: unset;
+    z-index: 1050;
+}
+
+#page-mod-interactivevideo-report.embed-mode .navbar {
+    display: none !important;
+}
+
+#page-mod-interactivevideo-report.embed-mode #reporttable {
+    margin-top: 0 !important;
+}
+
+#page-mod-interactivevideo-manage .wrapper {
+    min-width: 500px;
+}
+
+#page-mod-interactivevideo-manage tr.selected a {
+    color: #fff !important;
+}
+
+#page-mod-interactivevideo-manage th.w-0 {
+    width: 0;
+}
+
+#page-mod-interactivevideo-manage .title {
+    min-width: 300px;
+}
+
+#page-mod-interactivevideo-manage td.alert-success {
+    background: var(--bs-success-bg-subtle, #d4edda) !important;
+}
+
+#page-mod-interactivevideo-manage th.poster,
+#page-mod-interactivevideo-manage td.poster {
+    background: var(--bs-body-bg, #fff);
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}
+
+#page-mod-interactivevideo-manage .custom-select,
+#page-mod-interactivevideo-manage .form-select {
+    border-radius: 0.2rem;
+}
+
+#page-mod-interactivevideo-manage td.title a {
+    min-width: 250px;
+    display: block;
+}
+
+#page-mod-interactivevideo-manage .poster-wrapper {
+    background-color: var(--ivgray);
+    height: calc(200px * 0.5625);
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    min-width: 200px;
+    transition: all ease-in-out 300ms;
+}
+
+#page-mod-interactivevideo-manage .poster-wrapper:hover {
+    transition: all ease-in-out 300ms;
+}
+
+#page-mod-interactivevideo-manage .poster-overlay {
+    pointer-events: none;
+    display: none;
+}
+
+#page-mod-interactivevideo-manage .poster-wrapper:hover .poster-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.1);
+    transition: all ease-in-out 300ms;
+}
+
+#page-mod-interactivevideo-manage .poster-wrapper:hover img {
+    transform: scale(1.1);
+    transition: all ease-in-out 300ms;
+}
+
+#page-mod-interactivevideo-manage .poster-image {
+    transition: all ease-in-out 300ms;
+    top: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+#page-mod-interactivevideo-manage .poster-image.square {
+    object-fit: contain;
+    top: 10%;
+    height: 80%;
+}
+
+#page-mod-interactivevideo-manage #videolist_filter label {
+    display: flex;
+    align-items: center;
+}
+
+#page-mod-interactivevideo-manage #posterModal .modal-body {
+    height: 0;
+    padding-bottom: calc(56.25% + 40px);
+    min-height: unset;
+}
+
+#page-mod-interactivevideo-manage #posterModal .modal-dialog {
+    max-width: calc(75dvh * 16 / 9);
+}
+
+#page-mod-interactivevideo-manage #posterModal .modal-body iframe {
+    top: 0;
+    left: 0;
+}
+
+#page-mod-interactivevideo-manage .select2.select2-container.select2-container--default {
+    font-size: small;
+    width: 100% !important;
+}
+
+.path-mod-interactivevideo .completion-required * {
+    pointer-events: none;
+    opacity: 0.75;
+}
+
+.path-mod-interactivevideo .dt-button-collection {
+    z-index: 1050;
+}
+
+.path-mod-interactivevideo div.dataTables_wrapper div.dataTables_filter label {
+    margin: 0;
+}
+
+.path-mod-interactivevideo #completiontable {
+    margin: 0 !important;
+}
+
+.path-mod-interactivevideo #completiontable tfoot {
+    font-weight: bold;
+    background: var(--bs-body-bg, #fff);
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+}
+
+.path-mod-interactivevideo #completiontable .data-cell {
+    position: relative;
+}
+
+.path-mod-interactivevideo #completiontable .data-cell .bi.bi-trash3.text-danger {
+    position: absolute;
+    left: 2px;
+    bottom: 0;
+    display: none;
+}
+
+.path-mod-interactivevideo #completiontable .data-cell:hover .bi.bi-trash3.text-danger {
+    display: block;
+}
+
+.path-mod-interactivevideo #completiontable .data-cell i.text-success {
+    font-size: unset !important;
+}
+
+.path-mod-interactivevideo #annotation-list-bulk {
+    width: 100%;
+    height: 50px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background-color: var(--ivlight);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.5rem;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) tr.annotation.b-active {
+    background-color: var(--ivprimary) !important;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) tr.annotation.b-active :is(a, i, span:not(.timestamp)) {
+    color: var(--ivwhite) !important;
+}
+
+.path-mod-interactivevideo #annotation-list-bulk .btn.active {
+    background-color: var(--ivprimary) !important;
+    color: var(--ivwhite) !important;
+}
+
+.path-mod-interactivevideo:not(.iv-bulk-edit) .bulk-actions {
+    display: none;
+}
+
+:not([data-bs-theme="dark"]) .path-mod-interactivevideo.darkmode [data-region=chapterlists] .list-group-item {
+    color: var(--ivwhite) !important;
+}
+
+/*rtl:ignore:start*/
+
+.path-mod-interactivevideo iframe[name="h5player"],
+.path-mod-interactivevideo #iframe,
+.path-mod-interactivevideo .hasiframe iframe,
+.path-mod-interactivevideo .modalhasiframe iframe,
+.path-mod-interactivevideo .loader {
+    background: url([[pix:mod_interactivevideo|loader]]) center / 90px auto no-repeat;
+    background-color: transparent;
+    min-height: 15px;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal)
+[type="checkbox"]:not(.custom-control-input, [role="switch"]):not(:checked):before {
+    background-image: url([[pix:mod_interactivevideo|checkbox-unchecked]]);
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal)
+[type="checkbox"]:not(.custom-control-input, [role="switch"]):checked:before {
+    background-image: url([[pix:mod_interactivevideo|checkbox-checked]]);
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) [type="radio"]:not(.custom-control-input, [role="switch"]):checked:before {
+    background-image: url([[pix:mod_interactivevideo|radio-checked]]);
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal)
+[type="radio"]:not(.custom-control-input, [role="switch"]):not(:checked):before {
+    background-image: url([[pix:mod_interactivevideo|radio-unchecked]]);
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo :where([role="main"], .modal)
+[type="radio"]:not(.custom-control-input, [role="switch"]):not(:checked):before,
+[data-bs-theme="dark"] .path-mod-interactivevideo :where([role="main"], .modal)
+[type="checkbox"]:not(.custom-control-input, [role="switch"]):not(:checked):before {
+    filter: invert(1);
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .form-check-input:checked[type="checkbox"]:not([role="switch"]),
+.path-mod-interactivevideo :where([role="main"], .modal) .form-check-input[type="checkbox"]:not([role="switch"]),
+.path-mod-interactivevideo :where([role="main"], .modal) .form-check-input:checked[type="radio"]:not([role="switch"]),
+.path-mod-interactivevideo :where([role="main"], .modal) .form-check-input[type="radio"]:not([role="switch"]) {
+    background: none;
+    border: 0;
+    border-radius: 0;
+}
+
+.path-mod-interactivevideo .modal-title,
+#playermodal .modal-title {
+    flex-grow: 1;
+}
+
+.path-admin-setting .ivname {
+    display: inline-block;
+    width: 300px;
+}
+
+.path-mod-interactivevideo #annotation-canvas.w-0 {
+    width: 10px;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .table > :not(caption) > * > * {
+    background-color: transparent;
+}
+
+@keyframes jellyIn {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes jellyInLg {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.5);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.modal.jelly-anim .modal-dialog {
+    animation: jellyIn 0.5s ease-in-out;
+    transform-origin: center;
+}
+
+#playermodal .modal-action .fa-xl {
+    font-size: 1.5em;
+    line-height: 0.0416666682em;
+    vertical-align: -0.125em;
+}
+
+#playermodal .modal-header .btn:not([data-toggletype="manual:undo"]),
+.path-mod-interactivevideo.darkmode .navbar [data-action="toggle-manual-completion"]:not([data-toggletype="manual:undo"]) {
+    color: #fff;
+}
+
+.path-mod-interactivevideo.darkmode .navbar .dropdown-menu:has([data-region="activity-information"]) {
+    filter: invert(1);
+    border: 0;
+}
+
+.path-mod-interactivevideo.darkmode .navbar .dropdown-menu:has([data-region="activity-information"]) .badge {
+    filter: invert(1);
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .fitem[data-groupname]:is([data-groupname="beforecompletion"],
+[data-groupname="aftercompletion"],
+[data-groupname="beforecompletionbehavior"],
+[data-groupname="aftercompletionbehavior"],
+[data-groupname="activitycardgroup"],
+[data-groupname="cardoptiongroup"],
+[data-groupname="behaviorgroup"]) .form-check-inline {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.path-mod-interactivevideo :where([role="main"], .modal) .fitem:is([data-groupname="beforecompletion"],
+[data-groupname="aftercompletion"]) [data-fieldtype="group"] > * {
+    column-count: 2;
+}
+
+.path-mod-interactivevideo .vidyard-player-container #backlink {
+    display: none;
+}
+
+.path-mod-interactivevideo.dir-rtl:not(.bs-5) :where([role="main"], .modal) .dropup .dropdown-menu {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-top: 0 !important;
+    margin-bottom: .125rem !important;
+    left: unset !important;
+    right: 0 !important;
+}
+
+.path-mod-interactivevideo.dir-rtl:not(.bs-5) :where([role="main"], .modal) .dropdown div.dropdown-menu-right:not(#user-action-menu,
+#courseindexdrawercontrolsmenu) {
+    left: unset !important;
+}
+
+.path-mod-interactivevideo.pagelayout-embedded .drawer.drawer-left {
+    z-index: 1050;
+    top: 0;
+    height: var(--ivdvh);
+}
+
+.path-mod-interactivevideo.pagelayout-embedded.darkmode .drawer.drawer-left,
+.path-mod-interactivevideo.pagelayout-embedded.darkmode .courseindex .courseindex-item.pageitem,
+.path-mod-interactivevideo.pagelayout-embedded.darkmode .courseindex .courseindex-item .completioninfo.completion_complete {
+    filter: invert(1);
+}
+
+#page-mod-interactivevideo-report #filterregion .input-group > input {
+    height: unset;
+}
+
+#page-mod-interactivevideo-report .dt-buttons .btn-group {
+    position: relative;
+}
+
+.interactivevideo-card button.description-toggle {
+    border-radius: 50%;
+    background-color: var(--ivprimaryalt);
+    font-size: small;
+    width: 25px;
+    height: 25px;
+    padding: 0;
+    line-height: 25px;
+}
+
+#page-mod-interactivevideo-view:has(#message[data-placement=bottom]) #wrapper {
+    max-width: 1100px;
+}
+
+.path-mod-interactivevideo #message[data-placement] {
+    container-type: inline-size;
+    container-name: message;
+}
+
+@container message (max-width: 900px) {
+    [dir="ltr"] .path-mod-interactivevideo #message[data-placement] #completiontoggle span {
+        display: none !important;
+    }
+
+    [dir="rtl"] .path-mod-interactivevideo #message[data-placement] #completiontoggle span {
+        display: none !important;
+    }
+}
+
+@container message (max-width: 939px) {
+    .path-mod-interactivevideo #message[data-placement="popup"] .toggle-fullscreen {
+        display: none !important;
+    }
+}
+
+.path-mod-flexbook #video-wrapper.fb-interaction div.video-player iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.path-mod-flexbook #video-wrapper.fb-interaction {
+    border-radius: 0;
+}
+
+.path-mod-interactivevideo.path-mod-flexbook #video-info-wrapper {
+    position: relative;
+    height: 0;
+    padding-bottom: 56.25%;
+    overflow: hidden;
+}
+
+.path-mod-interactivevideo.path-mod-flexbook #video-info-wrapper:empty {
+    display: none;
+}
+
+.path-mod-interactivevideo.path-mod-flexbook #video-info-wrapper [id^="video-info-"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.path-mod-interactivevideo.path-mod-flexbook #video-info-wrapper [id^="video-info-"] iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.path-mod-interactivevideo.path-mod-flexbook #video-wrapper.fb-interaction iframe {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.path-mod-interactivevideo.path-mod-flexbook #video-info-wrapper iframe,
+.path-mod-interactivevideo.path-mod-flexbook #video-info-wrapper video,
+.path-mod-interactivevideo.path-mod-flexbook #video-info-wrapper audio {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.path-mod-interactivevideo.path-mod-flexbook .video-player[controls] {
+    visibility: visible !important;
+    z-index: 10 !important;
+}
+
+.path-mod-flexbook #video-wrapper.fb-interaction .restart-screen-next,
+.path-mod-interactivevideo.path-mod-flexbook #video-wrapper.fb-interaction .restart-screen-next {
+    position: absolute;
+    inset-block-end: 1.25rem;
+    inset-inline-end: 1.25rem;
+    z-index: 1;
+    padding: 0.5rem 1.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.path-mod-interactivevideo #message[data-placement="popup"] .modal-content {
+    height: var(--ivdvh);
+}
+
+/* An interaction whose content type is not activated: visible, but inert. */
+.iv-type-inactive .title,
+.iv-type-inactive .timestamp,
+.iv-type-inactive .xp {
+    opacity: .55;
+}
+
+.iv-type-inactive .type-icon {
+    color: var(--warning, #f0ad4e);
+}
+
+.spotlightr-id {
+    max-height: 100%;
+}
+
+/* Learning outcomes shown on the start and end screens. */
+.iv-outcome-list .list-group-item {
+    background: transparent;
+}
+
+.iv-outcome-list .iv-outcome-list-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/** Moodle 5.3 styles. */
+
+.path-mod-interactivevideo.hasstickyfooter:is(.pagelayout-embedded) .stickyfooter {
+    display: none;
+}
+
+.path-mod-interactivevideo .hasstickyfooter .stickyfooter {
+    z-index: 1050;
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo.darkmode #user-action-menu,
+[data-bs-theme="dark"] .path-mod-interactivevideo.pagelayout-embedded.darkmode .drawer.drawer-left,
+[data-bs-theme="dark"] .path-mod-interactivevideo.pagelayout-embedded.darkmode .courseindex .courseindex-item.pageitem,
+[data-bs-theme="dark"] .path-mod-interactivevideo.pagelayout-embedded.darkmode .courseindex .courseindex-item .completioninfo.completion_complete {
+    filter: none;
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo :where([role="main"], .modal) .dropdown-menu .dropdown-item:hover {
+    background-color: var(--bs-dropdown-link-hover-bg, #f8f9fa);
+    color: var(--bs-dropdown-link-hover-color, #000);
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo :where([role="main"], .modal) .dropdown-menu {
+    scrollbar-color: var(--bs-gray-300, #ddd) var(--bs-body-bg, #121212);
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo :where([role="main"], .modal) .text-dark,
+[data-bs-theme="dark"] .interactivevideo-card .text-dark {
+    color: #fff !important;
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo.darkmode .navbar .dropdown-menu:has([data-region="activity-information"]) {
+    filter: none;
+}
+
+.path-mod-interactivevideo.distraction-free .navbar .dropdown-menu:has([data-region="activity-information"]) {
+    min-width: 200px;
+}
+
+.navbar .dropdown-menu:has([data-region="activity-information"]) .automatic-completion-title {
+    display: none;
+}
+
+:is(.interactivevideo-card, #playermodal) .activity-completion-list {
+    padding: 0;
+    margin: 0;
+}
+
+#playermodal .activity-completion-list {
+    display: flex;
+    gap: 1rem;
+}
+
+:is(.interactivevideo-card, #playermodal) .activity-completion-list li {
+    list-style: none;
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo .tablewrapper,
+[data-bs-theme="dark"] .path-mod-interactivevideo :where([role="main"], .modal) .table-responsive {
+    scrollbar-color: var(--bs-gray-300, #ddd) var(--bs-body-bg, #121212);
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo .select2-container--default .select2-selection--multiple {
+    background-color: var(--bs-body-bg, #121212);
+    border-color: var(--bs-gray-500, #ddd);
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--bs-body-bg, #ddd);
+}
+
+[data-bs-theme="dark"] .path-mod-interactivevideo:not(.bg-dark) #toolbar .btn {
+    color: #fff;
+}
+
+/* btn-light dark mode support */
+[data-bs-theme="dark"] :is(.path-mod-interactivevideo, #playermodal, .interactivevideo-card) .btn-light {
+    --bs-btn-color: var(--bs-body-color, #dee2e6);
+    --bs-btn-bg: var(--bs-tertiary-bg, #2b3035);
+    --bs-btn-border-color: var(--bs-border-color, rgba(255, 255, 255, 0.15));
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--bs-secondary-bg, #343a40);
+    --bs-btn-hover-border-color: rgba(255, 255, 255, 0.25);
+    --bs-btn-focus-shadow-rgb: 255, 255, 255;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--bs-secondary-bg, #3a3f44);
+    --bs-btn-active-border-color: rgba(255, 255, 255, 0.3);
+    --bs-btn-disabled-color: var(--bs-secondary-color, #6c757d);
+    --bs-btn-disabled-bg: var(--bs-tertiary-bg, #2b3035);
+    --bs-btn-disabled-border-color: transparent;
+    color: var(--bs-body-color, #dee2e6);
+    background-color: var(--bs-tertiary-bg, #2b3035);
+    border-color: var(--bs-border-color, rgba(255, 255, 255, 0.15));
+}
+
+[data-bs-theme="dark"] :is(.path-mod-interactivevideo, #playermodal, .interactivevideo-card) .btn-light:hover:not(:disabled) {
+    color: #fff;
+    background-color: var(--bs-secondary-bg, #343a40);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+[data-bs-theme="dark"] :is(.path-mod-interactivevideo, #playermodal, .interactivevideo-card) .btn-light:is(:active, .active, .show):not(:disabled),
+[data-bs-theme="dark"] :is(.path-mod-interactivevideo, #playermodal, .interactivevideo-card) .btn-check:checked + .btn-light {
+    color: #fff;
+    background-color: var(--bs-secondary-bg, #3a3f44);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+[data-bs-theme="dark"] :is(.path-mod-interactivevideo, #playermodal, .interactivevideo-card) .btn-light:disabled,
+[data-bs-theme="dark"] :is(.path-mod-interactivevideo, #playermodal, .interactivevideo-card) .btn-light.disabled {
+    color: var(--bs-secondary-color, #6c757d);
+    background-color: var(--bs-tertiary-bg, #2b3035);
+    border-color: transparent;
+}
+
+[data-bs-theme="dark"] .path-mod-flexbook:not(.darkmode) #wrapper:not(.fullscreen) #controller.fb .btn-dark {
+    color: #fff !important;
+}
+
+.chapter-title[role="heading"] {
+    max-width: calc(100% - 2rem);
+}
+
+/* The start screen on its own, before the popup opens. */
+#page-mod-interactivevideo-view #interactivevideo-startframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    /* Square once the frame reaches the viewport edges, allowing for a scrollbar. */
+    border-radius: max(0px, min(0.75rem, calc((100vw - 100% - 2rem) * 9999)));
+}

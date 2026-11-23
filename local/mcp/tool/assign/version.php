@@ -22,11 +22,11 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
 $plugin->component = "mcptool_assign";
 $plugin->version = 2026102200;
 $plugin->release = "1.0.0";
-$plugin->requires = 2024042212;
+$plugin->requires = 2020110900;
 $plugin->dependencies = ["local_mcp" => 2026100801];
 $plugin->maturity = MATURITY_STABLE;

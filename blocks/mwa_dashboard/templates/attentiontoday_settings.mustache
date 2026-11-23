@@ -1,0 +1,15 @@
+{{!
+    @template block_mwa_dashboard/attentiontoday_settings
+    @copyright 2026 Bruno Porto
+    @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<form class="mwa-att-modal">
+    <header><div><h2>{{title}}</h2><p>{{subtitle}}</p></div><button type="button" data-att-close>&times;</button></header>
+    <div class="mwa-att-rules">
+        {{#rules}}
+        <label class="mwa-att-rule"><span><strong>{{label}}</strong><small>{{description}}</small></span><input type="checkbox" name="{{name}}" {{#checked}}checked{{/checked}}><i></i></label>
+        {{/rules}}
+        <div class="mwa-att-thresholds"><label>{{dayslabel}}<input type="number" name="days" min="1" max="90" value="{{days}}"></label><input type="hidden" name="grade" value="{{grade}}"></div>
+    </div>
+    <footer><button type="button" data-att-close>{{cancellabel}}</button><button type="submit" class="btn-accent">{{savelabel}}</button></footer>
+</form>

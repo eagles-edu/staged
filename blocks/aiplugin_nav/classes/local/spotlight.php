@@ -1,0 +1,353 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Plugin spotlight: the rotating promotional hero and poster row on the home view.
+ *
+ * @package    block_aiplugin_nav
+ * @copyright  2026 LMS Labs
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace block_aiplugin_nav\local;
+
+/**
+ * Builds the spotlight model the block's JavaScript renders.
+ *
+ * Promotion is deliberately separate from installed-plugin navigation. LMS Labs is the source
+ * of truth for everything shown:
+ * - What is promoted, in what order, and its copy, features and preview image come from the
+ *   LMS Labs spotlight feed (live_feed::SPOTLIGHT). Only entries with spotlightEligible true
+ *   are shown; the release feed's "ready" flag is not treated as approval.
+ * - The latest release number and readiness come from the LMS Labs versions feed
+ *   (live_feed::VERSIONS), so a new upload shows its version without a block release. A
+ *   A pending release can still be previewed, but never offered for installation.
+ * - Price, install state and the open link come from the Plugins panel row, which takes its
+ *   price from the same versions feed.
+ * Until the spotlight feed has been fetched (or when it is over a day old) the bundled
+ * snapshot generated/spotlight_catalogue.json is used instead, as an offline fallback only.
+ * A plugin held out of the spotlight still appears in the Plugins panel. New, explicitly
+ * approved promotional entries may precede their release/Plugins panel registration.
+ *
+ * @package    block_aiplugin_nav
+ * @copyright  2026 LMS Labs
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class spotlight {
+    /** @var string User preference that holds the spotlight state for each user. */
+    public const PREF = 'block_aiplugin_nav_spotlight';
+
+    /** @var string[] The states the spotlight can be in. */
+    public const STATES = ['open', 'collapsed', 'off'];
+
+    /** @var string[] Filter categories, in the order the filter chips appear. */
+    private const CATEGORIES = [
+        'content',
+        'grading',
+        'rto',
+        'reporting',
+        'groups',
+        'training',
+        'payments',
+        'branding',
+        'security',
+        'media',
+        'monitor',
+        'block',
+    ];
+
+    /** @var string[] Language string keys the JavaScript needs, without the spotlight_ prefix. */
+    private const STRINGS = [
+        'all',
+        'brand',
+        'carousel',
+        'close',
+        'collapse',
+        'collapsedtoast',
+        'component',
+        'creditnote',
+        'credits',
+        'creditsshort',
+        'docs',
+        'docslabel',
+        'featured',
+        'get',
+        'includes',
+        'installed',
+        'installedversion',
+        'kicker',
+        'latest',
+        'morein',
+        'moreinfo',
+        'next',
+        'nowshowing',
+        'offtoast',
+        'onsite',
+        'ontoast',
+        'open',
+        'pause',
+        'paused',
+        'position',
+        'prev',
+        'price',
+        'pricevalue',
+        'rank',
+        'resume',
+        'rowtitle',
+        'screenshot',
+        'scrollleft',
+        'scrollright',
+        'settings',
+        'show',
+        'status',
+        'statusinstalled',
+        'statusnot',
+        'toggle',
+        'type',
+        'usage',
+        'usageprefix',
+        'version',
+    ];
+
+    /** @var string The only host the documentation links may point at. */
+    private const DOCS_PREFIX = 'https://lms-labs.com/docs/';
+
+    /**
+     * Plugins shown text-only in the spotlight.
+     *
+     * No preview image is ever used for these: not the live feed's image, not an image from a
+     * cached copy of the feed, not the bundled catalogue's image and not a bundled
+     * pix/spotlight file.
+     *
+     * @var string[]
+     */
+    public const TEXT_ONLY_COMPONENTS = ['mod_vocabmastery'];
+
+    /**
+     * Build the spotlight model, or null when there is nothing to promote.
+     *
+     * @param array $plugins The already-built Plugins panel rows. Empty for non-admins.
+     * @param \renderer_base $output Renderer used to resolve the preview image URLs.
+     * @return array|null The model, or null when no promoted plugin has a matching row.
+     */
+    public static function build(array $plugins, \renderer_base $output): ?array {
+        $rows = [];
+        foreach ($plugins as $row) {
+            if (!empty($row['component'])) {
+                $rows[$row['component']] = $row;
+            }
+        }
+
+        $feed = live_feed::spotlight();
+        $entries = $feed === null ? self::catalogue() : array_filter($feed, function ($entry) {
+            return is_array($entry) && ($entry['spotlightEligible'] ?? false) === true;
+        });
+        $versions = live_feed::versions() ?? [];
+
+        $items = [];
+        foreach ($entries as $entry) {
+            $component = (string) ($entry['component'] ?? '');
+            if (in_array($component, \block_aiplugin_nav_payload::UNAPPROVED_COMPONENTS, true)) {
+                continue;
+            }
+            $row = $rows[$component] ?? null;
+            // A missing or testing local row is still an approved docs-only preview.
+            // It is not an install/unlock authority.
+            $release = $versions[$component] ?? null;
+            if ($feed !== null && (!is_array($entry) || ($entry['status'] ?? '') !== 'ready'
+                    || ($entry['hidden'] ?? true) !== false)) {
+                continue;
+            }
+            $item = self::item($entry, $row, $output, $release);
+            if ($item !== null) {
+                $item['rank'] = count($items) + 1;
+                $items[] = $item;
+            }
+        }
+
+        if (!$items) {
+            return null;
+        }
+
+        return [
+            'state' => self::user_state(),
+            'source' => $feed === null ? 'bundled' : 'live',
+            'items' => $items,
+            'categories' => self::category_labels(),
+            'strings' => self::strings(),
+        ];
+    }
+
+    /**
+     * The state the spotlight starts in for the current user.
+     *
+     * A user who has never used the switch or the collapse control gets the site default.
+     *
+     * @return string One of self::STATES.
+     */
+    public static function user_state(): string {
+        $default = self::site_default();
+        $state = (string) get_user_preferences(self::PREF, $default);
+        return in_array($state, self::STATES, true) ? $state : $default;
+    }
+
+    /**
+     * The site-wide starting state, from the spotlight_default setting.
+     *
+     * @return string One of self::STATES.
+     */
+    public static function site_default(): string {
+        $default = (string) get_config('block_aiplugin_nav', 'spotlight_default');
+        return in_array($default, self::STATES, true) ? $default : 'open';
+    }
+
+    /**
+     * Read the bundled editorial snapshot.
+     *
+     * @return array The snapshot's plugin entries, in display order. Empty when unreadable.
+     */
+    private static function catalogue(): array {
+        $file = __DIR__ . '/../../generated/spotlight_catalogue.json';
+        if (!is_readable($file)) {
+            debugging('block_aiplugin_nav: spotlight catalogue is missing', DEBUG_DEVELOPER);
+            return [];
+        }
+        $data = json_decode((string) file_get_contents($file), true);
+        if (!is_array($data) || !isset($data['plugins']) || !is_array($data['plugins'])) {
+            debugging('block_aiplugin_nav: spotlight catalogue is malformed', DEBUG_DEVELOPER);
+            return [];
+        }
+        return $data['plugins'];
+    }
+
+    /**
+     * Shape one promoted plugin for the browser.
+     *
+     * Price, install state and the open link come from the Plugins panel row, never from the
+     * snapshot, so the spotlight cannot quote a different price from the one the unlock flow
+     * charges. Values that end up in markup or CSS are validated here.
+     *
+     * @param array $entry The snapshot entry.
+     * @param array|null $row The matching Plugins panel row, if registered yet.
+     * @param \renderer_base $output Renderer used to resolve the preview image URL.
+     * @param array|null $release The component's versions feed entry, if any.
+     * @return array|null The item, or null when the entry is unusable.
+     */
+    private static function item(array $entry, ?array $row, \renderer_base $output, ?array $release): ?array {
+        $component = clean_param($entry['component'] ?? '', PARAM_COMPONENT);
+        $category = (string) ($entry['category'] ?? '');
+        if ($component === '' || $component !== ($entry['component'] ?? '') ||
+                !in_array($category, self::CATEGORIES, true)) {
+            return null;
+        }
+        $pending = $row === null || ($row['status'] ?? '') !== 'ready'
+            || $release === null || ($release['status'] ?? '') !== 'ready'
+            || live_feed::release($release) === '' || ($release['zipExists'] ?? false) !== true
+            || empty($release['downloadUrl']);
+
+        $docs = (string) ($entry['docs'] ?? '');
+        if (strpos($docs, self::DOCS_PREFIX) !== 0) {
+            $docs = '';
+        }
+
+        // Prefer bundled artwork so new releases work before website publication. Text-only plugins
+        // get neither, whatever the feed, its cache or the bundled files contain.
+        $image = '';
+        if (!in_array($component, self::TEXT_ONLY_COMPONENTS, true)) {
+            if (is_readable(__DIR__ . '/../../pix/spotlight/' . $component . '.jpg')) {
+                $image = $output->image_url('spotlight/' . $component, 'block_aiplugin_nav')->out(false);
+            } else {
+                $image = live_feed::image_url($entry['image'] ?? '');
+            }
+        }
+
+        // Same destination and label as the Plugins panel row: 'settings' rows link to the
+        // plugin's settings page, 'none' rows have nothing to open.
+        $gotourl = '';
+        if (!$pending && !empty($row['installed']) && ($row['action'] ?? '') !== 'none') {
+            $gotourl = (string) ($row['gotourl'] ?? '');
+        }
+
+        $features = [];
+        foreach (array_slice((array) ($entry['features'] ?? []), 0, 4) as $feature) {
+            $features[] = (string) $feature;
+        }
+
+        return [
+            'component' => $component,
+            'name' => (string) ($entry['name'] ?? ($row['name'] ?? '')),
+            'subtitle' => (string) ($entry['subtitle'] ?? ''),
+            'cat' => $category,
+            'type' => (string) ($entry['type'] ?? ''),
+            'accent' => self::colour($entry['accent'] ?? '', '#ff6a0f'),
+            'accent2' => self::colour($entry['accent2'] ?? '', '#ff8a3d'),
+            'desc' => (string) ($entry['description'] ?? ''),
+            'features' => $features,
+            'statvalue' => (string) ($entry['stat']['value'] ?? ''),
+            'statlabel' => (string) ($entry['stat']['label'] ?? ''),
+            'usage' => (string) ($entry['usage'] ?? ''),
+            'includes' => (string) ($entry['includes'] ?? ''),
+            'docs' => $docs,
+            'image' => $image,
+            'pluginname' => (string) ($row['name'] ?? ''),
+            'credits' => $pending ? 0 : (int) ($row['credits'] ?? 0),
+            'installed' => !empty($row['installed']),
+            'gotourl' => $gotourl,
+            'latest' => $pending ? '' : live_feed::release($release),
+            'pending' => $pending,
+            'installedversion' => !empty($row['installed']) ? live_feed::release(['version' => $row['version'] ?? '']) : '',
+            'action' => $gotourl !== '' && ($row['action'] ?? '') === 'settings' ? 'settings' : 'open',
+        ];
+    }
+
+    /**
+     * Accept a six-digit hex colour, or fall back.
+     *
+     * @param mixed $value The candidate colour.
+     * @param string $fallback The colour to use when the candidate is not valid.
+     * @return string A #rrggbb colour.
+     */
+    private static function colour($value, string $fallback): string {
+        $value = (string) $value;
+        return preg_match('/^#[0-9a-fA-F]{6}$/', $value) ? strtolower($value) : $fallback;
+    }
+
+    /**
+     * Translated labels for the filter categories.
+     *
+     * @return array Category key => label.
+     */
+    private static function category_labels(): array {
+        $labels = [];
+        foreach (self::CATEGORIES as $key) {
+            $labels[$key] = get_string('spotlight_cat_' . $key, 'block_aiplugin_nav');
+        }
+        return $labels;
+    }
+
+    /**
+     * Translated UI strings for the JavaScript.
+     *
+     * @return array Short key => string. Placeholders such as {$a} are filled in by the browser.
+     */
+    private static function strings(): array {
+        $strings = [];
+        foreach (self::STRINGS as $key) {
+            $strings[$key] = get_string('spotlight_' . $key, 'block_aiplugin_nav');
+        }
+        return $strings;
+    }
+}

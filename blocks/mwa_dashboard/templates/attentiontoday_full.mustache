@@ -1,0 +1,25 @@
+{{!
+    @template block_mwa_dashboard/attentiontoday_full
+    @copyright 2026 Bruno Porto
+    @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+}}
+<div class="mwa-att-full-kpis">
+    <div role="button" tabindex="0" data-att-kpi-filter="all" aria-pressed="{{#totalActive}}true{{/totalActive}}{{^totalActive}}false{{/totalActive}}"><span><i aria-hidden="true">&#128276;</i>{{totalLabel}}</span><strong>{{total}}</strong><small>{{totalSub}}</small><b aria-hidden="true">&#8594;</b></div>
+    <div class="action-required" role="button" tabindex="0" data-att-kpi-filter="action" aria-pressed="{{#actionActive}}true{{/actionActive}}{{^actionActive}}false{{/actionActive}}"><span><i aria-hidden="true">&#9203;</i>{{actionLabel}}</span><strong>{{actionCount}}</strong><small>{{actionSub}}</small><b aria-hidden="true">&#8594;</b></div>
+    <div class="resolved" role="button" tabindex="0" data-att-kpi-filter="resolved" aria-pressed="{{#resolvedActive}}true{{/resolvedActive}}{{^resolvedActive}}false{{/resolvedActive}}"><span><i aria-hidden="true">&#9989;</i>{{resolvedLabel}}</span><strong>{{resolvedCount}}</strong><small>{{resolvedSub}}</small><b aria-hidden="true">&#8594;</b></div>
+</div>
+<section class="card mwa-att-card mwa-att-full">
+    <header>
+        <nav>{{#filters}}<button type="button" data-att-full-filter="{{value}}" class="{{#active}}active{{/active}}">{{label}}</button>{{/filters}}</nav>
+        <button type="button" class="mwa-att-config"><svg class="mwa-ui-icon"><use href="#mwa-icon-edit"></use></svg>{{configurelabel}}</button>
+    </header>
+    <div class="mwa-att-toolbar">
+        <label><svg class="mwa-ui-icon"><use href="#mwa-icon-search"></use></svg><input type="search" id="mwaAttSearch" value="{{search}}" placeholder="{{searchplaceholder}}"></label>
+        <select id="mwaAttType">{{#types}}<option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>{{/types}}</select>
+        <select id="mwaAttSort"><option value="priority" {{#priorityselected}}selected{{/priorityselected}}>{{prioritylabel}}</option><option value="date" {{#dateselected}}selected{{/dateselected}}>{{datelabel}}</option></select>
+    </div>
+    <div class="mwa-att-list">
+        {{{rowshtml}}}
+        {{#empty}}<div class="mwa-att-empty">{{emptylabel}}</div>{{/empty}}
+    </div>
+</section>

@@ -1,0 +1,104 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Class implementing WS ivplugin_contentbank_getitem
+ *
+ * @package    ivplugin_contentbank
+ * @copyright  2024 Sokunthearith Makara <sokunthearithmakara@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace ivplugin_contentbank\external;
+
+use core_external\external_api;
+use core_external\external_function_parameters;
+use core_external\external_single_structure;
+use core_external\external_value;
+use mod_interactivevideo\local\external_compat;
+
+defined('MOODLE_INTERNAL') || die;
+
+external_compat::load();
+
+/**
+ * Implementation of web service ivplugin_contentbank_getitem
+ *
+ * @package    ivplugin_contentbank
+ * @copyright  2024 Sokunthearith Makara <sokunthearithmakara@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class getitem extends external_api {
+    /**
+     * Describes the parameters for ivplugin_contentbank_getitem
+     *
+     * @return external_function_parameters
+     */
+    public static function execute_parameters(): external_function_parameters {
+        return new external_function_parameters([
+            'id' => new external_value(PARAM_INT, 'Content bank item id'),
+            'contextid' => new external_value(PARAM_INT, 'Course context id'),
+        ]);
+    }
+
+    /**
+     * Implementation of web service ivplugin_contentbank_getitem
+     *
+     * @param int $id Content bank item id
+     * @param int $contextid Course context id
+     * @return array
+     */
+    public static function execute($id, $contextid) {
+        global $DB;
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::execute_parameters(), [
+            'id' => $id,
+            'contextid' => $contextid,
+        ]);
+
+        require_login();
+
+        // Perform security checks.
+        $context = \context::instance_by_id($contextid);
+        self::validate_context($context);
+        require_capability('moodle/contentbank:access', $context);
+
+        // The item id is resolved by content bank regardless of the context supplied above,
+        // so authorise against the context the item actually lives in. Items inherited from
+        // a parent context stay reachable; an unrelated course's items do not.
+        $itemcontextid = $DB->get_field('contentbank_content', 'contextid', ['id' => $params['id']], MUST_EXIST);
+        if ((int) $itemcontextid !== (int) $context->id) {
+            require_capability('moodle/contentbank:access', \context::instance_by_id($itemcontextid));
+        }
+
+        $item = \ivplugin_contentbank\main::get_contentbank_content($id, $contextid);
+        return [
+            'item' => $item,
+        ];
+    }
+
+    /**
+     * Describe the return structure for ivplugin_contentbank_getitem
+     *
+     * @return external_single_structure
+     */
+    public static function execute_returns(): external_single_structure {
+        return new external_single_structure([
+            'item' => new external_value(PARAM_RAW, 'The content of the content bank item'),
+        ]);
+    }
+}

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/latepenalty/db" VERSION="20261013" COMMENT="XMLDB file for Moodle local/latepenalty"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_latepenalty_rules" COMMENT="Stores late penalty configuration rules for course modules">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course module ID (course_modules.id)"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the penalty rule is enabled (0=disabled, 1=enabled)"/>
+        <FIELD NAME="daily_penalty" TYPE="number" LENGTH="5" NOTNULL="true" DEFAULT="0.00" DECIMALS="2" SEQUENCE="false" COMMENT="Daily penalty percentage (0.00 to 100.00)"/>
+        <FIELD NAME="max_penalty" TYPE="number" LENGTH="5" NOTNULL="true" DEFAULT="0.00" DECIMALS="2" SEQUENCE="false" COMMENT="Maximum penalty cap percentage (0.00 to 100.00)"/>
+        <FIELD NAME="recalc_on_deadline" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Recalculate applied penalties when the activity deadline changes (1=yes, 0=no)"/>
+        <FIELD NAME="recalc_on_rate" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Recalculate applied penalties when the daily rate or maximum cap changes (1=yes, 0=no)"/>
+        <FIELD NAME="last_deadline" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Snapshot of the resolved deadline at the time the rule was last saved, used to detect deadline changes"/>
+        <FIELD NAME="keepbest" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Keep the best penalised grade among the attempts (1=yes, 0=no); for modules whose grading method cannot be read"/>
+        <FIELD NAME="timeenabled" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the rule was first enabled; grades that arrived before it and were never penalised are left alone by background recalculations (0 = no cutoff)"/>
+        <FIELD NAME="penaltybase" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="What the percentage applies to: 0 = the grade obtained, 1 = the maximum grade"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="cmid" TYPE="unique" FIELDS="cmid"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="local_latepenalty_overrides" COMMENT="Per-user overrides for late penalty rules">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course module ID (course_modules.id)"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User ID (user.id)"/>
+        <FIELD NAME="deadline" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Custom deadline timestamp; null = inherit from activity"/>
+        <FIELD NAME="daily_penalty" TYPE="number" LENGTH="5" NOTNULL="false" DECIMALS="2" SEQUENCE="false" COMMENT="Custom daily penalty percentage; null = inherit from rule"/>
+        <FIELD NAME="max_penalty" TYPE="number" LENGTH="5" NOTNULL="false" DECIMALS="2" SEQUENCE="false" COMMENT="Custom maximum penalty percentage; null = inherit from rule"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="cmid_userid" TYPE="unique" FIELDS="cmid, userid"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="local_latepenalty_group_overrides" COMMENT="Per-group overrides for late penalty rules">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course module ID (course_modules.id)"/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Group ID (groups.id)"/>
+        <FIELD NAME="deadline" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Custom deadline timestamp; null = inherit from activity"/>
+        <FIELD NAME="daily_penalty" TYPE="number" LENGTH="5" NOTNULL="false" DECIMALS="2" SEQUENCE="false" COMMENT="Custom daily penalty percentage; null = inherit from rule"/>
+        <FIELD NAME="max_penalty" TYPE="number" LENGTH="5" NOTNULL="false" DECIMALS="2" SEQUENCE="false" COMMENT="Custom maximum penalty percentage; null = inherit from rule"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="cmid_groupid" TYPE="unique" FIELDS="cmid, groupid"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

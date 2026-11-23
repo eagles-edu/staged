@@ -1,0 +1,222 @@
+# 🎓 Moodle Question Bank Plugin: Competency (`qbank_comp_ext`)
+
+[![Moodle Plugin CI](https://github.com/engfeda-ui/competency/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/engfeda-ui/competency/actions/workflows/ci.yml)
+[![Moodle Compatibility](https://img.shields.io/badge/Moodle-4.5%20%7C%205.0%2B-orange.svg?style=flat-square)](https://moodle.org)
+[![PHP Version](https://img.shields.io/badge/PHP-8.1%20%7C%208.2%20%7C%208.3-blue.svg?style=flat-square)](https://php.net)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20MariaDB-purple.svg?style=flat-square)](https://docs.moodle.org)
+[![License](https://img.shields.io/badge/License-GPL%20v3-green.svg?style=flat-square)](http://www.gnu.org/copyleft/gpl.html)
+[![Version](https://img.shields.io/badge/Version-v2.4.6-blue.svg?style=flat-square)](https://github.com/engfeda-ui/competency)
+
+A professional Moodle Question Bank plugin that allows course creators and teachers to link individual questions to specific Moodle competencies. This forms the data foundation of a competency-based assessment and learning analytics system.
+
+By mapping questions to learning outcomes, educators can measure exactly which skills a student has mastered, rather than relying on generic pass/fail scores.
+
+---
+
+## ✨ Features
+
+- **Direct Question-to-Competency Mapping:** Link any question in the Moodle Question Bank to one or multiple Moodle competencies via a dedicated column in the question bank UI.
+- **Native Moodle Core Competency Integration:** Fully integrated with Moodle's official competency framework (`\core_competency\api`).
+- **Data Foundation for Analytics:** Acts as the core data engine for `local_comp_report_ext`, `block_comp_report_ext`, and `quizaccess_failgrade_ext`.
+- **Automated Tag-Based Mapping:** Automatically links questions to competencies using Moodle's native tag event observers — no manual intervention needed after import.
+- **External API:** Exposes a secure web service (`save_question_competency`) for programmatic mapping, protected by `moodle/course:manageactivities`.
+- **Localization Support:** English, Arabic (`ar`), and Turkish (`tr`) language packs included.
+- **Backup & Restore:** Mapping data is preserved when migrating courses.
+
+---
+
+## 📋 Requirements
+
+| Dependency | Required Version / Compatibility |
+| :--- | :--- |
+| **Moodle Framework** | Moodle 4.5 to 5.0+ |
+| **PHP Runtime** | PHP 8.1, PHP 8.2, PHP 8.3 |
+| **Database System** | PostgreSQL 13+, MySQL 8.0+, or MariaDB 10.5+ |
+
+> **Note:** `local_comp_report_ext` and `quizaccess_failgrade_ext` both declare `qbank_comp_ext` as a required dependency. Install this plugin first.
+
+---
+
+## 🚀 Installation
+
+1. **Download & Extract:** Download the repository and extract the files.
+2. **Directory Placement:** Copy the `competency` folder into your Moodle question bank plugins directory:
+   ```
+   moodle/question/bank/comp_ext
+   ```
+   > The directory name inside `question/bank/` must be exactly `comp_ext`.
+4. **Run Moodle Upgrade:** Log in as Administrator and navigate to **Site administration > Notifications**.
+5. **Alternative Install:** Zip the directory and upload via **Site administration > Plugins > Install plugins**.
+
+---
+
+## 🛠️ Usage & Configuration
+
+### Manual Mapping
+1. Go to your **Course > Question Bank**.
+2. For any question, click the **Edit** dropdown and choose **Competencies** (or click the competency icon in the question row).
+3. Select the competency to associate with this question.
+4. Save.
+
+### Automated Tag-Based Mapping (GIFT Import)
+The plugin listens to Moodle's tag events. When a question is tagged with a `comp-` prefix, the mapping is created automatically. Multiple competencies are supported!
+
+1. **Add a tag to your GIFT file:**
+   ```
+   // [tag:comp-101, comp-102]
+   ::Question Name:: Which database does Moodle support? { =All of them ~Only one }
+   ```
+2. **Import the GIFT file** into your course Question Bank.
+3. The plugin detects the `comp-101` and `comp-102` tags, looks up the competencies by `idnumber` or `shortname`, and creates the mappings automatically.
+4. **Removing the tag** later will also remove the mapping automatically.
+
+---
+
+## 🗄️ Database Schema
+
+The plugin creates one table:
+
+| Table | Purpose |
+| :--- | :--- |
+| `qbank_comp_ext_qmap` | Maps a question (`questionid`) to a competency (`competencyid`) within a course (`courseid`) |
+
+**Key fields:** `id`, `courseid`, `questionid`, `competencyid`, `timecreated`
+
+**Indexes:** `course_question_idx` on `(courseid, questionid)` for fast lookups.
+
+---
+
+## 💻 Directory Structure
+
+```
+competency/
+├── amd/                    # AMD JavaScript modules for UI interactivity
+├── classes/
+│   ├── column/             # Question bank column definition
+│   ├── external/           # Web service: save_question_competency
+│   ├── privacy/            # GDPR Privacy provider
+│   ├── observer.php        # Tag event observers (auto-mapping)
+│   └── plugin_feature.php  # Registers the question bank column
+├── db/
+│   ├── install.xml         # Database schema
+│   ├── access.php          # Capability definitions
+│   └── services.php        # Web service definitions
+├── lang/
+│   └── en/                 # English language strings
+├── version.php             # Plugin version and metadata
+└── README.md
+```
+
+---
+
+## 🔗 The Competency Ecosystem
+
+This plugin is the data foundation of a 4-plugin competency-based education suite:
+
+```mermaid
+graph TD
+    A[qbank_comp_ext] -->|Maps questions to competencies| B[local_comp_report_ext]
+    B -->|Analyses attempts & generates reports| C[block_comp_report_ext]
+    C -->|Shows progress on dashboard| D[Moodle Dashboard / Course]
+    B -->|Provides threshold config| E[quizaccess_failgrade_ext]
+    A -->|Provides question-competency data| E
+```
+
+---
+
+## 📋 Changelog
+
+### v2.4.6 — 2026-10-11
+- **Fix (Moodle 4.0+ Question Schema Compatibility):**
+  - Resolved `dmlreadexception` (`Error reading from database`) in `save_question_competency.php` and `auto_mapper.php` by querying the Moodle 4.0+ question bank tables (`question_bank_entries`, `question_versions`, `question_categories`) instead of deprecated pre-4.0 `question.category`.
+  - Upgraded context ownership validation to correctly support questions located in Quiz Module contexts (`CONTEXT_MODULE`), Course contexts (`CONTEXT_COURSE`), Course Category banks (`CONTEXT_COURSECAT`), and System banks (`CONTEXT_SYSTEM`).
+- **Fix (UI Selection & Tag Synchronization):**
+  - Synchronized question `comp-` tags upon saving competency mappings via external API so tag pills next to question titles stay aligned and in-memory suggestions do not resurrect removed competencies on page reload.
+  - Enhanced `competency_column.php` and `observer.php` to handle multi-competency comma-separated tag strings (e.g. `comp-Operation, comp-Inspection & Testing`).
+  - Corrected `form-autocomplete` configuration in Question Bank column: disabled arbitrary custom tag creation (`tags: false`), replaced confusing `"No results"` with localized `"None"` / `"لا شيء"`, and set placeholder to `"Select competency..."` / `"اختر الجدارة..."`.
+
+### v2.4.5 — 2026-10-09
+- **Ownership Validation (`external/save_question_competency.php`):**
+  - The question must exist and belong to the course (or a shared system bank); every competency must exist and be linked to the course, else `invalid_parameter_exception`.
+  - Full replace now runs inside a delegated transaction (atomic, race-safe).
+  - New unique index `(questionid, courseid, competencyid)` via `db/upgrade.php` with duplicate cleanup.
+
+### v2.4.4 — 2026-10-09
+- **P0 Read-Path Hardening (`classes/column/competency_column.php`):**
+  - Removed all `insert_record` writes from `display_content()` — column is now strictly read-only (persistence via `cli/automap.php` / cron).
+  - Bulk-loads whole-course qmap once per request (`coursemapcache`) instead of one query per question row; per-question tags cached (`tagcache`).
+  - Tag/text suggestions now in-memory only for display.
+
+### v2.4.3 — 2026-10-09
+- **CodeChecker Fix:** Added separate member variable doc comment for `$stoparmap` in `classes/auto_mapper.php` to strictly satisfy Moodle `VariableComment.Missing` sniff.
+
+### v2.4.2 — 2026-10-09
+- **Code Compliance & Moodle CodeChecker Standard:**
+  - Standardized all variable and property names in `classes/auto_mapper.php` (`$stopen`, `$stopar`, `$stopenmap`, `$stoparmap`, `$compkwcache`, `$scoresum`) to eliminate underscores per Moodle naming conventions.
+  - Wrapped long boolean expression in `classes/column/competency_column.php` to strictly comply with Moodle's 132-character line length limit.
+  - Formatted closure declarations with standard spacing after `function` keyword.
+
+### v2.4.1 — 2026-10-08
+- **Hardening & High-Throughput Optimization (OpenCode Multi-Agent Audit Implementation):**
+  - **Static Stop-Word Map Caching:** Eliminated redundant per-token `array_flip` allocations by memoizing English and Arabic stop-word lookup tables statically.
+  - **Competency Keyword Set Memoization:** Added class-level `$comp_kw_cache` in `auto_mapper.php` so candidate competencies are tokenized and scored once across hundreds of batch questions rather than recomputed on every question ($O(M)$ instead of $O(N \times M)$).
+  - **Comprehensive Unicode Arabic Character Class:** Standardized Arabic diacritic stripping and character classification using Unicode property classes (`\p{Mn}` and `\p{Arabic}`), safely supporting all Arabic supplements and combining marks without ReDoS risk.
+
+- **Feature (3-Tier Question-to-Competency Mapping Engine):**
+  - **Tier 1 (Explicit GIFT Tags):** Continues to support direct `comp-*` tags embedded in question files.
+  - **Tier 2 (Psychometric Auto-Mapping Engine):** Introduced `\qbank_comp_ext\auto_mapper` implementing bilingual (Arabic & English) stemming, normalization, and stop-word filtering matching the SANAD platform (`itp.sanad.ws`) algorithm with minimum threshold `0.20`. Auto-suggests and links questions without explicit tags to course competencies (`{competency_coursecomp}`).
+  - **Tier 3 (Manual Question Bank Overrides):** Enhanced Question Bank UI multi-select column (`competency_column.php`) allowing instructors to inspect, add, or override question-competency mappings with instant AJAX sync.
+- **CLI Tool (`cli/automap.php`):** Added command-line tool for bulk question-competency auto-mapping per course (`--courseid=X`) or academy-wide (`--all`).
+
+### v2.3.6 — 2026-08-26
+- **Security:** Filtered tag auto-sync query in the competency column by `component = 'core_question'` and `itemtype = 'question'` — previously, tag instances from unrelated components whose itemid collided with a question id could trigger bogus competency mappings.
+
+### v2.3.5 — 2026-08-24
+- **Documentation:** Corrected installation directory path note to `comp_ext` and documented Arabic language pack support.
+
+### v2.3.4 — 2026-08-24
+- **CI/CD:** Streamlined deployment pipeline directly to Production environment and removed deprecated staging branch/configuration.
+
+### v2.3.3 — 2026-08-24
+- **Maintenance:** Added standard `.gitignore` and `.gitattributes` for repository hygiene and unified LF line endings.
+- **Security:** Excluded local agent instruction files from git tracking.
+- **CI/CD:** Enhanced dual-environment deployment workflow with flexible staging host configuration.
+
+### v2.3.2 — 2026-07-26
+- **Fix & Compliance:** Added official GNU General Public License v3 (`LICENSE`) file to root of plugin package as required by Moodle Marketplace review checklist.
+
+### v2.3.1 — 2026-07-25
+- **Fix:** Enhanced tag auto-sync and case-insensitive competency lookup (`Operation`, `Troubleshooting`, `comp-operation`) for question bank competency column.
+
+### v2.3.0 — 2026-07-24
+- **Release:** Standardized frankenstyle component name to `qbank_comp_ext` installed under `question/bank/comp_ext`.
+
+### v2.2.1 — 2026-07-05
+- **Fix:** Resolved PHP 8.x compatibility issue in the GDPR Privacy Provider (`classes/privacy/provider.php`) caused by importing and type-hinting an invalid `core_privacy` context class instead of the global Moodle `\context` class.
+
+### v2.2.0 — 2026-07-03
+- **New:** Multi-Competency Support! You can now map a single question to multiple competencies.
+- **Improvement:** The Question Bank column UI now uses a multi-select autocomplete widget to handle multiple competencies easily.
+- **Improvement:** GIFT format imports and tag events now correctly map multiple competencies from a single question (e.g., `[tag:comp-A, comp-B]`).
+
+### v2.1.0 — 2026-05-25
+- **Ecosystem Sync:** Synchronized versioning and compatibility standards across the entire Moodle Competency Education Suite (v2026052500) to support advanced Local LLM analytics and brute-force quiz security upgrades.
+- **Verification:** Full verification of all question-competency mappings against the latest Moodle 4.5+ and 5.0+ releases.
+
+---
+
+## 🔒 Security & Code Compliance
+
+- **SQL Injection Prevention:** All queries use Moodle's `$DB` API with named parameter bindings.
+- **Input Sanitization:** All input retrieved via `required_param()` / `optional_param()` with strict type filters.
+- **Capability Controls:** External API enforces `moodle/course:manageactivities` before any write operation.
+- **Namespace Compliance:** All classes under `\qbank_comp_ext\` namespace.
+- **Coding Standards:** Compliant with Moodle's `PHP_CodeSniffer` (PHPCS) ruleset.
+
+---
+
+## 📄 License & Credits
+
+- **Copyright:** © 2026 Mahmoud Salem
+- **Based on work by:** 2026 Hakan Çiğci
+- **License:** [GNU GPL v3](http://www.gnu.org/copyleft/gpl.html) or later.

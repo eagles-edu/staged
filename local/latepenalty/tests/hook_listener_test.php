@@ -1,0 +1,635 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * PHPUnit tests for the Late Penalty hook listener.
+ *
+ * @package    local_latepenalty
+ * @category   test
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_latepenalty;
+
+use advanced_testcase;
+use core\hook\output\before_standard_footer_html_generation;
+use local_latepenalty\tests\comma_decimals;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionProperty;
+
+/**
+ * Tests for local_latepenalty\hook_listener.
+ *
+ * @covers \local_latepenalty\hook_listener
+ * @covers \local_latepenalty\observer
+ * @covers \local_latepenalty\recalculator
+ * @covers \local_latepenalty\penalty_helper
+ * @covers \local_latepenalty\local\deadline_resolver
+ * @covers \local_latepenalty\local\submission_resolver
+ * @covers \local_latepenalty\local\penalty_writer
+ * @covers \local_latepenalty\local\deadline
+ */
+final class hook_listener_test extends advanced_testcase {
+    use comma_decimals;
+
+    #[\Override]
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+    }
+
+    /**
+     * Insert an enabled penalty rule for a course module.
+     *
+     * @param int $cmid Course module ID.
+     * @return void
+     */
+    private function enable_rule(int $cmid): void {
+        global $DB;
+
+        // Create_module() already inserted a disabled rule via
+        // local_latepenalty_coursemodule_edit_post_actions(); upsert to avoid a
+        // duplicate-key error on the unique cmid index.
+        $existing = $DB->get_record('local_latepenalty_rules', ['cmid' => $cmid]);
+        if ($existing) {
+            $existing->enabled = 1;
+            $existing->daily_penalty = 10.0;
+            $existing->max_penalty = 50.0;
+            $DB->update_record('local_latepenalty_rules', $existing);
+            return;
+        }
+
+        $DB->insert_record('local_latepenalty_rules', (object) [
+            'cmid'               => $cmid,
+            'enabled'            => 1,
+            'daily_penalty'      => 10.0,
+            'max_penalty'        => 50.0,
+            'recalc_on_deadline' => 1,
+            'recalc_on_rate'     => 1,
+            'last_deadline'      => 0,
+        ]);
+    }
+
+    /**
+     * Builds a hook instance without running its constructor.
+     *
+     * inject_course_notices() never reads the hook's own state (it only uses the
+     * type hint to declare when it runs), so a real renderer_base is unnecessary
+     * scaffolding for this test.
+     *
+     * @return before_standard_footer_html_generation
+     */
+    private function make_hook(): before_standard_footer_html_generation {
+        $class = new ReflectionClass(before_standard_footer_html_generation::class);
+
+        return $class->newInstanceWithoutConstructor();
+    }
+
+    /**
+     * Reads the AMD inline JS code queued on $PAGE->requires via reflection.
+     *
+     * js_call_amd() only appends to this protected array; no theme/output
+     * bootstrap is required to read it back.
+     *
+     * @return string Concatenated AMD inline JS code.
+     */
+    private function amd_code(): string {
+        global $PAGE;
+
+        $property = new ReflectionProperty($PAGE->requires, 'amdjscode');
+
+        return implode("\n", $property->getValue($PAGE->requires));
+    }
+
+    /**
+     * A hidden activity's cmid, deadline and penalty rate must not appear in the
+     * course-notices payload sent to a student, even though the underlying query
+     * joins course_modules without any visibility filter.
+     *
+     * Regression guard: the AMD payload is serialized straight into the page for
+     * every enabled rule in the course, so a student could otherwise read the
+     * existence, deadline and penalty policy of an activity the course UI hides
+     * from them (hidden, stealth, or access-restricted).
+     */
+    public function test_hidden_activity_excluded_from_student_payload(): void {
+        global $DB, $PAGE;
+
+        $course = $this->getDataGenerator()->create_course();
+
+        // Set the theme-affecting $PAGE state before any enrolment call: enrolling a
+        // user can trigger a course-welcome-message send, whose HTML rendering lazily
+        // initialises $PAGE's theme via get_renderer() — after which moodle_page::
+        // set_course() throws "the theme has already been set up for this page".
+        $PAGE->set_course($course);
+        $PAGE->set_pagetype('course-view-topics');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $deadline = time() - 5 * DAYSECS;
+
+        $visible = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $DB->set_field('course_modules', 'completionexpected', $deadline, ['id' => $visible->cmid]);
+        $this->enable_rule($visible->cmid);
+
+        $hidden = $this->getDataGenerator()->create_module('assign', [
+            'course'  => $course->id,
+            'visible' => 0,
+        ]);
+        $DB->set_field('course_modules', 'completionexpected', $deadline, ['id' => $hidden->cmid]);
+        $this->enable_rule($hidden->cmid);
+
+        rebuild_course_cache($course->id);
+
+        $this->setUser($student);
+
+        hook_listener::inject_course_notices($this->make_hook());
+
+        $code = $this->amd_code();
+
+        self::assertStringContainsString(
+            '"cmid":' . $visible->cmid,
+            $code,
+            'The visible activity must still be reported to the student.'
+        );
+        self::assertStringNotContainsString(
+            '"cmid":' . $hidden->cmid,
+            $code,
+            'A hidden activity must not leak its cmid/deadline/rate to the student payload.'
+        );
+    }
+
+    /**
+     * A teacher (with local/latepenalty:viewreport) is not subject to the same
+     * visibility filter — they must still see notices for hidden activities,
+     * since they are the ones responsible for managing them.
+     */
+    public function test_teacher_still_sees_hidden_activity(): void {
+        global $DB, $PAGE;
+
+        $course = $this->getDataGenerator()->create_course();
+
+        // See test_hidden_activity_excluded_from_student_payload() for why $PAGE's
+        // theme-affecting state must be set before any enrolment call.
+        $PAGE->set_course($course);
+        $PAGE->set_pagetype('course-view-topics');
+
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $deadline = time() - 5 * DAYSECS;
+
+        $hidden = $this->getDataGenerator()->create_module('assign', [
+            'course'  => $course->id,
+            'visible' => 0,
+        ]);
+        $DB->set_field('course_modules', 'completionexpected', $deadline, ['id' => $hidden->cmid]);
+        $this->enable_rule($hidden->cmid);
+
+        rebuild_course_cache($course->id);
+
+        $this->setUser($teacher);
+
+        hook_listener::inject_course_notices($this->make_hook());
+
+        self::assertStringContainsString('"cmid":' . $hidden->cmid, $this->amd_code());
+    }
+
+    /**
+     * The course-page notice payload carries the deadline formatted with
+     * both date and time (via penalty_helper::format_deadline()), not just
+     * a date — integration-level regression guard for the date/time
+     * formatting introduced this session, at the actual point it reaches
+     * the student.
+     */
+    public function test_notice_includes_formatted_deadline_date_and_time(): void {
+        global $DB, $PAGE;
+
+        $course = $this->getDataGenerator()->create_course();
+
+        // See test_hidden_activity_excluded_from_student_payload() for why $PAGE's
+        // theme-affecting state must be set before any enrolment call.
+        $PAGE->set_course($course);
+        $PAGE->set_pagetype('course-view-topics');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $deadline = time() + 5 * DAYSECS;
+
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $DB->set_field('course_modules', 'completionexpected', $deadline, ['id' => $assign->cmid]);
+        $this->enable_rule($assign->cmid);
+
+        rebuild_course_cache($course->id);
+
+        $this->setUser($student);
+
+        hook_listener::inject_course_notices($this->make_hook());
+
+        // The AMD payload is JSON-encoded with plain json_encode(), which escapes
+        // "/" as "\/" by default — the raw formatted string never appears
+        // literally in the emitted JS, only its JSON-escaped form.
+        $expected = trim(json_encode(penalty_helper::format_deadline($deadline)), '"');
+        self::assertStringContainsString($expected, $this->amd_code());
+    }
+
+    /**
+     * Course notices follow the deadline chain: extension for the student who has one,
+     * the due date (not the reminder) for everyone else and for the teacher (F6-08, F3-01).
+     */
+    public function test_course_notices_follow_deadline_chain(): void {
+        global $CFG, $DB, $PAGE;
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
+        $course = $this->getDataGenerator()->create_course();
+
+        // See test_hidden_activity_excluded_from_student_payload() for why $PAGE's
+        // theme-affecting state must be set before any enrolment call.
+        $PAGE->set_course($course);
+        $PAGE->set_pagetype('course-view-topics');
+
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $extended = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $other = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $duedate = time() + 3 * DAYSECS;
+        $reminder = time() + 6 * DAYSECS;
+        $extension = time() + 9 * DAYSECS;
+
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id, 'duedate' => $duedate]);
+        $DB->set_field('course_modules', 'completionexpected', $reminder, ['id' => $assign->cmid]);
+        $this->enable_rule($assign->cmid);
+        rebuild_course_cache($course->id);
+
+        $this->setAdminUser();
+        $this->getDataGenerator()->get_plugin_generator('mod_assign')->create_extension([
+            'cmid' => $assign->cmid,
+            'userid' => $extended->id,
+            'extensionduedate' => $extension,
+        ]);
+
+        $expected = [
+            [$extended, $extension],
+            [$other, $duedate],
+            [$teacher, $duedate],
+        ];
+        foreach ($expected as [$user, $date]) {
+            $property = new ReflectionProperty($PAGE->requires, 'amdjscode');
+            $property->setValue($PAGE->requires, []);
+            $this->setUser($user);
+
+            hook_listener::inject_course_notices($this->make_hook());
+
+            $code = $this->amd_code();
+            self::assertStringContainsString(trim(json_encode(penalty_helper::format_deadline($date)), '"'), $code);
+            foreach ([$duedate, $reminder, $extension] as $wrong) {
+                if ($wrong !== $date) {
+                    self::assertStringNotContainsString(trim(json_encode(penalty_helper::format_deadline($wrong)), '"'), $code);
+                }
+            }
+        }
+    }
+
+    /**
+     * No course notice for scale-graded activities nor for assignments under the core penalty (F18, F9).
+     */
+    public function test_no_notice_where_plugin_does_not_act(): void {
+        global $DB, $PAGE;
+
+        $course = $this->getDataGenerator()->create_course();
+        $PAGE->set_course($course);
+        $PAGE->set_pagetype('course-view-topics');
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $scale = $this->getDataGenerator()->create_scale(['courseid' => $course->id]);
+
+        $points = $this->getDataGenerator()->create_module('assign', ['course' => $course->id, 'duedate' => time() + DAYSECS]);
+        $scaled = $this->getDataGenerator()->create_module('assign', [
+            'course' => $course->id,
+            'duedate' => time() + DAYSECS,
+            'grade' => -$scale->id,
+        ]);
+        $native = $this->getDataGenerator()->create_module('assign', [
+            'course' => $course->id,
+            'duedate' => time() + DAYSECS,
+            'gradepenalty' => 1,
+        ]);
+        foreach ([$points, $scaled, $native] as $assign) {
+            $this->enable_rule($assign->cmid);
+        }
+        if (class_exists(\core_grades\penalty_manager::class) && class_exists(\mod_assign\penalty\helper::class)) {
+            \core_grades\penalty_manager::enable_module('assign');
+            $nativeon = true;
+        } else {
+            $nativeon = false;
+        }
+        rebuild_course_cache($course->id);
+
+        $this->setUser($student);
+        hook_listener::inject_course_notices($this->make_hook());
+        $code = $this->amd_code();
+
+        self::assertStringContainsString('"cmid":' . $points->cmid, $code);
+        self::assertStringNotContainsString('"cmid":' . $scaled->cmid, $code);
+        if ($nativeon) {
+            self::assertStringNotContainsString('"cmid":' . $native->cmid, $code);
+        } else {
+            self::assertStringContainsString('"cmid":' . $native->cmid, $code);
+        }
+    }
+
+    /**
+     * Notices and badges write rates the way the user's language does.
+     *
+     * Regression guard: rates went out as raw PHP numbers ("2.5%", "7.5%") while the
+     * form showed "2,5".
+     */
+    public function test_rates_use_language_decimal_separator(): void {
+        $this->use_comma_decimals();
+        $badge = new ReflectionMethod(hook_listener::class, 'compute_badge');
+        $teacher = new ReflectionMethod(hook_listener::class, 'compute_teacher_badge');
+        $now = time();
+
+        [, , $notice] = $badge->invoke(null, $now + DAYSECS, 2.5, 12.5, $now);
+        self::assertStringContainsString('2,5%', $notice);
+        self::assertStringContainsString('12,5%', $notice);
+
+        [$label, , $notice] = $badge->invoke(null, $now - 3 * DAYSECS + 60, 2.5, 12.5, $now);
+        self::assertStringContainsString('7,5%', $label);
+        self::assertStringContainsString('7,5%', $notice);
+        self::assertStringNotContainsString('.5%', $label . $notice);
+
+        [$label, $notice] = $teacher->invoke(null, $now - 3 * DAYSECS + 60, 2.5, 12.5, $now, 1, 'warning');
+        self::assertStringContainsString('7,5%', $label);
+        self::assertStringNotContainsString('.5%', $label . $notice);
+
+        [$label, $notice] = $teacher->invoke(null, $now - 9 * DAYSECS, 2.5, 12.5, $now, 1, 'danger');
+        self::assertStringContainsString('12,5%', $label);
+        self::assertStringNotContainsString('.5%', $label . $notice);
+    }
+
+    /**
+     * Invokes the private static hook_listener::count_pending_students() via reflection.
+     *
+     * @param \cm_info $cm Course module info for the activity.
+     * @return int Pending student count.
+     */
+    private function count_pending_students(\cm_info $cm): int {
+        $method = new ReflectionMethod(hook_listener::class, 'count_pending_students');
+
+        return $method->invoke(null, $cm);
+    }
+
+    /**
+     * Regression guard for the activity-page badge (inject_activity_notice()):
+     * a non-editing teacher confined to one group in a separate-groups activity
+     * must only count pending students from their own group, not the whole course.
+     *
+     * Before this fix, count_pending_students() counted every enrolled student in
+     * the course context, leaking the existence/size of activity in groups the
+     * caller cannot otherwise see on the report or override pages.
+     */
+    public function test_count_pending_students_scoped_to_callers_group(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $course = $this->getDataGenerator()->create_course([
+            'groupmode'      => SEPARATEGROUPS,
+            'groupmodeforce' => 1,
+        ]);
+
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        groups_add_member($groupa->id, $teacher->id);
+
+        $studenta = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupa->id, $studenta->id);
+        $studentb = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupb->id, $studentb->id);
+
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $this->enable_rule($assign->cmid);
+        rebuild_course_cache($course->id);
+
+        $this->setUser($teacher);
+        $cm = get_fast_modinfo($course->id)->get_cm($assign->cmid);
+
+        self::assertSame(1, $this->count_pending_students($cm));
+    }
+
+    /**
+     * Control case for the fix above: a caller with moodle/site:accessallgroups
+     * (editingteacher) must still see the full course-wide count, unaffected by
+     * the new group scoping.
+     */
+    public function test_count_pending_students_unrestricted_for_accessallgroups(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $course = $this->getDataGenerator()->create_course([
+            'groupmode'      => SEPARATEGROUPS,
+            'groupmodeforce' => 1,
+        ]);
+
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+
+        $studenta = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupa->id, $studenta->id);
+        $studentb = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupb->id, $studentb->id);
+
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $this->enable_rule($assign->cmid);
+        rebuild_course_cache($course->id);
+
+        $this->setUser($teacher);
+        $cm = get_fast_modinfo($course->id)->get_cm($assign->cmid);
+
+        self::assertSame(2, $this->count_pending_students($cm));
+    }
+
+    /**
+     * A restricted caller belonging to no group at all in a separate-groups
+     * activity must see zero pending students, not the unrestricted total —
+     * mirrors group_scope::resolve_activity_restriction()'s own empty-array
+     * semantics (see group_scope_test::test_returns_empty_array_when_caller_has_no_group()).
+     */
+    public function test_count_pending_students_zero_when_caller_has_no_group(): void {
+        $course = $this->getDataGenerator()->create_course([
+            'groupmode'      => SEPARATEGROUPS,
+            'groupmodeforce' => 1,
+        ]);
+
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $this->enable_rule($assign->cmid);
+        rebuild_course_cache($course->id);
+
+        $this->setUser($teacher);
+        $cm = get_fast_modinfo($course->id)->get_cm($assign->cmid);
+
+        self::assertSame(0, $this->count_pending_students($cm));
+    }
+
+    /**
+     * Invokes the private static hook_listener::load_pending_counts() via reflection.
+     *
+     * @param \stdClass[] $cms Course modules (id, modname, instance), keyed by ID.
+     * @param int $courseid Course ID.
+     * @return array Pending counts keyed by course module ID.
+     */
+    private function load_pending_counts(array $cms, int $courseid): array {
+        return (new ReflectionMethod(hook_listener::class, 'load_pending_counts'))->invoke(null, $cms, $courseid);
+    }
+
+    /**
+     * Course with an assignment, an editing teacher, one active student and the given extra students.
+     *
+     * Each student owes the assignment. Kinds: 'suspended' (suspended enrolment),
+     * 'ended' (enrolment ended yesterday), 'customrole' (a graded role without the
+     * student archetype) and 'category' (student role given on the course category
+     * to a user enrolled without a role).
+     *
+     * @param string[] $kinds Extra students to enrol.
+     * @return array [course, cm_info of the assignment]
+     */
+    private function enrolment_variants(array $kinds): array {
+        global $DB, $CFG;
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $teacher = $generator->create_and_enrol($course, 'editingteacher');
+        $studentrole = (int) $DB->get_field('role', 'id', ['shortname' => 'student'], MUST_EXIST);
+        $generator->create_and_enrol($course, 'student');
+
+        foreach ($kinds as $kind) {
+            $user = $generator->create_user();
+            switch ($kind) {
+                case 'suspended':
+                    $generator->enrol_user($user->id, $course->id, 'student', 'manual', 0, 0, ENROL_USER_SUSPENDED);
+                    break;
+                case 'ended':
+                    $generator->enrol_user($user->id, $course->id, 'student', 'manual', time() - 10 * DAYSECS, time() - DAYSECS);
+                    break;
+                case 'customrole':
+                    $auditorrole = $generator->create_role(['shortname' => 'auditor', 'archetype' => '']);
+                    $CFG->gradebookroles = $studentrole . ',' . $auditorrole;
+                    $generator->enrol_user($user->id, $course->id, $auditorrole);
+                    break;
+                case 'category':
+                    $generator->enrol_user($user->id, $course->id, 0);
+                    role_assign($studentrole, $user->id, \context_coursecat::instance((int) $course->category)->id);
+                    break;
+            }
+        }
+
+        $assign = $generator->create_module('assign', ['course' => $course->id]);
+        $this->enable_rule($assign->cmid);
+        rebuild_course_cache($course->id);
+
+        $this->setUser($teacher);
+        return [$course, get_fast_modinfo($course->id)->get_cm($assign->cmid)];
+    }
+
+    /**
+     * Students whose enrolment is suspended or has ended are not pending.
+     */
+    public function test_count_pending_students_skips_inactive_enrolments(): void {
+        [, $cm] = $this->enrolment_variants(['suspended', 'ended']);
+
+        self::assertSame(1, $this->count_pending_students($cm));
+    }
+
+    /**
+     * Pending students are the gradebook's graded roles: a custom graded role and
+     * the student role given on the category count too.
+     */
+    public function test_count_pending_students_follows_graded_roles(): void {
+        [, $cm] = $this->enrolment_variants(['customrole', 'category']);
+
+        self::assertSame(3, $this->count_pending_students($cm));
+    }
+
+    /**
+     * The bulk course-page count uses the same students as the activity page.
+     */
+    public function test_load_pending_counts_follows_gradebook_students(): void {
+        [$course, $cm] = $this->enrolment_variants(['suspended', 'ended', 'customrole']);
+        $cms = [$cm->id => (object) ['id' => $cm->id, 'modname' => 'assign', 'instance' => $cm->instance]];
+
+        self::assertSame([$cm->id => 2], $this->load_pending_counts($cms, (int) $course->id));
+    }
+
+    /**
+     * Regression guard for the course-page badge (inject_course_notices()): the
+     * bulk load_pending_counts() path must apply the same group scoping as the
+     * single-activity path, not just report a course-wide count for every caller.
+     */
+    public function test_course_notice_pending_count_scoped_to_callers_group(): void {
+        global $DB, $PAGE, $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $course = $this->getDataGenerator()->create_course([
+            'groupmode'      => SEPARATEGROUPS,
+            'groupmodeforce' => 1,
+        ]);
+
+        // See test_hidden_activity_excluded_from_student_payload() for why $PAGE's
+        // theme-affecting state must be set before any enrolment call.
+        $PAGE->set_course($course);
+        $PAGE->set_pagetype('course-view-topics');
+
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        groups_add_member($groupa->id, $teacher->id);
+
+        $studenta = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupa->id, $studenta->id);
+        $studentb = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupb->id, $studentb->id);
+
+        $deadline = time() - 5 * DAYSECS;
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $DB->set_field('course_modules', 'completionexpected', $deadline, ['id' => $assign->cmid]);
+        $this->enable_rule($assign->cmid);
+
+        rebuild_course_cache($course->id);
+
+        $this->setUser($teacher);
+
+        hook_listener::inject_course_notices($this->make_hook());
+
+        $code = $this->amd_code();
+
+        // The badge label embeds a middle-dot separator ("Penalty: 50% (max) ·
+        // 1 pending") that json_encode() escapes as non-ASCII, so assert on the
+        // plain-ASCII tail of the string instead of the literal character.
+        self::assertStringContainsString('1 pending', $code);
+        self::assertStringNotContainsString('2 pending', $code);
+    }
+}

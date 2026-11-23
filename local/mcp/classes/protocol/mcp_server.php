@@ -36,10 +36,12 @@ use local_mcp\oauth\metadata;
 use local_mcp\exception\api_exception;
 use local_mcp\security\authenticated_identity;
 use local_mcp\security\capability_guard;
+use local_mcp\extension\manager as extension_manager;
 use local_mcp\security\confirmation_service;
 use local_mcp\security\rate_limiter;
 use local_mcp\security\scope;
 use local_mcp\security\token_resolver;
+use local_mcp\security\untrusted_content;
 use local_mcp\security\user_access;
 use local_mcp\write\registry;
 use local_mcp\write\tool_interface;
@@ -51,12 +53,15 @@ use Throwable;
  * Class mcp_server.
  */
 final class mcp_server {
+    private string $side;
+
     /**
      * Method __construct.
      *
      * @param string $side Parameter side.
      */
-    public function __construct(private readonly string $side) {
+    public function __construct(string $side) {
+        $this->side = $side;
         if (!in_array($side, ['read', 'write', 'server'], true)) {
             throw new coding_exception('Invalid MCP side.');
         }
@@ -373,6 +378,16 @@ final class mcp_server {
             if (!$identity->has_scope($requiredscope)) {
                 continue;
             }
+            $visible = true;
+            foreach (extension_manager::access_policies() as $policy) {
+                if (!$policy->tool_visible($identity->userid, $tool->get_name(), $iswrite)) {
+                    $visible = false;
+                    break;
+                }
+            }
+            if (!$visible) {
+                continue;
+            }
             $invalid = false;
             $schema = $this->normalized_tool_schema($tool, $iswrite, $invalid);
             if ($invalid) {
@@ -564,6 +579,10 @@ final class mcp_server {
         }
         $context = $tool->resolve_context($arguments);
         capability_guard::check($tool->get_required_capability(), $context, $identity->userid);
+        // Recheck at execution, including previews and confirmation retries.
+        foreach (extension_manager::access_policies() as $policy) {
+            $policy->authorize_tool($identity->userid, $name, $iswrite, $context, $arguments);
+        }
         if ($workflowid !== "") {
             sequence::assert_current($workflowid, $identity, $workflowstep, $name, $context);
         }
@@ -581,7 +600,7 @@ final class mcp_server {
             $started = microtime(true);
             $result = $tool->execute($arguments, $identity);
             // Explicit trust boundary for all data retrieved from Moodle.
-            $result["content_warning"] = \local_mcp\security\untrusted_content::NOTICE;
+            $result["content_warning"] = untrusted_content::NOTICE;
             logger::record('tool_called', $identity, $name, 'read', $context,
                 summary::from_call($name, $arguments), false, false, false, 'ok', (int)round((microtime(true) - $started) * 1000));
             diagnostics::event('tool_read_completed', [

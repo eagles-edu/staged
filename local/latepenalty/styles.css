@@ -1,0 +1,87 @@
+/**
+ * This file is part of Moodle - https://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+ */
+/**
+ * Styles for the Late Penalty plugin.
+ *
+ * @package    local_latepenalty
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+body.path-local-latepenalty .local-latepenalty-filter-row {
+    gap: 0.5rem;
+}
+
+body.path-local-latepenalty .local-latepenalty-report-icon {
+    margin-inline-end: 0.5rem;
+}
+
+/**
+ * Badge span injected by courseinfo.js — serves as both the visual badge
+ * and the Bootstrap tooltip anchor.
+ * Base style is the neutral/ontime state (within deadline).
+ */
+body.path-course-view .local-latepenalty-badge {
+    display: inline-block;
+    position: relative;
+    z-index: 2;
+    background-color: transparent;
+    color: var(--bs-secondary-color, #6c757d);
+    border: 1.5px solid var(--bs-secondary, #6c757d);
+    font-size: 0.7em;
+    font-weight: 600;
+    padding: 0.15em 0.5em;
+    border-radius: 0.25rem;
+    margin-inline-start: 0.5rem;
+    vertical-align: middle;
+    white-space: nowrap;
+    cursor: help;
+}
+
+body.path-course-view .local-latepenalty-badge.local-latepenalty-badge--warning {
+    background-color: var(--bs-warning, #ffc107);
+    color: var(--bs-dark, #000);
+    border-color: var(--bs-warning, #ffc107);
+}
+
+body.path-course-view .local-latepenalty-badge.local-latepenalty-badge--danger {
+    background-color: var(--bs-danger, #dc3545);
+    color: var(--bs-white, #fff);
+    border-color: var(--bs-danger, #dc3545);
+}
+
+/**
+ * Notice shown inside the activity page header.
+ */
+body[id^="page-mod-"] .local-latepenalty-notice {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.875em;
+    padding-block-start: 0.2rem;
+    padding-inline-start: 0.25rem;
+}
+
+/**
+ * Discount percentage cell in the penalty report table.
+ */
+body.path-local-latepenalty .local-latepenalty-discount {
+    font-weight: 700;
+    color: var(--bs-danger, #dc3545);
+}
+
+body.path-local-latepenalty .badge.local-latepenalty-override-badge {
+    color: var(--bs-dark, #212529);
+}

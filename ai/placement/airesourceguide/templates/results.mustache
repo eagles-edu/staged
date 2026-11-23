@@ -1,0 +1,70 @@
+{{!
+    @template aiplacement_airesourceguide/results
+
+    Renders AI-generated reference concepts inside the drawer.
+
+    Context variables required for this template:
+    * hasresults - boolean, whether any concepts were returned.
+    * concepts - array of concept objects, each with:
+        * topic - string, concept name.
+        * description - string, brief explanation.
+        * sources - array of source objects, each with:
+            * label - string, source type label.
+            * icon - string, Font Awesome icon name.
+            * url - string, search URL.
+
+    Example context (json):
+    {
+        "hasresults": true,
+        "concepts": [
+            {
+                "topic": "Machine Learning",
+                "description": "A subset of AI that enables systems to learn from data.",
+                "sources": [
+                    {
+                        "label": "Academic Resources (Google Scholar)",
+                        "icon": "graduation-cap",
+                        "url": "https://scholar.google.com/scholar?q=machine+learning"
+                    },
+                    {
+                        "label": "Video Tutorials (YouTube)",
+                        "icon": "video",
+                        "url": "https://www.youtube.com/results?search_query=machine+learning"
+                    }
+                ]
+            }
+        ]
+    }
+}}
+{{#hasresults}}
+    {{#concepts}}
+    <div class="card mb-3 airesguide-concept-card">
+        <div class="card-body p-3">
+            <h6 class="card-title mb-1 font-weight-bold text-primary">
+                <i class="fa fa-lightbulb-o mr-1"></i>
+                {{topic}}
+            </h6>
+            <p class="card-text text-muted small mb-2">{{description}}</p>
+
+            <div class="airesguide-sources">
+                {{#sources}}
+                <a href="{{url}}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="btn btn-sm btn-outline-secondary mr-1 mb-1 airesguide-source-link">
+                    <i class="fa fa-{{icon}} mr-1"></i>
+                    {{label}}
+                </a>
+                {{/sources}}
+            </div>
+        </div>
+    </div>
+    {{/concepts}}
+{{/hasresults}}
+
+{{^hasresults}}
+<div class="alert alert-info">
+    <i class="fa fa-info-circle mr-2"></i>
+    {{#str}} noresults, aiplacement_airesourceguide {{/str}}
+</div>
+{{/hasresults}}

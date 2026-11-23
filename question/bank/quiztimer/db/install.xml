@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMLDB PATH="/question/bank/quiztimer/db" VERSION="2023061300" COMMENT="XMLDB file for Moodle mod_qbank_quiztimer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+    <TABLES>
+        <TABLE NAME="question_timer" COMMENT="Table for storing question timer data" PREVIOUS="quiz">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" COMMENT="Unique ID of the record"/>
+                <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" COMMENT="ID of the associated question"/>
+                <FIELD NAME="time" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" COMMENT="Timer time"/>
+                <FIELD NAME="unit_time" TYPE="char" LENGTH="1" DEFAULT="" COMMENT="Timer time unit"/>
+                <FIELD NAME="modifierid" TYPE="int" LENGTH="10" DEFAULT="0" COMMENT="ID of the user who modified the record"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" DEFAULT="0" COMMENT="Time of last modification of the record"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+        </TABLE>
+    </TABLES>
+</XMLDB>

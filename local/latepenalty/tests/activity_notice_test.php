@@ -1,0 +1,417 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_latepenalty;
+
+use local_latepenalty\tests\latepenalty_testcase;
+
+/**
+ * The notice on the activity page itself (before_http_headers hook).
+ *
+ * @package    local_latepenalty
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers \local_latepenalty\hook_listener
+ * @covers \local_latepenalty\local\deadline_resolver
+ * @covers \local_latepenalty\penalty_helper
+ */
+final class activity_notice_test extends latepenalty_testcase {
+    /** @var \stdClass Course with completion enabled. */
+    private \stdClass $course;
+
+    /** @var \stdClass Student. */
+    private \stdClass $student;
+
+    /** @var \stdClass Editing teacher. */
+    private \stdClass $teacher;
+
+    #[\Override]
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $this->course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+        $this->student = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+        $this->teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+    }
+
+    /**
+     * Assignment with manual completion and an enabled rule (10% a day, 50% maximum).
+     *
+     * @param array $params Assignment settings.
+     * @return \stdClass
+     */
+    private function assignment(array $params): \stdClass {
+        $assign = $this->create_assign_activity($this->course, $params + ['completion' => COMPLETION_TRACKING_MANUAL]);
+        $this->enable_rule($assign->cmid);
+        return $assign;
+    }
+
+    /**
+     * Open the activity page as a user and return the notice the plugin queued, if any.
+     *
+     * @param \stdClass $module Module record.
+     * @param \stdClass|null $user User, or null for a guest.
+     * @param string $layout Page layout of the page.
+     * @return string|null The notice text, or null when none was queued.
+     */
+    private function notice(\stdClass $module, ?\stdClass $user, string $layout = 'incourse'): ?string {
+        $arguments = $this->notice_arguments($module, $user, $layout);
+        return $arguments === null ? null : $arguments[0];
+    }
+
+    /**
+     * Open the activity page as a user and return every argument of the queued notice call.
+     *
+     * @param \stdClass $module Module record.
+     * @param \stdClass|null $user User, or null for a guest.
+     * @param string $layout Page layout of the page.
+     * @return array|null The arguments (notice, base sentence), or null when none was queued.
+     */
+    private function notice_arguments(\stdClass $module, ?\stdClass $user, string $layout = 'incourse'): ?array {
+        global $PAGE;
+
+        if ($user === null) {
+            $this->setGuestUser();
+        } else {
+            $this->setUser($user);
+        }
+        $PAGE = new \moodle_page();
+        $PAGE->set_course($this->course);
+        $PAGE->set_cm(get_fast_modinfo($this->course)->get_cm($module->cmid));
+        $PAGE->set_url('/mod/assign/view.php', ['id' => $module->cmid]);
+        $PAGE->set_pagelayout($layout);
+
+        $hook = (new \ReflectionClass(\core\hook\output\before_http_headers::class))->newInstanceWithoutConstructor();
+        hook_listener::inject_activity_notice($hook);
+
+        $code = implode("\n", (new \ReflectionProperty($PAGE->requires, 'amdjscode'))->getValue($PAGE->requires));
+        if (!str_contains($code, 'local_latepenalty/activityinfo')) {
+            return null;
+        }
+        // The call looks like amd.init("notice", "base"); followed by core's own completion call.
+        preg_match('/activityinfo.*?\.init\((.*?)\);/s', $code, $matches);
+        return json_decode('[' . $matches[1] . ']');
+    }
+
+    /**
+     * Student: before the deadline, overdue and at the maximum.
+     *
+     * @return void
+     */
+    public function test_student_notice_states(): void {
+        $future = time() + 3 * DAYSECS;
+        $ontime = $this->assignment(['duedate' => $future]);
+        $this->assertSame(get_string('courseinfo_notice', 'local_latepenalty', (object) [
+            'deadline' => penalty_helper::format_deadline($future),
+            'daily' => '10',
+            'max' => '50',
+        ]), $this->notice($ontime, $this->student));
+
+        $past = time() - 2 * DAYSECS + HOURSECS;
+        $overdue = $this->assignment(['duedate' => $past]);
+        $this->assertSame(get_string('courseinfo_notice_overdue', 'local_latepenalty', (object) [
+            'deadline' => penalty_helper::format_deadline($past),
+            'pct' => '20',
+            'daily' => '10',
+            'max' => '50',
+        ]), $this->notice($overdue, $this->student));
+
+        $longago = time() - 9 * DAYSECS;
+        $atmax = $this->assignment(['duedate' => $longago]);
+        $this->assertSame(get_string('courseinfo_notice_overdue_max', 'local_latepenalty', (object) [
+            'deadline' => penalty_helper::format_deadline($longago),
+            'max' => '50',
+        ]), $this->notice($atmax, $this->student));
+    }
+
+    /**
+     * The notices say which grade the percentage applies to, for student and teacher alike (F20-28, P14).
+     *
+     * @return void
+     */
+    public function test_notice_says_the_base(): void {
+        $past = time() - 2 * DAYSECS + HOURSECS;
+        $obtained = $this->assignment(['duedate' => $past]);
+        $maximum = $this->assignment(['duedate' => $past]);
+        $this->lp_generator()->create_rule(['cmid' => $maximum->cmid, 'penaltybase' => penalty_helper::BASE_MAX]);
+        $future = $this->assignment(['duedate' => time() + DAYSECS]);
+        $this->lp_generator()->create_rule(['cmid' => $future->cmid, 'penaltybase' => penalty_helper::BASE_MAX]);
+        $gradestring = get_string('notice_base_grade', 'local_latepenalty');
+        $maxstring = get_string('notice_base_max', 'local_latepenalty');
+
+        foreach ([$this->student, $this->teacher] as $user) {
+            $this->assertSame($gradestring, $this->notice_arguments($obtained, $user)[1] ?? null);
+            $this->assertSame($maxstring, $this->notice_arguments($maximum, $user)[1] ?? null);
+            $this->assertSame($maxstring, $this->notice_arguments($future, $user)[1] ?? null);
+
+            $badges = $this->course_badges($user);
+            $this->assertSame($gradestring, $badges[$obtained->cmid]['basenote'] ?? null);
+            $this->assertSame($maxstring, $badges[$maximum->cmid]['basenote'] ?? null);
+        }
+    }
+
+    /**
+     * Student: the notice follows the student's own deadline (an extension here).
+     *
+     * @return void
+     */
+    public function test_student_notice_uses_extension(): void {
+        $assign = $this->assignment(['duedate' => time() - DAYSECS]);
+        $extension = time() + 4 * DAYSECS;
+        $this->getDataGenerator()->get_plugin_generator('mod_assign')->create_extension([
+            'cmid' => $assign->cmid,
+            'userid' => $this->student->id,
+            'extensionduedate' => $extension,
+        ]);
+
+        $this->assertStringContainsString(penalty_helper::format_deadline($extension), $this->notice($assign, $this->student));
+    }
+
+    /**
+     * Student: the notice stays until the work is handed in, however the activity is completed.
+     *
+     * Completing the activity (here by hand, as a "view" condition would on opening
+     * the page) is not handing anything in, so the notice stays; submitting removes it.
+     *
+     * @return void
+     */
+    public function test_notice_until_handed_in(): void {
+        $assign = $this->assignment(['duedate' => time() - DAYSECS]);
+        [, $cm] = get_course_and_cm_from_cmid($assign->cmid, 'assign');
+
+        (new \completion_info($this->course))->update_state($cm, COMPLETION_COMPLETE, $this->student->id);
+        $this->assertNotNull($this->notice($assign, $this->student), 'Completed without a submission');
+
+        $this->submit_assign($assign, $this->student);
+        $this->assertNull($this->notice($assign, $this->student), 'Submitted');
+    }
+
+    /**
+     * Teacher: the overdue notice counts students who have not handed in; none left, no notice; on time, the plain notice.
+     *
+     * @return void
+     */
+    public function test_teacher_notice(): void {
+        $past = time() - 2 * DAYSECS + HOURSECS;
+        $assign = $this->assignment(['duedate' => $past]);
+        $expected = get_string('courseinfo_teacher_overdue', 'local_latepenalty', (object) [
+            'deadline' => penalty_helper::format_deadline($past),
+            'pct' => '20',
+            'daily' => '10',
+            'max' => '50',
+            'pending' => 1,
+        ]);
+        $this->assertSame($expected, $this->notice($assign, $this->teacher));
+
+        [, $cm] = get_course_and_cm_from_cmid($assign->cmid, 'assign');
+        (new \completion_info($this->course))->update_state($cm, COMPLETION_COMPLETE, $this->student->id);
+        $this->assertSame($expected, $this->notice($assign, $this->teacher), 'Completion alone changes nothing');
+
+        $this->submit_assign($assign, $this->student);
+        $this->assertNull($this->notice($assign, $this->teacher));
+
+        $future = $this->assignment(['duedate' => time() + DAYSECS]);
+        $this->assertStringContainsString('10', (string) $this->notice($future, $this->teacher));
+    }
+
+    /**
+     * The course page payload for a user: the badges queued by the plugin, keyed by course module ID.
+     *
+     * @param \stdClass $user User.
+     * @return array Badge data keyed by course module ID.
+     */
+    private function course_badges(\stdClass $user): array {
+        global $PAGE;
+
+        $this->setUser($user);
+        $PAGE = new \moodle_page();
+        $PAGE->set_course($this->course);
+        $PAGE->set_pagetype('course-view-topics');
+        $PAGE->set_url('/course/view.php', ['id' => $this->course->id]);
+        $hook = (new \ReflectionClass(\core\hook\output\before_standard_footer_html_generation::class))
+            ->newInstanceWithoutConstructor();
+        hook_listener::inject_course_notices($hook);
+
+        $code = implode("\n", (new \ReflectionProperty($PAGE->requires, 'amdjscode'))->getValue($PAGE->requires));
+        if (!preg_match("/courseinfo'\\], function\\(amd\\) \\{amd\\.init\\((\\[.*?\\])\\);/s", $code, $matches)) {
+            return [];
+        }
+        return array_column(json_decode($matches[1], true), null, 'cmid');
+    }
+
+    /**
+     * Teacher: students the activity's access restriction keeps out are never counted as pending.
+     *
+     * Restricted to group A (two students, one has handed in), two more students outside it:
+     * one pending, on the course page and on the activity page, and nothing once the last
+     * student of group A hands in. Regression guard: the five students counted as four pending
+     * and the badge never went away.
+     *
+     * @return void
+     */
+    public function test_pending_count_follows_access_restriction(): void {
+        set_config('enableavailability', 1);
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $this->course->id]);
+        $classmate = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+        foreach ([$this->student, $classmate] as $member) {
+            $this->getDataGenerator()->create_group_member(['groupid' => $groupa->id, 'userid' => $member->id]);
+        }
+        $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+        $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+        $past = time() - 2 * DAYSECS + HOURSECS;
+        $assign = $this->assignment([
+            'duedate' => $past,
+            'availability' => json_encode(\core_availability\tree::get_root_json(
+                [\availability_group\condition::get_json($groupa->id)]
+            )),
+        ]);
+        $this->submit_assign($assign, $classmate);
+
+        $this->assertSame(get_string('courseinfo_teacher_overdue', 'local_latepenalty', (object) [
+            'deadline' => penalty_helper::format_deadline($past),
+            'pct' => '20',
+            'daily' => '10',
+            'max' => '50',
+            'pending' => 1,
+        ]), $this->notice($assign, $this->teacher));
+        $this->assertSame(
+            get_string('badge_teacher_pending', 'local_latepenalty', ['pct' => '20', 'pending' => 1]),
+            $this->course_badges($this->teacher)[$assign->cmid]['badgelabel'] ?? null
+        );
+
+        $this->submit_assign($assign, $this->student);
+        $this->assertNull($this->notice($assign, $this->teacher));
+        $this->assertArrayNotHasKey($assign->cmid, $this->course_badges($this->teacher));
+    }
+
+    /**
+     * Teacher in separate groups: the course page counts the same groups as the activity page.
+     *
+     * The activity uses a grouping with group A only; the non-editing teacher belongs to groups
+     * A and B, with one pending student in each. Only group A counts on both pages. Regression
+     * guard: the course page counted every group of the teacher in the course, two pending.
+     *
+     * @return void
+     */
+    public function test_pending_count_same_on_both_pages_with_grouping(): void {
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $this->course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $this->course->id]);
+        $grouping = $this->getDataGenerator()->create_grouping(['courseid' => $this->course->id]);
+        $this->getDataGenerator()->create_grouping_group(['groupingid' => $grouping->id, 'groupid' => $groupa->id]);
+        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
+        $other = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+        foreach ([[$groupa, $teacher], [$groupb, $teacher], [$groupa, $this->student], [$groupb, $other]] as [$group, $user]) {
+            $this->getDataGenerator()->create_group_member(['groupid' => $group->id, 'userid' => $user->id]);
+        }
+        $past = time() - 2 * DAYSECS + HOURSECS;
+        $assign = $this->assignment([
+            'duedate' => $past,
+            'groupmode' => SEPARATEGROUPS,
+            'groupingid' => $grouping->id,
+        ]);
+
+        $this->assertSame(
+            get_string('badge_teacher_pending', 'local_latepenalty', ['pct' => '20', 'pending' => 1]),
+            $this->course_badges($teacher)[$assign->cmid]['badgelabel'] ?? null
+        );
+        $this->assertSame(get_string('courseinfo_teacher_overdue', 'local_latepenalty', (object) [
+            'deadline' => penalty_helper::format_deadline($past),
+            'pct' => '20',
+            'daily' => '10',
+            'max' => '50',
+            'pending' => 1,
+        ]), $this->notice($assign, $teacher));
+    }
+
+    /**
+     * Course page: the student's badge stays until the work is handed in; the teacher counts who has not.
+     *
+     * @return void
+     */
+    public function test_course_badge_until_handed_in(): void {
+        $assign = $this->assignment(['duedate' => time() - DAYSECS]);
+        [, $cm] = get_course_and_cm_from_cmid($assign->cmid, 'assign');
+
+        $this->assertArrayHasKey($assign->cmid, $this->course_badges($this->student));
+        $this->assertStringContainsString('1', $this->course_badges($this->teacher)[$assign->cmid]['badgelabel']);
+
+        (new \completion_info($this->course))->update_state($cm, COMPLETION_COMPLETE, $this->student->id);
+        $this->assertArrayHasKey($assign->cmid, $this->course_badges($this->student), 'Completed without a submission');
+        $this->assertArrayHasKey($assign->cmid, $this->course_badges($this->teacher), 'Completed without a submission');
+
+        $this->submit_assign($assign, $this->student);
+        $this->assertArrayNotHasKey($assign->cmid, $this->course_badges($this->student), 'Submitted');
+        $this->assertArrayNotHasKey($assign->cmid, $this->course_badges($this->teacher), 'Nobody pending');
+    }
+
+    /**
+     * No notice: guest, rule disabled, no deadline, scale grade.
+     *
+     * @return void
+     */
+    public function test_no_notice_cases(): void {
+        global $DB;
+
+        $assign = $this->assignment(['duedate' => time() + DAYSECS]);
+        $this->assertNull($this->notice($assign, null), 'Guest');
+
+        $DB->set_field('local_latepenalty_rules', 'enabled', 0, ['cmid' => $assign->cmid]);
+        $this->assertNull($this->notice($assign, $this->student), 'Rule disabled');
+
+        $nodeadline = $this->assignment(['duedate' => 0]);
+        $this->assertNull($this->notice($nodeadline, $this->student), 'No deadline (student)');
+        $this->assertNull($this->notice($nodeadline, $this->teacher), 'No deadline (teacher)');
+
+        $scale = $this->getDataGenerator()->create_scale(['courseid' => $this->course->id]);
+        $scaled = $this->assignment(['duedate' => time() + DAYSECS, 'grade' => -$scale->id]);
+        $this->assertNull($this->notice($scaled, $this->student), 'Scale grade');
+    }
+
+    /**
+     * No notice on the assignment grader, which uses the embedded layout and has no activity header.
+     *
+     * @return void
+     */
+    public function test_no_notice_on_embedded_layout(): void {
+        $overdue = $this->assignment(['duedate' => time() - 2 * DAYSECS]);
+
+        $this->assertNotNull($this->notice($overdue, $this->student), 'Student, regular page');
+        $this->assertNull($this->notice($overdue, $this->student, 'embedded'), 'Student, embedded');
+        $this->assertNotNull($this->notice($overdue, $this->teacher), 'Teacher, regular page');
+        $this->assertNull($this->notice($overdue, $this->teacher, 'embedded'), 'Teacher, embedded');
+    }
+
+    /**
+     * No notice on a page outside any activity.
+     *
+     * @return void
+     */
+    public function test_no_notice_outside_activities(): void {
+        global $PAGE;
+
+        $this->setUser($this->student);
+        $PAGE = new \moodle_page();
+        $PAGE->set_course($this->course);
+        $PAGE->set_url('/course/view.php', ['id' => $this->course->id]);
+        $hook = (new \ReflectionClass(\core\hook\output\before_http_headers::class))->newInstanceWithoutConstructor();
+
+        hook_listener::inject_activity_notice($hook);
+
+        $code = implode("\n", (new \ReflectionProperty($PAGE->requires, 'amdjscode'))->getValue($PAGE->requires));
+        $this->assertStringNotContainsString('local_latepenalty/activityinfo', $code);
+    }
+}

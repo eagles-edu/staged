@@ -24,6 +24,7 @@
 
 namespace local_mcp\protocol;
 
+use local_mcp\compat;
 use local_mcp\exception\api_exception;
 use stdClass;
 
@@ -107,12 +108,10 @@ final class tool_input_validator {
                     continue;
                 }
                 $limit = $schema[$key];
-                $invalid = match ($operator) {
-                    "<" => $value < $limit,
-                    ">" => $value > $limit,
-                    "<=" => $value <= $limit,
-                    ">=" => $value >= $limit,
-                };
+                $invalid = ($operator === "<" && $value < $limit)
+                    || ($operator === ">" && $value > $limit)
+                    || ($operator === "<=" && $value <= $limit)
+                    || ($operator === ">=" && $value >= $limit);
                 if ($invalid) {
                     self::reject($path, "number violates " . $key);
                 }
@@ -123,7 +122,7 @@ final class tool_input_validator {
             }
         }
 
-        if (is_array($value) && array_is_list($value)) {
+        if (is_array($value) && compat::is_list($value)) {
             $count = count($value);
             if (isset($schema["minItems"]) && $count < $schema["minItems"]) {
                 self::reject($path, "array is shorter than minItems");
@@ -146,7 +145,7 @@ final class tool_input_validator {
             }
         }
 
-        if ($value instanceof stdClass || (is_array($value) && !array_is_list($value))) {
+        if ($value instanceof stdClass || (is_array($value) && !compat::is_list($value))) {
             $properties = (array)$value;
             $defined = (array)($schema["properties"] ?? []);
             foreach ($schema["required"] ?? [] as $key) {
@@ -225,8 +224,8 @@ final class tool_input_validator {
      */
     private static function matches_type(mixed $value, mixed $type): bool {
         return match ($type) {
-            "object" => $value instanceof stdClass || (is_array($value) && !array_is_list($value)),
-            "array" => is_array($value) && array_is_list($value),
+            "object" => $value instanceof stdClass || (is_array($value) && !compat::is_list($value)),
+            "array" => is_array($value) && compat::is_list($value),
             "integer" => is_int($value),
             "number" => is_int($value) || is_float($value),
             "string" => is_string($value),

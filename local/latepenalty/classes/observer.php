@@ -1,0 +1,343 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Event observer for applying late penalties to grades.
+ *
+ * @package    local_latepenalty
+ * @copyright  2026 Jean Lúcio
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_latepenalty;
+
+use local_latepenalty\local\penalty_writer;
+
+/**
+ * Observer class for handling grade events.
+ */
+class observer {
+    /** @var int|null Course whose reset is running: its group changes recalculate nothing. */
+    private static ?int $resetcourseid = null;
+
+    /**
+     * Apply the late penalty when a module grades a student.
+     *
+     * The event carries the graded item, which matters because an activity may
+     * own several items. Events fired by the plugin's own writes are recognised
+     * and skipped.
+     *
+     * @param \core\event\user_graded $event The grade event.
+     * @return void
+     */
+    public static function user_graded(\core\event\user_graded $event): void {
+        global $DB;
+
+        $userid = (int) $event->relateduserid;
+        $itemid = (int) ($event->other['itemid'] ?? 0);
+        if (empty($userid) || empty($itemid)) {
+            return;
+        }
+
+        $finalgrade = $event->other['finalgrade'] ?? null;
+        if (penalty_writer::is_own_echo($userid, $itemid, $finalgrade === null ? null : (float) $finalgrade)) {
+            return;
+        }
+
+        $gradeitem = \grade_item::fetch(['id' => $itemid]);
+        if (!$gradeitem || !penalty_helper::is_penalisable_item($gradeitem)) {
+            return;
+        }
+
+        $cm = get_coursemodule_from_instance(
+            $gradeitem->itemmodule,
+            $gradeitem->iteminstance,
+            $gradeitem->courseid,
+            false,
+            IGNORE_MISSING
+        );
+        if (!$cm) {
+            return;
+        }
+
+        $rule = $DB->get_record('local_latepenalty_rules', ['cmid' => $cm->id]);
+        if (!$rule || !$rule->enabled) {
+            return;
+        }
+
+        recalculator::run($cm, $gradeitem, [$userid], (float) $rule->daily_penalty, (float) $rule->max_penalty, null);
+    }
+
+    /**
+     * Reprocess a quiz student right after the quiz grade changed, where the core sends no grade event.
+     *
+     * With the penalty stored as an overridden final grade (Moodle 4.5, 5.0, frozen gradebooks), a
+     * better grade from a new attempt or a regrade by the teacher only changes the raw grade and the
+     * core fires no user_graded for it. The quiz updates the grade before it logs the attempt as
+     * submitted (Moodle 4.5), as graded (5.0 and later) or the question as manually graded, so the raw
+     * grade is already in place here. Where the deducted mark is used the core reports every new raw
+     * grade and nothing is needed.
+     *
+     * @param \core\event\base $event attempt_submitted, attempt_graded or question_manually_graded.
+     * @return void
+     */
+    public static function quiz_grade_updated(\core\event\base $event): void {
+        global $DB;
+
+        if ((int) $event->contextlevel !== CONTEXT_MODULE || penalty_writer::uses_deducted_mark((int) $event->courseid)) {
+            return;
+        }
+        // From Moodle 5.0 a submitted attempt is graded later and attempt_graded follows; the grade is unchanged now.
+        $submitted = $event->eventname === '\mod_quiz\event\attempt_submitted'
+            && defined(\mod_quiz\quiz_attempt::class . '::SUBMITTED');
+        if ($submitted) {
+            return;
+        }
+        $rule = $DB->get_record('local_latepenalty_rules', ['cmid' => (int) $event->contextinstanceid, 'enabled' => 1]);
+        if (!$rule) {
+            return;
+        }
+
+        // The manual grading event names the attempt in its data, the submission event is about the attempt.
+        $attemptid = (int) ($event->other['attemptid'] ?? $event->objectid);
+        $userid = (int) $DB->get_field('quiz_attempts', 'userid', ['id' => $attemptid, 'preview' => 0]);
+        if (empty($userid)) {
+            return;
+        }
+
+        recalculator::recalculate_for_student(
+            (int) $event->contextinstanceid,
+            $userid,
+            (float) $rule->daily_penalty,
+            (float) $rule->max_penalty
+        );
+    }
+
+    /**
+     * Recalculate when an activity override or extension changes a deadline (F7).
+     *
+     * Handles the student and group override events of assignments, quizzes and
+     * lessons, and assignment extensions. A student event recalculates that
+     * student; a group event recalculates the group's members.
+     *
+     * @param \core\event\base $event Override or extension event, in the activity context.
+     * @return void
+     */
+    public static function activity_deadline_changed(\core\event\base $event): void {
+        global $DB;
+
+        if ((int) $event->contextlevel !== CONTEXT_MODULE) {
+            return;
+        }
+        $cmid = (int) $event->contextinstanceid;
+        $rule = $DB->get_record('local_latepenalty_rules', ['cmid' => $cmid, 'enabled' => 1]);
+        if (!$rule) {
+            return;
+        }
+
+        if (!empty($event->relateduserid)) {
+            recalculator::recalculate_for_student(
+                $cmid,
+                (int) $event->relateduserid,
+                (float) $rule->daily_penalty,
+                (float) $rule->max_penalty
+            );
+        } else if (!empty($event->other['groupid'])) {
+            recalculator::recalculate_for_group(
+                $cmid,
+                (int) $event->other['groupid'],
+                (float) $rule->daily_penalty,
+                (float) $rule->max_penalty
+            );
+        }
+    }
+
+    /**
+     * Delete the plugin's own rows for a single course module that is being removed.
+     *
+     * Fires only for the "delete this activity" path (course_delete_module()).
+     * Whole-course deletion does not go through that function — see
+     * course_deleted() below — so this alone does not cover course removal.
+     * Without this cleanup, rules/overrides/group overrides keyed by the dead
+     * cmid would remain orphaned forever, including per-student data the Privacy
+     * API can no longer reach once the module's context_module row is gone.
+     *
+     * @param \core\event\course_module_deleted $event The event.
+     * @return void
+     */
+    public static function course_module_deleted(\core\event\course_module_deleted $event): void {
+        global $DB;
+
+        $cmid = (int) $event->objectid;
+
+        $DB->delete_records('local_latepenalty_overrides', ['cmid' => $cmid]);
+        $DB->delete_records('local_latepenalty_group_overrides', ['cmid' => $cmid]);
+        $DB->delete_records('local_latepenalty_rules', ['cmid' => $cmid]);
+    }
+
+    /**
+     * Delete the group overrides of a group that was removed, and recalculate where it changed a deadline.
+     *
+     * Its members are gone from groups_members by the time the event fires, so the
+     * activities where the group changed a deadline are recalculated in the background,
+     * and only those (F19). This observer runs before the assignment, quiz and lesson
+     * ones (higher priority in db/events.php), while their group overrides still tell
+     * which activities those are. Course resets and "Delete all groups" also fire this
+     * event once per group; a reset recalculates nothing.
+     *
+     * @param \core\event\group_deleted $event The event.
+     * @return void
+     */
+    public static function group_deleted(\core\event\group_deleted $event): void {
+        global $DB;
+
+        $courseid = (int) $event->courseid;
+        $groupid = (int) $event->objectid;
+        $cmids = self::$resetcourseid === $courseid
+            ? []
+            : array_keys(recalculator::rules_with_group_deadline($courseid, $groupid));
+
+        $DB->delete_records('local_latepenalty_group_overrides', ['groupid' => $groupid]);
+
+        if (empty($cmids)) {
+            return;
+        }
+        $task = new task\recalculate_course();
+        $task->set_custom_data(['courseid' => $courseid, 'cmids' => array_map('intval', $cmids)]);
+        \core\task\manager::queue_adhoc_task($task, true);
+    }
+
+    /**
+     * Recalculate a student who joined or left a group that changes deadlines.
+     *
+     * Joining or leaving the group gives or takes away its group overrides, from
+     * Late Penalty or from the activity itself, as editing the override would.
+     * Nothing happens during a course reset, nor for a user no longer enrolled:
+     * unenrolling removes the groups right before core deletes the grade, which
+     * "Recover grades" would bring back from the history as it was last written.
+     *
+     * @param \core\event\base $event group_member_added or group_member_removed.
+     * @return void
+     */
+    public static function group_member_changed(\core\event\base $event): void {
+        $courseid = (int) $event->courseid;
+        $userid = (int) $event->relateduserid;
+        if (self::$resetcourseid === $courseid || !is_enrolled(\context_course::instance($courseid), $userid)) {
+            return;
+        }
+
+        foreach (recalculator::rules_with_group_deadline($courseid, (int) $event->objectid) as $rule) {
+            recalculator::recalculate_for_student(
+                (int) $rule->cmid,
+                $userid,
+                (float) $rule->daily_penalty,
+                (float) $rule->max_penalty
+            );
+        }
+    }
+
+    /**
+     * Note that a course reset started, so its group changes recalculate nothing.
+     *
+     * A reset closes a term: recalculating then would punish the students who had
+     * a group extension in it, which is not what removing the groups means.
+     *
+     * @param \core\event\course_reset_started $event The event.
+     * @return void
+     */
+    public static function course_reset_started(\core\event\course_reset_started $event): void {
+        self::$resetcourseid = (int) $event->courseid;
+    }
+
+    /**
+     * Move the plugin's deadlines with a reset that changes the course start date.
+     *
+     * Core moves the activities' dates and their own overrides by the difference
+     * between the new and the old start date; the Late Penalty overrides and the
+     * deadline each rule last saw move by the same amount. Otherwise an override
+     * would stay in the term that ended, and the first save of the activity would
+     * read the shifted due date as a teacher's change and recalculate.
+     *
+     * The event carries the reset form data but not the computed shift, so it is
+     * worked out here as reset_course_userdata() does.
+     *
+     * @param \core\event\course_reset_ended $event The event.
+     * @return void
+     */
+    public static function course_reset_ended(\core\event\course_reset_ended $event): void {
+        global $DB;
+
+        self::$resetcourseid = null;
+
+        $options = $event->other['reset_options'] ?? [];
+        if (empty($options['reset_start_date'])) {
+            return;
+        }
+        $timeshift = (int) $options['reset_start_date'] - (int) ($options['reset_start_date_old'] ?? 0);
+        if ($timeshift === 0) {
+            return;
+        }
+
+        // Bulk updates, as core shifts dates on reset (shift_course_mod_dates(), assign and quiz
+        // overrides); these tables have no cache to purge. Empty deadlines mean "inherit" and stay empty.
+        $params = ['shift' => $timeshift, 'courseid' => (int) $event->courseid];
+        $incourse = "cmid IN (SELECT id FROM {course_modules} WHERE course = :courseid)";
+        foreach (['local_latepenalty_overrides', 'local_latepenalty_group_overrides'] as $table) {
+            $DB->execute("UPDATE {{$table}} SET deadline = deadline + :shift WHERE deadline IS NOT NULL AND $incourse", $params);
+        }
+        $DB->execute(
+            "UPDATE {local_latepenalty_rules} SET last_deadline = last_deadline + :shift WHERE last_deadline <> 0 AND $incourse",
+            $params
+        );
+    }
+
+    /**
+     * Delete the plugin's own rows for every course module in a course that is
+     * about to be removed.
+     *
+     * remove_course_contents() (called by delete_course()) deletes course_modules
+     * rows through its own duplicated code path — its source literally flags
+     * "very similar code in course_delete_module" — and never fires
+     * course_module_deleted per module. So course_module_deleted() above never
+     * runs during a whole-course deletion, confirmed by exercising the real
+     * delete_course() and finding orphaned rows survive it. This hook fires
+     * before remove_course_contents() runs, while course_modules rows for the
+     * course still exist, so the affected cmids can still be resolved.
+     *
+     * @param \core_course\hook\before_course_deleted $hook The hook instance.
+     * @return void
+     */
+    public static function course_deleted(\core_course\hook\before_course_deleted $hook): void {
+        global $DB;
+
+        $cmids = array_keys($DB->get_records(
+            'course_modules',
+            ['course' => (int) $hook->course->id],
+            '',
+            'id'
+        ));
+
+        if (empty($cmids)) {
+            return;
+        }
+
+        [$insql, $inparams] = $DB->get_in_or_equal($cmids, SQL_PARAMS_NAMED);
+
+        $DB->delete_records_select('local_latepenalty_overrides', "cmid $insql", $inparams);
+        $DB->delete_records_select('local_latepenalty_group_overrides', "cmid $insql", $inparams);
+        $DB->delete_records_select('local_latepenalty_rules', "cmid $insql", $inparams);
+    }
+}

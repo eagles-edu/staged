@@ -1,0 +1,214 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_latepenalty/report
+
+    Course-level report showing every student who received a late penalty,
+    with the most recent penalty event per student + activity pair.
+
+    Context variables required for this template:
+    * formaction   - URL for the filter form action (no query string).
+    * courseid     - Course ID, sent as hidden field to preserve it across filter submissions.
+    * useroptions  - Array of {value, label, selected} for the student select.
+    * cmoptions    - Array of {value, label, selected} for the activity select.
+    * filteruserid - Currently selected user id (0 = all).
+    * filtercmid   - Currently selected cm id (0 = all).
+    * haspenalties - Boolean: true when at least one penalty has been applied.
+    * exporturl    - Base URL for the export entry point (without format param).
+    * historywarning - Warning about a disabled or time-limited grade history ('' when none).
+    * penalties    - Array of penalty rows: fullname, activity, hasdeadline, deadline,
+                     deadlineorigin, rawgrade, hasdiscount, discount, points, finalgrade,
+                     grademax, penaltydate, hasuseroverride, hasgroupoverride.
+
+    Example context (json):
+    {
+        "formaction": "/local/latepenalty/report.php",
+        "courseid": 2,
+        "filteruserid": 0,
+        "filtercmid": 0,
+        "useroptions": [
+            {"value": 0, "label": "All students", "selected": true},
+            {"value": 5, "label": "João Silva", "selected": false}
+        ],
+        "cmoptions": [
+            {"value": 0, "label": "All activities", "selected": true},
+            {"value": 12, "label": "Quiz semana 3", "selected": false}
+        ],
+        "haspenalties": true,
+        "historywarning": "",
+        "exporturl": "/local/latepenalty/report_export.php?courseid=2&userid=0&cmid=0",
+        "penalties": [
+            {
+                "fullname": "João Silva",
+                "activity": "Quiz semana 3",
+                "hasdeadline": true,
+                "deadline": "7 May 2026, 11:59 PM",
+                "deadlineorigin": "Extension",
+                "rawgrade": "8,00",
+                "hasdiscount": true,
+                "discount": "10,0",
+                "points": "0,80",
+                "finalgrade": "7,20",
+                "grademax": "10,00",
+                "penaltydate": "7 May 2026, 2:14 PM",
+                "hasuseroverride": false,
+                "hasgroupoverride": false
+            },
+            {
+                "fullname": "Maria Souza",
+                "activity": "Tarefa 1",
+                "hasdeadline": false,
+                "deadline": "",
+                "deadlineorigin": "Activity override: no due date",
+                "rawgrade": "9,50",
+                "hasdiscount": false,
+                "discount": "0,0",
+                "points": "0,00",
+                "finalgrade": "9,50",
+                "grademax": "10,00",
+                "penaltydate": "4 May 2026, 9:00 AM",
+                "hasuseroverride": true,
+                "hasgroupoverride": false
+            }
+        ]
+    }
+}}
+<div class="local-latepenalty-report mt-4">
+    {{#historywarning}}
+    <div class="alert alert-warning" role="alert">{{historywarning}}</div>
+    {{/historywarning}}
+    <form method="get" action="{{formaction}}" class="mb-4">
+        <div class="row align-items-end local-latepenalty-filter-row">
+            <div class="col-auto">
+                <label for="lp-filter-user" class="mb-1">
+                    {{#str}} filter_student, local_latepenalty {{/str}}
+                </label>
+                <select id="lp-filter-user" name="userid" class="form-control form-control-sm">
+                    {{#useroptions}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                    {{/useroptions}}
+                </select>
+            </div>
+            <div class="col-auto">
+                <label for="lp-filter-cm" class="mb-1">
+                    {{#str}} filter_activity, local_latepenalty {{/str}}
+                </label>
+                <select id="lp-filter-cm" name="cmid" class="form-control form-control-sm">
+                    {{#cmoptions}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                    {{/cmoptions}}
+                </select>
+            </div>
+            <input type="hidden" name="courseid" value="{{courseid}}">
+            <div class="col-auto">
+                <button type="submit" class="btn btn-secondary btn-sm">
+                    {{#str}} filter_apply, local_latepenalty {{/str}}
+                </button>
+            </div>
+        </div>
+    </form>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <i class="fa fa-table text-white local-latepenalty-report-icon" aria-hidden="true"></i>
+                <h2 class="card-title h5 mb-0 text-white">
+                    {{#str}} report, local_latepenalty {{/str}}
+                </h2>
+            </div>
+            {{#haspenalties}}
+            <div>
+                <a href="{{exporturl}}&amp;format=csv"
+                   class="btn btn-sm btn-outline-light"
+                   aria-label="{{#str}} report_download_csv, local_latepenalty {{/str}}"
+                   title="{{#str}} report_download_csv, local_latepenalty {{/str}}">
+                    <i class="fa fa-download" aria-hidden="true"></i>
+                    <span class="d-none d-md-inline">{{#str}} report_download_csv, local_latepenalty {{/str}}</span>
+                </a>
+                <a href="{{exporturl}}&amp;format=excel"
+                   class="btn btn-sm btn-outline-light ms-1"
+                   aria-label="{{#str}} report_download_excel, local_latepenalty {{/str}}"
+                   title="{{#str}} report_download_excel, local_latepenalty {{/str}}">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                    <span class="d-none d-md-inline">{{#str}} report_download_excel, local_latepenalty {{/str}}</span>
+                </a>
+            </div>
+            {{/haspenalties}}
+        </div>
+        <div class="card-body p-0">
+            {{#haspenalties}}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">{{#str}} report_col_student, local_latepenalty {{/str}}</th>
+                            <th scope="col">{{#str}} report_col_activity, local_latepenalty {{/str}}</th>
+                            <th scope="col">{{#str}} report_col_deadline, local_latepenalty {{/str}}</th>
+                            <th scope="col" class="text-center">
+                                {{#str}} report_col_rawgrade, local_latepenalty {{/str}}
+                            </th>
+                            <th scope="col" class="text-center">
+                                {{#str}} report_col_discount, local_latepenalty {{/str}}
+                            </th>
+                            <th scope="col" class="text-center">
+                                {{#str}} report_col_points, local_latepenalty {{/str}}
+                            </th>
+                            <th scope="col" class="text-center">
+                                {{#str}} report_col_finalgrade, local_latepenalty {{/str}}
+                            </th>
+                            <th scope="col">{{#str}} report_col_date, local_latepenalty {{/str}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#penalties}}
+                        <tr>
+                            <td>{{fullname}}</td>
+                            <td>{{activity}}</td>
+                            <td>
+                                {{#hasdeadline}}{{deadline}}{{/hasdeadline}}{{^hasdeadline}}&mdash;{{/hasdeadline}}
+                                <div class="small">{{deadlineorigin}}</div>
+                            </td>
+                            <td class="text-center">{{rawgrade}} / {{grademax}}</td>
+                            <td class="text-center local-latepenalty-discount">
+                                {{#hasdiscount}}&minus;{{/hasdiscount}}{{discount}}%
+                                {{#hasuseroverride}}
+                                <span class="badge bg-secondary ms-1 local-latepenalty-override-badge">
+                                    {{#str}} report_override_user, local_latepenalty {{/str}}
+                                </span>
+                                {{/hasuseroverride}}
+                                {{#hasgroupoverride}}
+                                <span class="badge bg-secondary ms-1 local-latepenalty-override-badge">
+                                    {{#str}} report_override_group, local_latepenalty {{/str}}
+                                </span>
+                                {{/hasgroupoverride}}
+                            </td>
+                            <td class="text-center">{{#hasdiscount}}&minus;{{/hasdiscount}}{{points}}</td>
+                            <td class="text-center">{{finalgrade}} / {{grademax}}</td>
+                            <td>{{penaltydate}}</td>
+                        </tr>
+                        {{/penalties}}
+                    </tbody>
+                </table>
+            </div>
+            {{/haspenalties}}
+            {{^haspenalties}}
+            <div class="p-4">
+                <p class="mb-0">{{#str}} report_empty, local_latepenalty {{/str}}</p>
+            </div>
+            {{/haspenalties}}
+        </div>
+    </div>
+</div>

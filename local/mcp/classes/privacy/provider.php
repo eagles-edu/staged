@@ -30,8 +30,10 @@ use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
+use core_privacy\local\request\core_userlist_provider;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use stdClass;
 
 /**
  * Privacy provider for user-bound MCP connections, OAuth credentials and audit records.
@@ -39,7 +41,7 @@ use core_privacy\local\request\writer;
 final class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\plugin\provider,
-    \core_privacy\local\request\core_userlist_provider {
+    core_userlist_provider {
 
     /**
      * Tables are ordered so credentials are removed before their connections.
@@ -91,15 +93,16 @@ final class provider implements
                 "used", "timecreated",
             ],
         ];
+        $metadatakeys = [
+            "local_mcp_connection" => "privacy:metadata:local_mcp_connections",
+            "local_mcp_audit" => "privacy:metadata:local_mcp_audit",
+            "local_mcp_auth_code" => "privacy:metadata:local_mcp_auth_code",
+            "local_mcp_access_token" => "privacy:metadata:local_mcp_access_token",
+            "local_mcp_refresh_token" => "privacy:metadata:local_mcp_refresh_token",
+            "local_mcp_confirm" => "privacy:metadata:local_mcp_confirm",
+        ];
         foreach ($fields as $table => $columns) {
-            $key = match ($table) {
-                "local_mcp_connection" => "privacy:metadata:local_mcp_connections",
-                "local_mcp_audit" => "privacy:metadata:local_mcp_audit",
-                "local_mcp_auth_code" => "privacy:metadata:local_mcp_auth_code",
-                "local_mcp_access_token" => "privacy:metadata:local_mcp_access_token",
-                "local_mcp_refresh_token" => "privacy:metadata:local_mcp_refresh_token",
-                "local_mcp_confirm" => "privacy:metadata:local_mcp_confirm",
-            };
+            $key = $metadatakeys[$table];
             $collection->add_database_table($table, array_fill_keys($columns, $key), $key);
         }
 
@@ -172,7 +175,7 @@ final class provider implements
             "refresh_tokens" => "local_mcp_refresh_token",
             "confirmations" => "local_mcp_confirm",
         ];
-        $data = new \stdClass();
+        $data = new stdClass();
         foreach ($exports as $name => $table) {
             $records = array_values($DB->get_records($table, ["userid" => $userid]));
             foreach ($records as $record) {
