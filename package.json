@@ -166,7 +166,7 @@
     "css-declaration-sorter": "^7.4.0",
     "cssnano": "^7.1.9",
     "dom-serializer": "^2.0.0",
-    "dotenv": "^17.4.2",
+    "dotenv": "^18.0.10",
     "fast-xml-parser": "^5.10.0",
     "glob": ">=11.1.0",
     "js-yaml": "^4.3.1",
